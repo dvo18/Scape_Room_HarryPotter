@@ -96,7 +96,10 @@ class H_estructura extends THREE.Object3D {
                 break;
         }
 
-        this.add(this.createPillar(0.2));
+        var pilar = this.createPillar(0.2);
+        pilar.position.x = this.conf.largo/2 - 0.27;
+        pilar.position.z = -this.conf.profundidad/2 + 0.27;
+        this.add(pilar);
 
         for(var clave in this.estr) {
             if (clave == 'T' && !this.techo_visible) continue;
@@ -214,7 +217,7 @@ class H_estructura extends THREE.Object3D {
 
         var s = new CSG().subtract([cil,cub]).toMesh();
         var t = new CSG().subtract([techo,cub]).toMesh();
-
+        
         return {
             suelo: s,
             techo: t,
@@ -229,6 +232,7 @@ class H_estructura extends THREE.Object3D {
 
         plano.rotation.x = -Math.PI/2;
 
+        // empezamos en nivel 0
         plano.position.y = -grosor/2;
 
         return plano;
@@ -286,8 +290,6 @@ class H_estructura extends THREE.Object3D {
         
         var points = colum.extractPoints(10).shape;
         var columna = new THREE.Mesh( new THREE.LatheGeometry(points, 100, 0, Math.PI*2), new THREE.MeshMatcapMaterial() );
-
-        //columna = new THREE.Mesh( new THREE.CylinderGeometry(r,r,alto,10), new THREE.MeshMatcapMaterial() );
 
         columna.position.y = r*PROP_ALTO;
 
