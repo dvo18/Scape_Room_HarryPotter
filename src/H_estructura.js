@@ -72,6 +72,9 @@ class H_estructura extends THREE.Object3D {
         }
 
 
+        this.grosor_techo = 2 * opciones.alto/3;
+
+
         // Estructuras posibles:
         // Muros ('Mn' con {n='Orientación (N,S,E,O...)'} )
         // Suelos ('S')
@@ -100,6 +103,8 @@ class H_estructura extends THREE.Object3D {
         pilar.position.x = this.conf.largo/2 - 0.27;
         pilar.position.z = -this.conf.profundidad/2 + 0.27;
         this.add(pilar);
+
+        this.estr.T.position.y = this.conf.alto+this.grosor_techo;
 
         for(var clave in this.estr) {
             if (clave == 'T' && !this.techo_visible) continue;
@@ -164,7 +169,11 @@ class H_estructura extends THREE.Object3D {
         this.createCircularRoom();
 
         this.estr.S = new CSG().union([this.estr.S,partes1.suelo,partes2.suelo]).toMesh();
+
         this.estr.T = new CSG().union([this.estr.T,partes1.techo,partes2.techo]).toMesh();
+
+        
+
         this.estr.MN = new CSG().subtract([this.estr.MN,partes2.pared_eliminar]).toMesh();
         this.estr.MN = new CSG().union([this.estr.MN,partes2.pared]).toMesh();
         this.estr.MS = new CSG().subtract([this.estr.MS,partes1.pared_eliminar]).toMesh();
@@ -188,8 +197,8 @@ class H_estructura extends THREE.Object3D {
         this.estr.ME = this.estr.MO.clone();
         this.estr.ME.position.x = -this.estr.MO.position.x;
 
-        this.estr.T = this.estr.S.clone();
-        this.estr.T.position.y += this.conf.alto + this.conf.grosor;
+        this.estr.T = this.createFloor(this.conf.largo, this.conf.profundidad, this.grosor_techo+this.conf.grosor, new THREE.MeshMatcapMaterial() );
+        this.estr.T.position.y += this.conf.alto + this.grosor_techo + this.conf.grosor;
         
     }
 
@@ -199,7 +208,8 @@ class H_estructura extends THREE.Object3D {
         cil.position.y = -this.conf.grosor/2;
 
         var techo = cil.clone();
-        techo.position.y += this.conf.alto+this.conf.grosor;
+        techo.scale.y = this.grosor_techo/this.conf.grosor + 1; // (x+y)/y = x/y + y/y = x/y + 1
+        techo.position.y = this.conf.alto + this.grosor_techo/2 + this.conf.grosor/2;
 
         var pared = new THREE.Mesh( new THREE.CylinderGeometry( radio+this.conf.grosor, radio+this.conf.grosor, this.conf.alto, 100 ), new THREE.MeshMatcapMaterial() );
         var cil_int = new THREE.Mesh( new THREE.CylinderGeometry( radio, radio, this.conf.alto, 100 ) );
@@ -213,14 +223,14 @@ class H_estructura extends THREE.Object3D {
 
         var pared_interior = new THREE.Mesh( new THREE.BoxGeometry( 2*this.conf.grosor, this.conf.alto, 2*radio) );
         pared_interior.position.y = this.conf.alto/2;
-        //pared_interior.position.x = -this.conf.grosor/2;
 
-        var s = new CSG().subtract([cil,cub]).toMesh();
-        var t = new CSG().subtract([techo,cub]).toMesh();
-        
+        var esf_techo = new THREE.Mesh( new THREE.SphereGeometry( radio, 100, 14 ) );
+        esf_techo.scale.y = this.grosor_techo/radio;
+        esf_techo.position.y = this.conf.alto;
+
         return {
-            suelo: s,
-            techo: t,
+            suelo: cil,
+            techo: new CSG().subtract([techo,esf_techo]).toMesh(),
             pared: new CSG().subtract([p,cub]).toMesh(),
             pared_eliminar: pared_interior
         };
@@ -228,11 +238,8 @@ class H_estructura extends THREE.Object3D {
 
 
     createFloor( largo, profundidad, grosor, material ) {
-        var plano = new THREE.Mesh( new THREE.BoxGeometry(largo,profundidad,grosor), material );
+        var plano = new THREE.Mesh( new THREE.BoxGeometry(largo,grosor,profundidad), material );
 
-        plano.rotation.x = -Math.PI/2;
-
-        // empezamos en nivel 0
         plano.position.y = -grosor/2;
 
         return plano;
@@ -240,9 +247,7 @@ class H_estructura extends THREE.Object3D {
 
 
     createWall( largo, alto, grosor, material ) {
-        var plano =  this.createFloor(largo,alto,grosor,material);
-
-        plano.rotation.x += Math.PI/2;
+        var plano = new THREE.Mesh( new THREE.BoxGeometry(largo,alto,grosor), material );
 
         plano.position.y = alto/2;
 
