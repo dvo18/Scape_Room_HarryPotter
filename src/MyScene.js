@@ -7,7 +7,8 @@ import { TrackballControls } from '../libs/TrackballControls.js'
 import { Stats } from '../libs/stats.module.js'
 
 import { H_estructura } from './H_estructura.js'
- 
+
+
 class MyScene extends THREE.Scene {
   constructor (myCanvas) {
     super();
@@ -39,7 +40,7 @@ class MyScene extends THREE.Scene {
     //this.axis.visible.value = false;
 
 
-    this.h_estructura = new H_estructura({grosor: 0.1, alto: 3, largo: 20, profundidad: 16, techo_visible: true, radio_mayor: 3, radio_menor: 3.5, porcentaje_pared: 3.5/20});
+    this.h_estructura = new H_estructura( {grosor: 0.1, alto: 3, largo: 20, profundidad: 16, techo_visible: false, radio_mayor: 3, radio_menor: 3.5, porcentaje_pared: 3.5/20});
     this.add(this.h_estructura);
   }
   
@@ -68,7 +69,7 @@ class MyScene extends THREE.Scene {
     //   Los planos de recorte cercano y lejano // 45 <--
     this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
     // También se indica dónde se coloca
-    this.camera.position.set (20, 10, 20);
+    this.camera.position.set (0,3,7)//(20, 10, 20);
     // Y hacia dónde mira
     var look = new THREE.Vector3 (0,0,0);
     this.camera.lookAt(look);

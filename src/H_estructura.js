@@ -3,6 +3,22 @@ import { CSG } from '../libs/CSG-v2.js'
  
 const PI = Math.PI;
 
+const RESOLUCION = 32;
+
+const MOSTRAR_TODO = false;
+
+
+function shapeToVector3 ( shape , num_pts = 6 ) {
+    var v2 = shape.extractPoints(num_pts).shape ;
+    var v3 = [];
+
+    v2.forEach((v) => {
+        v3.push( new THREE.Vector3(v.x, v.y, 0));
+    });
+
+    return v3 ;
+}
+
 class H_estructura extends THREE.Object3D {
     constructor( opciones ) {
         super();
@@ -74,42 +90,90 @@ class H_estructura extends THREE.Object3D {
 
         this.grosor_techo = 2 * opciones.alto/3;
 
+        this.PILAR_PROP_ALTO = 1.6;
+        this.PILAR_PROP_RADIO = 1.8;
+
+        this.radio_pilar = 2 * opciones.grosor;
+        this.radio_base_pilar = this.radio_pilar*this.PILAR_PROP_RADIO*Math.cos(PI/4);
+
+        this.num_bovedas_pilares = 4;
+        this.largo_boveda_pilares = opciones.largo - opciones.radio_menor*2 - (opciones.largo*opciones.porcentaje_pared - opciones.radio_menor) - this.radio_base_pilar*2;
+        this.profundidad_boveda_pilares = opciones.profundidad/2 - opciones.radio_mayor - this.radio_base_pilar*2;
+
+
 
         // Estructuras posibles:
         // Muros ('Mn' con {n='Orientación (N,S,E,O...)'} )
         // Suelos ('S')
+        // Techos ('T')
         // Puertas ('P')
         this.estr = {};
+        this.estr.CL = [];
 
+        
+        if (MOSTRAR_TODO) {
+            switch(tipo) {
+                case 0:
+                    this.createSquareRoom();
+                    break;
+                case 1:
+                    this.createCircularRoom();
+                    break;
+                case 2:
+                    if (opciones.hasOwnProperty('porcentaje_pared')) {
+                        this.createDoubleCircularRoom(opciones.porcentaje_pared);
+                    }
+                    else {
+                        this.createDoubleCircularRoom();
+                    }
+                    break;
+            }
 
-        switch(tipo) {
-            case 0:
-                this.createSquareRoom();
-                break;
-            case 1:
-                this.createCircularRoom();
-                break;
-            case 2:
-                if (opciones.hasOwnProperty('porcentaje_pared')) {
-                    this.createDoubleCircularRoom(opciones.porcentaje_pared);
-                }
-                else {
-                    this.createDoubleCircularRoom();
-                }
-                break;
+            //this.estr.T.position.y = this.conf.alto+this.grosor_techo;
+
+            for(var clave in this.estr) {
+                if (clave == 'T' && !this.techo_visible) continue;
+                else if (clave == 'CL')
+                    for (let e in this.estr[clave])
+                        this.add(this.estr[clave][e]);
+                this.add(this.estr[clave]);
+            }
         }
 
-        var pilar = this.createPillar(0.2);
-        pilar.position.x = this.conf.largo/2 - 0.27;
-        pilar.position.z = -this.conf.profundidad/2 + 0.27;
-        this.add(pilar);
+        this.createDoorRoom();
+    }
 
-        this.estr.T.position.y = this.conf.alto+this.grosor_techo;
 
-        for(var clave in this.estr) {
-            if (clave == 'T' && !this.techo_visible) continue;
-            this.add(this.estr[clave]);
-        }
+    createSquareRoom() {
+        this.estr.S = this.createFloor( this.conf.largo, this.conf.profundidad, this.conf.grosor, new THREE.MeshMatcapMaterial() );
+        
+        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshMatcapMaterial() );
+        this.estr.MN.position.z = -(this.conf.profundidad/2+this.conf.grosor/2);
+        
+        this.estr.MS = this.estr.MN.clone();
+        this.estr.MS.position.z = -this.estr.MN.position.z;
+        
+        this.estr.MO = this.createWall( this.conf.profundidad, this.conf.alto, this.conf.grosor, new THREE.MeshMatcapMaterial() );
+        this.estr.MO.rotation.y += PI/2;
+        this.estr.MO.position.x = -(this.conf.largo/2+this.conf.grosor/2);
+        
+        this.estr.ME = this.createWall( this.conf.profundidad, this.conf.alto+this.grosor_techo, this.conf.grosor, new THREE.MeshMatcapMaterial() );
+        this.estr.ME.rotation.y += PI/2;
+        this.estr.ME.position.x = -this.estr.MO.position.x;
+
+        this.estr.T = this.createFloor(this.conf.largo, this.conf.profundidad, this.grosor_techo+this.conf.grosor, new THREE.MeshMatcapMaterial() );
+        this.estr.T.position.y += this.conf.alto + this.grosor_techo + this.conf.grosor;
+
+        var roda_pie = this.estr.S.clone();
+        roda_pie.position.y += this.conf.grosor;
+
+        var roda_pie_eliminar = roda_pie.clone();
+        roda_pie_eliminar.scale.x = 1-this.conf.grosor/(2*(this.conf.largo+this.conf.radio_mayor))
+        roda_pie_eliminar.scale.z = 1-this.conf.grosor/(2*(this.conf.profundidad+this.conf.radio_menor*2));
+
+        roda_pie = new CSG().subtract([roda_pie,roda_pie_eliminar]).toMesh();
+
+        this.estr.S = new CSG().union([this.estr.S,roda_pie]).toMesh();
     }
 
 
@@ -122,13 +186,24 @@ class H_estructura extends THREE.Object3D {
             partes[parte].position.x += -this.conf.largo/2;
         }
 
+        this.estr.S = new CSG().subtract([this.estr.S,partes.pared_eliminar]).toMesh();
+
         this.estr.S = new CSG().union([this.estr.S,partes.suelo]).toMesh();
 
         this.estr.T = new CSG().union([this.estr.T,partes.techo]).toMesh();
 
+        var techo_eliminar = new THREE.Mesh( new THREE.CylinderGeometry(this.conf.radio_mayor,this.conf.radio_mayor, this.conf.largo, RESOLUCION) );
+        techo_eliminar.scale.x = this.grosor_techo/this.conf.radio_mayor;
+        techo_eliminar.rotation.z = PI/2;
+        techo_eliminar.position.y = this.conf.alto;
+
+        this.estr.T = new CSG().subtract([this.estr.T,techo_eliminar]).toMesh();
+
         this.estr.MO = new CSG().subtract([this.estr.MO,partes.pared_eliminar]).toMesh();
 
         this.estr.MO = new CSG().union([this.estr.MO,partes.pared]).toMesh();
+    
+        this.estr.CL.push(partes.columnas);
     }
 
 
@@ -168,51 +243,67 @@ class H_estructura extends THREE.Object3D {
 
         this.createCircularRoom();
 
+        this.estr.S = new CSG().subtract([this.estr.S,partes1.pared_eliminar,partes2.pared_eliminar]).toMesh();
+
         this.estr.S = new CSG().union([this.estr.S,partes1.suelo,partes2.suelo]).toMesh();
 
-        this.estr.T = new CSG().union([this.estr.T,partes1.techo,partes2.techo]).toMesh();
+        if (this.techo_visible) {
+            this.estr.T = new CSG().union([this.estr.T,partes1.techo,partes2.techo]).toMesh();
 
-        
+            var techo_eliminar = new THREE.Mesh( new THREE.CylinderGeometry(this.conf.radio_menor,this.conf.radio_menor, this.conf.profundidad, RESOLUCION ) );
+            techo_eliminar.scale.z = this.grosor_techo/this.conf.radio_menor;
+            techo_eliminar.rotation.x = PI/2;
+            techo_eliminar.position.y = this.conf.alto;
+            techo_eliminar.position.x = -(this.conf.largo/2 - this.conf.largo*porcentaje_pared);
+
+            this.estr.T = new CSG().subtract([this.estr.T,techo_eliminar]).toMesh();
+        }
 
         this.estr.MN = new CSG().subtract([this.estr.MN,partes2.pared_eliminar]).toMesh();
         this.estr.MN = new CSG().union([this.estr.MN,partes2.pared]).toMesh();
         this.estr.MS = new CSG().subtract([this.estr.MS,partes1.pared_eliminar]).toMesh();
         this.estr.MS = new CSG().union([this.estr.MS,partes1.pared]).toMesh();
-    }
 
 
-    createSquareRoom() {
-        this.estr.S = this.createFloor( this.conf.largo, this.conf.profundidad, this.conf.grosor, new THREE.MeshMatcapMaterial() );
-        
-        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshMatcapMaterial() );
-        this.estr.MN.position.z = -(this.conf.profundidad/2+this.conf.grosor/2);
-        
-        this.estr.MS = this.estr.MN.clone();
-        this.estr.MS.position.z = -this.estr.MN.position.z;
-        
-        this.estr.MO = this.createWall( this.conf.profundidad, this.conf.alto, this.conf.grosor, new THREE.MeshMatcapMaterial() );
-        this.estr.MO.rotation.y += PI/2;
-        this.estr.MO.position.x = -(this.conf.largo/2+this.conf.grosor/2);
-        
-        this.estr.ME = this.estr.MO.clone();
-        this.estr.ME.position.x = -this.estr.MO.position.x;
+        var estructura_columnas_der = this.createPillar_Vault();
+        var estructura_columnas_izq = this.createPillar_Vault(1);
 
-        this.estr.T = this.createFloor(this.conf.largo, this.conf.profundidad, this.grosor_techo+this.conf.grosor, new THREE.MeshMatcapMaterial() );
-        this.estr.T.position.y += this.conf.alto + this.grosor_techo + this.conf.grosor;
-        
+        for (var columna in estructura_columnas_der) {
+            estructura_columnas_der[columna].position.z = -(this.conf.radio_mayor + this.profundidad_boveda_pilares/2 + this.radio_base_pilar);
+            estructura_columnas_der[columna].position.x = this.conf.largo/2 - this.largo_boveda_pilares/2 - this.radio_base_pilar;
+
+            estructura_columnas_izq[columna].rotation.y = PI;
+            estructura_columnas_izq[columna].position.z = this.conf.radio_mayor + this.profundidad_boveda_pilares/2 + this.radio_base_pilar;
+            estructura_columnas_izq[columna].position.x = this.conf.largo/2 - this.largo_boveda_pilares/2 - this.radio_base_pilar;
+        }
+
+        this.estr.MN = new CSG().union([this.estr.MN,estructura_columnas_der.pared]).toMesh();
+        this.estr.MS = new CSG().union([this.estr.MS,estructura_columnas_izq.pared]).toMesh();
+
+        if (this.techo_visible) {
+            this.estr.T = new CSG().subtract([this.estr.T,estructura_columnas_der.techo_eliminar]).toMesh();
+            this.estr.T = new CSG().subtract([this.estr.T,estructura_columnas_izq.techo_eliminar]).toMesh();
+        }
+
+        this.estr.CL.push(estructura_columnas_der.columnas);
+        this.estr.CL.push(estructura_columnas_der.arcos);
+        this.estr.CL.push(estructura_columnas_izq.columnas);
+        this.estr.CL.push(estructura_columnas_izq.arcos);
+        this.estr.CL.push(partes1.columnas);
+        this.estr.CL.push(partes2.columnas);
     }
 
 
     createSemiCircularRoom( radio ) {
-        var cil = new THREE.Mesh( new THREE.CylinderGeometry( radio, radio, this.conf.grosor, 100 ), new THREE.MeshMatcapMaterial() );
+        var cil = new THREE.Mesh( new THREE.CylinderGeometry( radio, radio, this.conf.grosor, RESOLUCION ), new THREE.MeshMatcapMaterial() );
         cil.position.y = -this.conf.grosor/2;
 
         var techo = cil.clone();
         techo.scale.y = this.grosor_techo/this.conf.grosor + 1; // (x+y)/y = x/y + y/y = x/y + 1
         techo.position.y = this.conf.alto + this.grosor_techo/2 + this.conf.grosor/2;
 
-        var pared = new THREE.Mesh( new THREE.CylinderGeometry( radio+this.conf.grosor, radio+this.conf.grosor, this.conf.alto, 100 ), new THREE.MeshMatcapMaterial() );
-        var cil_int = new THREE.Mesh( new THREE.CylinderGeometry( radio, radio, this.conf.alto, 100 ) );
+        var pared = new THREE.Mesh( new THREE.CylinderGeometry( radio+this.conf.grosor, radio+this.conf.grosor, this.conf.alto, RESOLUCION ), new THREE.MeshMatcapMaterial() );
+        var cil_int = new THREE.Mesh( new THREE.CylinderGeometry( radio, radio, this.conf.alto, RESOLUCION ) );
         
         var p = new CSG().subtract([pared,cil_int]).toMesh();
         p.position.y = this.conf.alto/2
@@ -224,48 +315,50 @@ class H_estructura extends THREE.Object3D {
         var pared_interior = new THREE.Mesh( new THREE.BoxGeometry( 2*this.conf.grosor, this.conf.alto, 2*radio) );
         pared_interior.position.y = this.conf.alto/2;
 
-        var esf_techo = new THREE.Mesh( new THREE.SphereGeometry( radio, 100, 14 ) );
+        var esf_techo = new THREE.Mesh( new THREE.SphereGeometry( radio, RESOLUCION, RESOLUCION/2 ) );
         esf_techo.scale.y = this.grosor_techo/radio;
         esf_techo.position.y = this.conf.alto;
 
+        var c1 = this.createPillar();
+        var c2 = c1.clone();
+
+        c1.position.z = radio;
+        c2.position.z = -radio;
+
+        var columnas = new THREE.Object3D().add(c1,c2);
+
+
+        var roda_pie = cil.clone();
+        roda_pie.position.y += this.conf.grosor;
+
+        var roda_pie_eliminar = roda_pie.clone();
+        roda_pie_eliminar.scale.x = 1-this.conf.grosor/(2*(this.conf.largo+this.conf.radio_mayor))
+        roda_pie_eliminar.scale.z = 1-this.conf.grosor/(2*(this.conf.profundidad+this.conf.radio_menor*2));
+
+        roda_pie = new CSG().subtract([roda_pie,roda_pie_eliminar]).toMesh();
+
+        cil = new CSG().union([cil,roda_pie]).toMesh();
+
         return {
-            suelo: cil,
+            suelo: new CSG().subtract([cil,cub]).toMesh(),
             techo: new CSG().subtract([techo,esf_techo]).toMesh(),
             pared: new CSG().subtract([p,cub]).toMesh(),
-            pared_eliminar: pared_interior
+            pared_eliminar: pared_interior,
+            columnas: columnas
         };
     }
 
 
-    createFloor( largo, profundidad, grosor, material ) {
-        var plano = new THREE.Mesh( new THREE.BoxGeometry(largo,grosor,profundidad), material );
+    createPillar() {
+        var r = this.radio_pilar;
 
-        plano.position.y = -grosor/2;
+        var alto = this.conf.alto-r*this.PILAR_PROP_ALTO*2;
 
-        return plano;
-    }
-
-
-    createWall( largo, alto, grosor, material ) {
-        var plano = new THREE.Mesh( new THREE.BoxGeometry(largo,alto,grosor), material );
-
-        plano.position.y = alto/2;
-
-        return plano;
-    }
-
-
-    createPillar( r ) {
-        const PROP_ALTO = 1.6;
-        const PROP_RADIO = 1.8;
-
-        var alto = this.conf.alto-r*PROP_ALTO*2;
-
-        var prisma1 = new THREE.Mesh( new THREE.CylinderGeometry(r,r*PROP_RADIO,r*PROP_ALTO,4), new THREE.MeshMatcapMaterial() );
-        var prisma2 = new THREE.Mesh( new THREE.CylinderGeometry(r,r*PROP_RADIO*Math.cos(PI/4),r*PROP_ALTO,8), new THREE.MeshMatcapMaterial() );
+        var prisma1 = new THREE.Mesh( new THREE.CylinderGeometry(r,r*this.PILAR_PROP_RADIO,r*this.PILAR_PROP_ALTO,4), new THREE.MeshMatcapMaterial() );
+        var prisma2 = new THREE.Mesh( new THREE.CylinderGeometry(r,this.radio_base_pilar,r*this.PILAR_PROP_ALTO,8), new THREE.MeshMatcapMaterial() );
 
         var prisma = new CSG().union([prisma1,prisma2]).toMesh();
-        prisma.position.y = r*PROP_ALTO/2;
+        prisma.position.y = r*this.PILAR_PROP_ALTO/2;
 
         prisma.rotation.y = PI/4;
 
@@ -273,7 +366,7 @@ class H_estructura extends THREE.Object3D {
         var base2 = prisma.clone();
         
         base2.rotation.x = PI;
-        base2.position.y += this.conf.alto-r*PROP_ALTO;
+        base2.position.y += this.conf.alto-r*this.PILAR_PROP_ALTO;
 
         var colum = new THREE.Shape();
         colum.moveTo(0.1,0);
@@ -294,14 +387,228 @@ class H_estructura extends THREE.Object3D {
         colum.lineTo(0.1,alto+r/2);
         
         var points = colum.extractPoints(10).shape;
-        var columna = new THREE.Mesh( new THREE.LatheGeometry(points, 100, 0, Math.PI*2), new THREE.MeshMatcapMaterial() );
+        var columna = new THREE.Mesh( new THREE.LatheGeometry(points, RESOLUCION, 0, Math.PI*2), new THREE.MeshMatcapMaterial() );
 
-        columna.position.y = r*PROP_ALTO;
+        columna.position.y = r*this.PILAR_PROP_ALTO;
 
         return new CSG().union([base1,base2,columna]).toMesh();
     }
 
 
+    createPillar_Vault( Izq = 0) {
+        var pilar = this.createPillar();
+
+        var columnas = new THREE.Object3D();
+        var arcos = new THREE.Object3D();
+
+        var l = this.largo_boveda_pilares / this.num_bovedas_pilares;
+
+        for (let i = 0; i<2*(this.num_bovedas_pilares+1); i++) {
+            let p = pilar.clone();
+
+            if (i<this.num_bovedas_pilares+1) {
+                p.position.x = -this.largo_boveda_pilares/2 + i*l;
+                p.position.z = -this.profundidad_boveda_pilares/2;
+            }
+            else {
+                p.position.x = -this.largo_boveda_pilares/2 + (i-(this.num_bovedas_pilares+1))*l;
+                p.position.z = this.profundidad_boveda_pilares/2;
+            }
+
+            columnas.add(p);
+        }
+
+        ////////////////////////////////////////////////
+
+        var altura = this.radio_pilar * this.PILAR_PROP_ALTO + 2*(this.conf.alto-this.radio_pilar*this.PILAR_PROP_ALTO*2)/3 + this.radio_pilar*0.075 + this.radio_pilar/2;
+
+        var pared = new THREE.Shape();
+
+        pared.moveTo( -l/2+this.radio_pilar/2, 0 );
+        pared.lineTo( -l/2+this.radio_pilar/2, altura );
+        pared.bezierCurveTo( -l/4, this.conf.alto, /**/ l/4, this.conf.alto, /**/ l/2-this.radio_pilar/2, altura );
+        pared.lineTo( l/2-this.radio_pilar/2, 0 );
+        pared.lineTo( l/2, 0 );
+        pared.lineTo( l/2, this.conf.alto+this.grosor_techo+this.conf.grosor );
+        pared.lineTo( -l/2, this.conf.alto+this.grosor_techo+this.conf.grosor );
+        pared.lineTo( -l/2, 0 );
+        pared.lineTo( -l/2+this.radio_pilar/2, 0 );
+
+        var muro = new THREE.Mesh( new THREE.ExtrudeGeometry( pared, {
+            depth: this.radio_base_pilar,
+            steps: 1,
+            bevelEnabled: false,
+        } ), new THREE.MeshMatcapMaterial() );
+
+        muro.position.z = -this.radio_base_pilar;
+
+
+        muro.position.z += -this.profundidad_boveda_pilares/2;
+
+        var csg = new CSG();
+
+        for (let i=0; i<this.num_bovedas_pilares; i++) {
+            let m = muro.clone();
+
+            m.position.x = -(this.largo_boveda_pilares/2 - l/2) + i*l;
+
+            if (i == 0) csg.setFromMesh(m);
+            else csg.union([m]);
+        }
+
+        var paredes = csg.toMesh();
+
+        ////////////////////////////////////////////////
+
+        var curva = new THREE.Shape();
+        curva.moveTo( -l/2, altura );
+        curva.bezierCurveTo( -l/4, this.conf.alto, /**/ l/4, this.conf.alto, /**/ l/2, altura );
+
+
+        var circulo = new THREE.Shape();
+        circulo.moveTo(this.radio_pilar,0);
+        circulo.absarc(0,0,this.radio_pilar,0,PI*2,false);
+        //circulo.moveTo(0, -this.radio_pilar);
+        //circulo.bezierCurveTo(this.radio_pilar*0.55, -this.radio_pilar, /**/ this.radio_pilar, -this.radio_pilar*0.55, /**/ this.radio_pilar, 0);
+        //circulo.bezierCurveTo(this.radio_pilar, this.radio_pilar*0.55, /**/ this.radio_pilar*0.55, this.radio_pilar, /**/ 0, this.radio_pilar);
+        //circulo.bezierCurveTo(-this.radio_pilar*0.55, this.radio_pilar, /**/ -this.radio_pilar, this.radio_pilar*0.55, /**/ -this.radio_pilar, 0);
+        //circulo.bezierCurveTo(-this.radio_pilar, -this.radio_pilar*0.55, /**/ -this.radio_pilar*0.55, -this.radio_pilar, /**/ 0, -this.radio_pilar);
+
+        var curva_path = new THREE.CatmullRomCurve3(shapeToVector3( curva, RESOLUCION/2 ));
+        
+        var arco = new THREE.Mesh( new THREE.ExtrudeGeometry( circulo, {
+            steps: RESOLUCION/2,
+            curveSegments: RESOLUCION/2,
+            extrudePath: curva_path
+        } ), new THREE.MeshMatcapMaterial() );
+
+        arco.position.z = -this.profundidad_boveda_pilares/2;
+
+        for (let i=0; i<this.num_bovedas_pilares; i++) {
+            let a = arco.clone();
+
+            a.position.x = -(this.largo_boveda_pilares/2 - l/2) + i*l;
+            
+            arcos.add(a);
+            //paredes = new CSG().union([paredes, a]).toMesh();
+        }
+        
+        ////////////////////////////////////////////////
+
+        var ancho = l - 2*this.radio_base_pilar;
+
+        var boveda = new THREE.Shape();
+        boveda.moveTo( -ancho/2, 0 );
+        boveda.lineTo( ancho/2, 0 );
+        boveda.quadraticCurveTo( ancho/2, 2*this.grosor_techo/3, /**/ 0, this.grosor_techo );
+        boveda.quadraticCurveTo( -ancho/2, 2*this.grosor_techo/3, /**/ -ancho/2, 0 );
+
+        boveda = new THREE.Shape(shapeToVector3( boveda, RESOLUCION/2 ) );
+
+        var largo_boveda = this.profundidad_boveda_pilares+2*this.radio_base_pilar+this.conf.radio_mayor;
+
+        var boveda_arco = new THREE.Mesh( new THREE.ExtrudeGeometry( boveda, {
+            depth: largo_boveda,
+            steps: 1,
+            bevelEnabled: false,
+        } ) );
+
+        boveda_arco.position.z = -(this.profundidad_boveda_pilares+2*this.radio_base_pilar)/2;
+
+        var techo = new CSG();
+
+        for (let i=0; i<this.num_bovedas_pilares; i++) {
+            let b = boveda_arco.clone();
+
+            b.position.x = -(this.largo_boveda_pilares/2 - l/2) + i*l;
+
+            if (i == 0) techo.setFromMesh(b);
+            else techo.union([b]);
+        }
+
+        boveda_arco.scale.z = (this.largo_boveda_pilares+this.conf.radio_menor+2*this.radio_base_pilar)/largo_boveda;
+        boveda_arco.scale.x = (this.profundidad_boveda_pilares-2*this.radio_base_pilar)/ancho;
+        boveda_arco.rotation.y = -PI/2;
+        boveda_arco.position.z += (this.profundidad_boveda_pilares+2*this.radio_base_pilar)/2;
+        boveda_arco.position.x = this.largo_boveda_pilares/2 + this.radio_base_pilar + Izq*this.conf.radio_menor;
+        
+        techo.union([boveda_arco]);
+
+        techo = techo.toMesh();
+
+        techo.position.y = this.conf.alto;
+
+        return {
+            pared: paredes,
+            arcos: arcos,
+            columnas: columnas,
+            techo_eliminar: techo
+        }
+    }
+
+    createDoorRoom() {
+        this.createDoor();
+    }
+
+
+    createDoor() {
+        var ancho_puerta = 1.35;
+        var alto_puerta = 2.5;
+
+        var puerta = this.createWall( ancho_puerta, 3*alto_puerta/4, this.conf.grosor, new THREE.MeshMatcapMaterial() );
+        var cil = new THREE.Mesh( new THREE.CylinderGeometry( ancho_puerta/2, ancho_puerta/2, this.conf.grosor, RESOLUCION/2 ), new THREE.MeshMatcapMaterial() );
+
+        cil.scale.z = alto_puerta/(2*ancho_puerta);
+        cil.rotation.x = PI/2;
+        cil.position.y = 3*alto_puerta/4;
+
+        puerta = new CSG().union([puerta, cil]).toMesh();
+
+
+        //var barras_metal = new THREE.Mesh( new THREE.BoxGeometry( ancho_puerta, alto_puerta/4, this.conf.grosor/2 ), new THREE.MeshMatcapMaterial() );
+
+        var pomo = new THREE.Mesh( new THREE.CylinderGeometry( 0.04, 0.04, 0.1, RESOLUCION/4 ), new THREE.MeshMatcapMaterial() );
+        var toro = new THREE.Mesh( new THREE.TorusGeometry( 0.1, 0.02, RESOLUCION/8, RESOLUCION/4 ), new THREE.MeshMatcapMaterial() );
+
+        pomo.rotation.x = PI/2;
+        toro.position.y = -0.1 + 0.01;
+        toro.position.z = 0.1/8;
+
+        pomo = new CSG().union([pomo, toro]).toMesh();
+
+        pomo.position.y = alto_puerta/2 + 0.05;
+        pomo.position.x = -ancho_puerta/2 + ancho_puerta*0.25;
+
+        var p2 = pomo.clone();
+
+        p2.rotation.y = PI;
+
+        pomo.position.z = this.conf.grosor/2 + 0.05;
+        p2.position.z = -this.conf.grosor/2 - 0.05;
+
+        puerta = new CSG().union([puerta, pomo, p2]).toMesh();
+
+
+        this.add(puerta/*,cil*/);
+    }
+
+
+    createFloor( largo, profundidad, grosor, material ) {
+        var plano = new THREE.Mesh( new THREE.BoxGeometry(largo,grosor,profundidad), material );
+
+        plano.position.y = -grosor/2;
+
+        return plano;
+    }
+
+
+    createWall( largo, alto, grosor, material ) {
+        var plano = new THREE.Mesh( new THREE.BoxGeometry(largo,alto,grosor), material );
+
+        plano.position.y = alto/2;
+
+        return plano;
+    }
 }
 
 export {H_estructura}
