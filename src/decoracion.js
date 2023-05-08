@@ -125,7 +125,7 @@ class Decoracion extends THREE.Object3D {
     shape.moveTo(0, 0);
     shape.bezierCurveTo(0.2, 0, 0.2, 0.25, 0.065, 0.25);
     shape.quadraticCurveTo(0.01, 0.25, 0.020, 0.34)
-    shape.bezierCurveTo(0.01, 0.36, 0.06, 0.36, 0.015, 0.38);
+    shape.bezierCurveTo(0.03, 0.36, 0.06, 0.36, 0.015, 0.38);
     this.puntos = shape.extractPoints(10).shape;
 
     // Para crear la figura por revolución.
