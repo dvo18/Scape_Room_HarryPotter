@@ -5,7 +5,7 @@ const PI = Math.PI;
 
 const RESOLUCION = 32;
 
-const MOSTRAR_TODO = false;
+const MOSTRAR_TODO = true;
 
 
 function shapeToVector3 ( shape , num_pts = 6 ) {
@@ -22,6 +22,11 @@ function shapeToVector3 ( shape , num_pts = 6 ) {
 class H_estructura extends THREE.Object3D {
     constructor( opciones ) {
         super();
+
+
+        // Variable rotación para la puerta
+        this.rotacion_puerta = 0;
+
 
         this.conf = opciones;
 
@@ -96,7 +101,7 @@ class H_estructura extends THREE.Object3D {
         this.radio_pilar = 2 * opciones.grosor;
         this.radio_base_pilar = this.radio_pilar*this.PILAR_PROP_RADIO*Math.cos(PI/4);
 
-        this.num_bovedas_pilares = 4;
+        this.num_bovedas_pilares = 3;
         this.largo_boveda_pilares = opciones.largo - opciones.radio_menor*2 - (opciones.largo*opciones.porcentaje_pared - opciones.radio_menor) - this.radio_base_pilar*2;
         this.profundidad_boveda_pilares = opciones.profundidad/2 - opciones.radio_mayor - this.radio_base_pilar*2;
 
@@ -467,7 +472,6 @@ class H_estructura extends THREE.Object3D {
 
         var circulo = new THREE.Shape();
         circulo.moveTo(this.radio_pilar,0);
-        circulo.absarc(0,0,this.radio_pilar,0,PI*2,false);
         //circulo.moveTo(0, -this.radio_pilar);
         //circulo.bezierCurveTo(this.radio_pilar*0.55, -this.radio_pilar, /**/ this.radio_pilar, -this.radio_pilar*0.55, /**/ this.radio_pilar, 0);
         //circulo.bezierCurveTo(this.radio_pilar, this.radio_pilar*0.55, /**/ this.radio_pilar*0.55, this.radio_pilar, /**/ 0, this.radio_pilar);
@@ -552,6 +556,8 @@ class H_estructura extends THREE.Object3D {
 
 
     createDoor() {
+        var puerta_OBJ = new THREE.Object3D();
+
         var ancho_puerta = 1.35;
         var alto_puerta = 2.5;
 
@@ -586,10 +592,61 @@ class H_estructura extends THREE.Object3D {
         pomo.position.z = this.conf.grosor/2 + 0.05;
         p2.position.z = -this.conf.grosor/2 - 0.05;
 
-        puerta = new CSG().union([puerta, pomo, p2]).toMesh();
+        pomo = new CSG().union([ pomo, p2]).toMesh();
 
+        puerta.position.x = -ancho_puerta/2;
+        pomo.position.x = -ancho_puerta/2;
 
-        this.add(puerta/*,cil*/);
+        puerta_OBJ.add(puerta);
+        puerta_OBJ.add(pomo);
+        
+        puerta_OBJ.rotateY( PI/2);//-this.rotacion_puerta );
+
+        puerta_OBJ.position.x = ancho_puerta/2 + this.conf.grosor/2;
+
+        var ancho_marco = ancho_puerta/2+ancho_puerta/4;
+
+        // Marco de puerta
+        var marco_SHAPE = new THREE.Shape();
+        marco_SHAPE.moveTo( -ancho_marco, 0 ); 
+        marco_SHAPE.lineTo( ancho_marco, 0 );
+        marco_SHAPE.lineTo( ancho_marco, 3*alto_puerta/4 );
+        marco_SHAPE.quadraticCurveTo( ancho_marco, alto_puerta+alto_puerta/10, /**/ ancho_puerta/2, alto_puerta+alto_puerta/8 );
+        marco_SHAPE.quadraticCurveTo( this.conf.grosor/2, alto_puerta+3*alto_puerta/16, /**/ this.conf.grosor/2, alto_puerta+alto_puerta/4 );
+        marco_SHAPE.bezierCurveTo( this.conf.grosor/2, alto_puerta+alto_puerta/4+this.conf.grosor/2, /**/ -this.conf.grosor/2, alto_puerta+alto_puerta/4+this.conf.grosor/2, /**/ -this.conf.grosor/2, alto_puerta+alto_puerta/4 );
+        marco_SHAPE.quadraticCurveTo( -this.conf.grosor/2, alto_puerta+3*alto_puerta/16, /**/ -ancho_puerta/2, alto_puerta+alto_puerta/8 );
+        marco_SHAPE.quadraticCurveTo( -ancho_marco, alto_puerta+alto_puerta/10, /**/ -ancho_marco, 3*alto_puerta/4 );
+        marco_SHAPE.lineTo( -ancho_marco, 0 );
+
+        marco_SHAPE = new THREE.Shape(shapeToVector3( marco_SHAPE, RESOLUCION/4 ) );
+
+        var marco = new THREE.Mesh( new THREE.ExtrudeGeometry( marco_SHAPE, { depth: 2*this.conf.grosor, bevelThickness: 0.16, bevelSegments: 4 } ), new THREE.MeshMatcapMaterial() );
+        marco.position.z = -this.conf.grosor;
+
+        var puerta_eliminar = puerta.clone();
+        puerta_eliminar.scale.x = 1 + this.conf.grosor/ancho_puerta;
+        puerta_eliminar.scale.y = (alto_puerta + this.conf.grosor/2)/alto_puerta;
+        puerta_eliminar.scale.z = 6;
+        puerta_eliminar.position.x += (ancho_puerta+this.conf.grosor)/2;
+
+        marco = new CSG().subtract([ marco, puerta_eliminar ]).toMesh();
+
+        ////////////////
+        
+        var borde_SHAPE = new THREE.Shape();
+        borde_SHAPE.moveTo( 0, -this.conf,grosor );
+        borde_SHAPE.lineTo( 0, this.conf.grosor );
+        borde_SHAPE.quadraticCurveTo( 0, 3*this.conf.grosor, /**/ this.conf.grosor, 3*this.conf.grosor );
+        borde_SHAPE.lineTo( -5*this.conf.grosor, 3*this.conf.grosor );
+        borde_SHAPE.lineTo( -5*this.conf.grosor, -3*this.conf.grosor );
+        borde_SHAPE.lineTo( this.conf.grosor, -3*this.conf.grosor );
+        borde_SHAPE.quadraticCurveTo( 0, -3*this.conf.grosor, /**/ 0, -this.conf.grosor );
+
+        borde_SHAPE = new THREE.Shape(shapeToVector3( borde_SHAPE, RESOLUCION/4 ) );
+        
+        var borde_eliminar = new THREE.Mesh( new THREE.  ), new THREE.MeshMatcapMaterial() );
+
+        this.add(puerta_OBJ, marco);
     }
 
 
