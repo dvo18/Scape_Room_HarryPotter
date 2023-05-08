@@ -43,13 +43,11 @@ class MyScene extends THREE.Scene {
     //this.h_estructura = new H_estructura( {grosor: 0.1, alto: 3, largo: 20, profundidad: 16, techo_visible: true, radio_mayor: 3, radio_menor: 3.5, porcentaje_pared: 3.5/20});
     //this.add(this.h_estructura);
 
-<<<<<<< HEAD
     this.decoracion = new Decoracion();
     this.add(this.decoracion);
-=======
+    
     this.h_estructura = new H_estructura( {grosor: 0.1, alto: 3, largo: 20, profundidad: 16, techo_visible: true, radio_mayor: 3, radio_menor: 3.5, porcentaje_pared: 3.5/20});
     this.add(this.h_estructura);
->>>>>>> dfc9627e831b274133fb0a20a1645c756f900374
   }
   
   initStats() {

@@ -644,7 +644,7 @@ class H_estructura extends THREE.Object3D {
 
         borde_SHAPE = new THREE.Shape(shapeToVector3( borde_SHAPE, RESOLUCION/4 ) );
         
-        var borde_eliminar = new THREE.Mesh( new THREE.  ), new THREE.MeshMatcapMaterial() );
+        // var borde_eliminar = new THREE.Mesh( new THREE.  ), new THREE.MeshMatcapMaterial() );
 
         this.add(puerta_OBJ, marco);
     }
