@@ -5,7 +5,7 @@ const PI = Math.PI;
 
 const RESOLUCION = 32;
 
-const MOSTRAR_TODO = false;
+const MOSTRAR_TODO = true;
 
 
 function shapeToVector3 ( shape , num_pts = 6 ) {
@@ -96,7 +96,7 @@ class H_estructura extends THREE.Object3D {
         this.radio_pilar = 2 * opciones.grosor;
         this.radio_base_pilar = this.radio_pilar*this.PILAR_PROP_RADIO*Math.cos(PI/4);
 
-        this.num_bovedas_pilares = 4;
+        this.num_bovedas_pilares = 3;
         this.largo_boveda_pilares = opciones.largo - opciones.radio_menor*2 - (opciones.largo*opciones.porcentaje_pared - opciones.radio_menor) - this.radio_base_pilar*2;
         this.profundidad_boveda_pilares = opciones.profundidad/2 - opciones.radio_mayor - this.radio_base_pilar*2;
 
