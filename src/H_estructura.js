@@ -19,6 +19,16 @@ function shapeToVector3 ( shape , num_pts = 6 ) {
     return v3 ;
 }
 
+
+function rotateShape ( shape, angle, num_pts = 6, center = new THREE.Vector2(0,0) ) {
+    var points = shape.extractPoints(num_pts).shape ;
+    points.forEach((p) => {
+        p.rotateAround(center, angle);
+    });
+    return new THREE.Shape(points);
+}
+
+
 class H_estructura extends THREE.Object3D {
     constructor( opciones ) {
         super();
@@ -144,8 +154,6 @@ class H_estructura extends THREE.Object3D {
                 this.add(this.estr[clave]);
             }
         }
-
-        this.createDoorRoom();
     }
 
 
@@ -296,6 +304,18 @@ class H_estructura extends THREE.Object3D {
         this.estr.CL.push(estructura_columnas_izq.arcos);
         this.estr.CL.push(partes1.columnas);
         this.estr.CL.push(partes2.columnas);
+
+        var p = this.createDoor( this.rotacion_puerta );
+
+        p.puerta.rotation.y = -PI/2;
+        p.puerta_eliminar.rotation.y = -PI/2;
+        p.puerta.position.x = this.conf.largo/2 + this.conf.grosor/2;
+        p.puerta_eliminar.position.x = this.conf.largo/2 + this.conf.grosor/2;
+
+        this.estr.ME = new CSG().subtract([this.estr.ME,p.puerta_eliminar]).toMesh();
+        this.estr.S = new CSG().subtract([this.estr.S,p.puerta_eliminar]).toMesh();
+
+        this.estr.P = p.puerta;
     }
 
 
@@ -471,7 +491,8 @@ class H_estructura extends THREE.Object3D {
 
 
         var circulo = new THREE.Shape();
-        circulo.moveTo(this.radio_pilar,0);
+        //circulo.moveTo(this.radio_pilar,0);
+        circulo.absarc(0,0,this.radio_pilar,0,PI*2,false);
         //circulo.moveTo(0, -this.radio_pilar);
         //circulo.bezierCurveTo(this.radio_pilar*0.55, -this.radio_pilar, /**/ this.radio_pilar, -this.radio_pilar*0.55, /**/ this.radio_pilar, 0);
         //circulo.bezierCurveTo(this.radio_pilar, this.radio_pilar*0.55, /**/ this.radio_pilar*0.55, this.radio_pilar, /**/ 0, this.radio_pilar);
@@ -550,12 +571,9 @@ class H_estructura extends THREE.Object3D {
         }
     }
 
-    createDoorRoom() {
-        this.createDoor();
-    }
 
-
-    createDoor() {
+    createDoor( rotacion ) {
+        var estructura_puerta = new THREE.Object3D();
         var puerta_OBJ = new THREE.Object3D();
 
         var ancho_puerta = 1.35;
@@ -597,12 +615,12 @@ class H_estructura extends THREE.Object3D {
         puerta.position.x = -ancho_puerta/2;
         pomo.position.x = -ancho_puerta/2;
 
-        puerta_OBJ.add(puerta);
+        puerta_OBJ.add(puerta.clone());
         puerta_OBJ.add(pomo);
         
-        puerta_OBJ.rotateY( PI/2);//-this.rotacion_puerta );
+        puerta_OBJ.rotateY( rotacion );
 
-        puerta_OBJ.position.x = ancho_puerta/2 + this.conf.grosor/2;
+        puerta_OBJ.position.x = ancho_puerta/2;// + this.conf.grosor/2;
 
         var ancho_marco = ancho_puerta/2+ancho_puerta/4;
 
@@ -623,30 +641,32 @@ class H_estructura extends THREE.Object3D {
         var marco = new THREE.Mesh( new THREE.ExtrudeGeometry( marco_SHAPE, { depth: 2*this.conf.grosor, bevelThickness: 0.16, bevelSegments: 4 } ), new THREE.MeshMatcapMaterial() );
         marco.position.z = -this.conf.grosor;
 
+        puerta.position.x += ancho_puerta/2;
         var puerta_eliminar = puerta.clone();
         puerta_eliminar.scale.x = 1 + this.conf.grosor/ancho_puerta;
         puerta_eliminar.scale.y = (alto_puerta + this.conf.grosor/2)/alto_puerta;
         puerta_eliminar.scale.z = 6;
-        puerta_eliminar.position.x += (ancho_puerta+this.conf.grosor)/2;
+        //puerta_eliminar.position.x = (ancho_puerta+this.conf.grosor)/2;*/
 
         marco = new CSG().subtract([ marco, puerta_eliminar ]).toMesh();
 
-        ////////////////
-        
-        var borde_SHAPE = new THREE.Shape();
-        borde_SHAPE.moveTo( 0, -this.conf,grosor );
-        borde_SHAPE.lineTo( 0, this.conf.grosor );
-        borde_SHAPE.quadraticCurveTo( 0, 3*this.conf.grosor, /**/ this.conf.grosor, 3*this.conf.grosor );
-        borde_SHAPE.lineTo( -5*this.conf.grosor, 3*this.conf.grosor );
-        borde_SHAPE.lineTo( -5*this.conf.grosor, -3*this.conf.grosor );
-        borde_SHAPE.lineTo( this.conf.grosor, -3*this.conf.grosor );
-        borde_SHAPE.quadraticCurveTo( 0, -3*this.conf.grosor, /**/ 0, -this.conf.grosor );
+        var puerta_eliminar_pared = puerta_eliminar.clone();
 
-        borde_SHAPE = new THREE.Shape(shapeToVector3( borde_SHAPE, RESOLUCION/4 ) );
-        
-        var borde_eliminar = new THREE.Mesh( new THREE.  ), new THREE.MeshMatcapMaterial() );
+        puerta_eliminar.scale.y = 1.1;
+        puerta_eliminar.position.x;
 
-        this.add(puerta_OBJ, marco);
+        var p1_eliminar = puerta_eliminar.clone();
+        p1_eliminar.position.z = -(3*this.conf.grosor + this.conf.grosor);
+        puerta_eliminar.position.z = 3*this.conf.grosor + this.conf.grosor;
+
+        marco = new CSG().subtract([ marco, puerta_eliminar, p1_eliminar ]).toMesh();
+
+        estructura_puerta.add( marco, puerta_OBJ );
+        
+        return {
+            puerta: estructura_puerta,
+            puerta_eliminar: puerta_eliminar_pared
+        }
     }
 
 
