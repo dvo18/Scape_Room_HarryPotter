@@ -19,16 +19,6 @@ function shapeToVector3 ( shape , num_pts = 6 ) {
     return v3 ;
 }
 
-
-function rotateShape ( shape, angle, num_pts = 6, center = new THREE.Vector2(0,0) ) {
-    var points = shape.extractPoints(num_pts).shape ;
-    points.forEach((p) => {
-        p.rotateAround(center, angle);
-    });
-    return new THREE.Shape(points);
-}
-
-
 class H_estructura extends THREE.Object3D {
     constructor( opciones ) {
         super();
