@@ -14,6 +14,9 @@ class MyScene extends THREE.Scene {
   constructor (myCanvas) {
     super();
 
+    this.colorFondo = new THREE.Color(0xEEEEEE);
+    //this.colorFondo = new THREE.Color(0x000000);
+
     // Lo primero, crear el visualizador, pasándole el lienzo sobre el que realizar los renderizados.
     this.renderer = this.createRenderer(myCanvas);
 
@@ -31,23 +34,19 @@ class MyScene extends THREE.Scene {
     // Tendremos una cámara con un control de movimiento con el ratónVector2( arrayAux[i][0], arrayAux[i][1] );
     this.createCamera ();
 
-    // Un suelo 
-    // this.createGround ();
-
     // Y unos ejes. Imprescindibles para orientarnos sobre dónde están las cosas
     this.axis = new THREE.AxesHelper (5);
     this.add (this.axis);
 
     //this.axis.visible.value = false;
 
-    //this.h_estructura = new H_estructura( {grosor: 0.1, alto: 3, largo: 20, profundidad: 16, techo_visible: true, radio_mayor: 3, radio_menor: 3.5, porcentaje_pared: 3.5/20});
+    //this.h_estructura = new 
+    // Un suelo 
+    // this.createGround ();H_estructura( {grosor: 0.1, alto: 3, largo: 20, profundidad: 16, techo_visible: true, radio_mayor: 3, radio_menor: 3.5, porcentaje_pared: 3.5/20});
     //this.add(this.h_estructura);
 
     this.decoracion = new Decoracion();
     this.add(this.decoracion);
-
-    // this.h_estructura = new H_estructura( {grosor: 0.1, alto: 3, largo: 20, profundidad: 16, techo_visible: true, radio_mayor: 3, radio_menor: 3.5, porcentaje_pared: 3.5/20});
-    // this.add(this.h_estructura);
   }
   
   initStats() {
@@ -145,7 +144,7 @@ class MyScene extends THREE.Scene {
     var renderer = new THREE.WebGLRenderer();
     
     // Se establece un color de fondo en las imágenes que genera el render
-    renderer.setClearColor(new THREE.Color(0xEEEEEE), 1.0);
+    renderer.setClearColor(this.colorFondo, 1.0);
     
     // Se establece el tamaño, se aprovecha la totalidad de la ventana del navegador
     renderer.setSize(window.innerWidth, window.innerHeight);
