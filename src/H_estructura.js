@@ -145,7 +145,11 @@ class H_estructura extends THREE.Object3D {
             }
         }
     }
+    
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createSquareRoom() {
         this.estr.S = this.createFloor( this.conf.largo, this.conf.profundidad, this.conf.grosor, new THREE.MeshMatcapMaterial() );
@@ -180,6 +184,10 @@ class H_estructura extends THREE.Object3D {
     }
 
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     createCircularRoom() {
         this.createSquareRoom();
 
@@ -209,6 +217,10 @@ class H_estructura extends THREE.Object3D {
         this.estr.CL.push(partes.columnas);
     }
 
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createDoubleCircularRoom( porcentaje_pared = 0.5 ) {
         var partes1 = this.createSemiCircularRoom(this.conf.radio_menor);
@@ -309,6 +321,10 @@ class H_estructura extends THREE.Object3D {
     }
 
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     createSemiCircularRoom( radio ) {
         var cil = new THREE.Mesh( new THREE.CylinderGeometry( radio, radio, this.conf.grosor, RESOLUCION ), new THREE.MeshMatcapMaterial() );
         cil.position.y = -this.conf.grosor/2;
@@ -364,6 +380,10 @@ class H_estructura extends THREE.Object3D {
     }
 
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     createPillar() {
         var r = this.radio_pilar;
 
@@ -409,6 +429,10 @@ class H_estructura extends THREE.Object3D {
         return new CSG().union([base1,base2,columna]).toMesh();
     }
 
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createPillar_Vault( Izq = 0) {
         var pilar = this.createPillar();
@@ -481,13 +505,7 @@ class H_estructura extends THREE.Object3D {
 
 
         var circulo = new THREE.Shape();
-        //circulo.moveTo(this.radio_pilar,0);
         circulo.absarc(0,0,this.radio_pilar,0,PI*2,false);
-        //circulo.moveTo(0, -this.radio_pilar);
-        //circulo.bezierCurveTo(this.radio_pilar*0.55, -this.radio_pilar, /**/ this.radio_pilar, -this.radio_pilar*0.55, /**/ this.radio_pilar, 0);
-        //circulo.bezierCurveTo(this.radio_pilar, this.radio_pilar*0.55, /**/ this.radio_pilar*0.55, this.radio_pilar, /**/ 0, this.radio_pilar);
-        //circulo.bezierCurveTo(-this.radio_pilar*0.55, this.radio_pilar, /**/ -this.radio_pilar, this.radio_pilar*0.55, /**/ -this.radio_pilar, 0);
-        //circulo.bezierCurveTo(-this.radio_pilar, -this.radio_pilar*0.55, /**/ -this.radio_pilar*0.55, -this.radio_pilar, /**/ 0, -this.radio_pilar);
 
         var curva_path = new THREE.CatmullRomCurve3(shapeToVector3( curva, RESOLUCION/2 ));
         
@@ -505,7 +523,6 @@ class H_estructura extends THREE.Object3D {
             a.position.x = -(this.largo_boveda_pilares/2 - l/2) + i*l;
             
             arcos.add(a);
-            //paredes = new CSG().union([paredes, a]).toMesh();
         }
         
         ////////////////////////////////////////////////
@@ -561,6 +578,10 @@ class H_estructura extends THREE.Object3D {
         }
     }
 
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createDoor( rotacion ) {
         var estructura_puerta = new THREE.Object3D();
@@ -660,6 +681,10 @@ class H_estructura extends THREE.Object3D {
     }
 
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     createFloor( largo, profundidad, grosor, material ) {
         var plano = new THREE.Mesh( new THREE.BoxGeometry(largo,grosor,profundidad), material );
 
@@ -669,12 +694,56 @@ class H_estructura extends THREE.Object3D {
     }
 
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     createWall( largo, alto, grosor, material ) {
         var plano = new THREE.Mesh( new THREE.BoxGeometry(largo,alto,grosor), material );
 
         plano.position.y = alto/2;
 
         return plano;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    getDimensiones() {
+
+        var op = this.conf;
+
+        // TODOS estos cálculos están repetidos, pero no sería eficiente guardarlos en variables pues tendríamos muchas,
+        // volvemos a calcular sólo aquellas distancias que son necesarias
+
+        var anchoArcos = this.largo_boveda_pilares / this.num_bovedas_pilares;
+        var posX_centroArcos_array = [];
+        for (var i in range(0,this.num_bovedas_pilares)) {
+            posX_centroArcos_array.push( 
+                -(this.largo_boveda_pilares/2 - anchoArcos/2) + i*l +
+                (op.largo/2 - this.largo_boveda_pilares/2 - this.radio_base_pilar) );
+        }
+
+
+        return {
+            largo: op.largo,
+            profundidad: op.profundidad,
+            alto: op.alto,
+            grosor: op.grosor,
+
+            posX_centroArcos_array: posX_centroArcos_array,                         // ES UN ARRAY, cada una de las posiciones en x donde están los centros de los espacios entre columnas (arcos)
+            posZ_centroArcos_positiva: op.profundidad/2,                            // posición que es la distancia desde el centro hasta la pared SUR, para la pared NORTE se pone la misma en negativo
+            dist_anchoArcos_estanteria: anchoArcos - 2*this.radio_base_pilar,       // distancia que es el ancho desde cada centro de columna pero sin el radio de la base (los prismas), esta es el espacio disponible entre cada columna
+
+            posV2xz_centro_HabCircular_Lateral: new THREE.Vector2(-op.largo/2+op.radio_menor ,op.profundidad/2),    // ES UN VECTOR2, posición del centro de la hab_cir_lateral SUR, resulta estar justo al borde de la pared SUR/NORTE  ---  para la NORTE la z en negativo
+            rad_HabCircular_Laterales: op.radio_menor,                                                              // radio de las habitaciones circulares laterales, es la distancia del centro del circulo a la pared (también circular)
+
+            posV2xz_centro_HabCircular_Principal: new THREE.Vector2(0,-op.largo/2),     // ES UN VECTOR2, posición del centro de la hab_cir_principal, resulta estar justo al borde de la pared OESTE
+            rad_HabCircular_Principal: op.radio_mayor,                                  // radio de la habitación circular principal
+
+        }
     }
 }
 
