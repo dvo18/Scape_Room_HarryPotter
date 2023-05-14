@@ -9,6 +9,12 @@ import { Stats } from '../libs/stats.module.js'
 import { H_estructura } from './H_estructura.js'
 import { Decoracion  } from './decoracion.js'
 
+import { OBJLoader } from '../libs/OBJLoader.js'
+import { MTLLoader } from '../libs/MTLLoader.js'
+
+
+const PI = Math.PI;
+
 
 class MyScene extends THREE.Scene {
   constructor (myCanvas) {
@@ -40,13 +46,83 @@ class MyScene extends THREE.Scene {
 
     //this.axis.visible.value = false;
 
-    //this.h_estructura = new 
-    // Un suelo 
-    // this.createGround ();H_estructura( {grosor: 0.1, alto: 3, largo: 20, profundidad: 16, techo_visible: true, radio_mayor: 3, radio_menor: 3.5, porcentaje_pared: 3.5/20});
-    //this.add(this.h_estructura);
+    this.h_estructura = new H_estructura( {grosor: 0.1, alto: 3, largo: 20, profundidad: 16, techo_visible: true, radio_mayor: 3, radio_menor: 3.5, porcentaje_pared: 3.5/20});
+    this.add(this.h_estructura);
+
+    var dim = this.h_estructura.getDimensiones();
+
 
     this.decoracion = new Decoracion();
-    this.add(this.decoracion);
+
+    // ------------------- ESTANTERÍAS -------------------
+
+    var estanteria = this.decoracion.createEstanteria(dim.dist_anchoArcos_estanteria/2);
+
+    for (let i in dim.posX_centroArcos_array) {
+      var estanteriaIzq = estanteria.clone();
+      var estanteriaDer = estanteria.clone();
+      estanteriaIzq.position.x = dim.posX_centroArcos_array[i] + dim.dist_anchoArcos_estanteria/4;
+      estanteriaDer.position.x = dim.posX_centroArcos_array[i] - dim.dist_anchoArcos_estanteria/4;
+
+      estanteriaIzq.position.z = -dim.posZ_centroArcos_positiva + 0.3/2;
+      estanteriaDer.position.z = -dim.posZ_centroArcos_positiva + 0.3/2;
+    
+      this.add(estanteriaDer, estanteriaIzq);
+    }
+
+    for (let i in dim.posX_centroArcos_array) {
+      var estanteriaIzq = estanteria.clone();
+      var estanteriaDer = estanteria.clone();
+      estanteriaIzq.position.x = dim.posX_centroArcos_array[i] + dim.dist_anchoArcos_estanteria/4;
+      estanteriaDer.position.x = dim.posX_centroArcos_array[i] - dim.dist_anchoArcos_estanteria/4;
+
+      estanteriaIzq.position.z = dim.posZ_centroArcos_positiva - 0.3/2;
+      estanteriaDer.position.z = dim.posZ_centroArcos_positiva - 0.3/2;
+
+      this.add(estanteriaIzq, estanteriaDer);
+    }
+    
+    var estanteria = this.decoracion.createEstanteria(dim.dist_anchoColumnas/2);
+
+    estanteria.rotation.y = PI/2;
+    estanteria.position.x = dim.largo/2 - 0.3/2;
+
+    var estanteriaIzq1 = estanteria.clone();
+    var estanteriaIzq2 = estanteria.clone();
+    var estanteriaDer1 = estanteria.clone();
+    var estanteriaDer2 = estanteria.clone();
+
+    /*estanteriaIzq1.position.z = - dim.;
+    estanteriaIzq2.position.z = - (dim.rad_central + 2*dim.radio_base_pilarPrisma + dim.dist_anchoColumnas/4);
+    estanteriaDer1.position.z = dim.rad_central + 2*dim.radio_base_pilarPrisma + 3*dim.dist_anchoColumnas/4;
+    estanteriaDer2.position.z = dim.rad_central + 2*dim.radio_base_pilarPrisma + dim.dist_anchoColumnas/4;
+
+    this.add(estanteriaIzq1, estanteriaIzq2, estanteriaDer1, estanteriaDer2);*/
+
+    // ------------------- MESAS Y TABURETES -------------------
+    // var mesa = this.decoracion.createMesa();
+    // this.add(mesa);
+
+    // ------------------- CALDERO -------------------
+    var caldero = this.decoracion.createCaldero();
+    caldero.position.x = dim.posV2xz_centro_HabCircular_Lateral.x;
+    caldero.position.z = -dim.posV2xz_centro_HabCircular_Lateral.y;
+    
+    caldero.scale.set(4.5, 4.5, 4.5);
+    this.add(caldero);
+
+    // ------------------- PENSADERO -------------------
+    var pensadero = this.decoracion.createPensadero();
+    pensadero.position.x = dim.posV2xz_centro_HabCircular_Principal.x - dim.rad_HabCircular_Principal/3;
+    pensadero.position.z = dim.posV2xz_centro_HabCircular_Principal.y;
+
+    this.add(pensadero);
+
+    // ------------------- FRASCOS -------------------
+    var colorFrasco = 0xD6DCDE;
+    var colorLiquido = 0x871B1B;
+    var frasco = this.decoracion.createFrasco(colorFrasco, colorLiquido);
+    this.add(frasco);
   }
   
   initStats() {
@@ -74,9 +150,9 @@ class MyScene extends THREE.Scene {
     //   Los planos de recorte cercano y lejano // 45 <--
     this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
     // También se indica dónde se coloca
-    this.camera.position.set (0,3,7)//(20, 10, 20);
+    this.camera.position.set (-3,3,0);//(20, 10, 20);
     // Y hacia dónde mira
-    var look = new THREE.Vector3 (0,0,0);
+    var look = new THREE.Vector3 (0,0,0); //(0,0,0); 
     this.camera.lookAt(look);
     this.add (this.camera);
     

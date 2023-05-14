@@ -19,6 +19,15 @@ function shapeToVector3 ( shape , num_pts = 6 ) {
     return v3 ;
 }
 
+function repeatTexture(texture, repeatX, repeatY) {
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.x = repeatX;
+    texture.repeat.y = repeatY;
+}
+
+
+
 class H_estructura extends THREE.Object3D {
     constructor( opciones ) {
         super();
@@ -107,6 +116,19 @@ class H_estructura extends THREE.Object3D {
 
 
 
+        this.texturaLoader = new THREE.TextureLoader();
+
+        this.pared_gris = this.texturaLoader.load('../imgs/textura_paredPiedra2_gris.jpg');
+        this.pared_normal = this.texturaLoader.load('../imgs/textura_paredPiedra2_normal.jpg');
+
+        this.colorPared = new THREE.Color( "rgb(62, 61, 89)" );
+
+        this.suelo = this.texturaLoader.load('../imgs/textura_suelo.jpg' );
+
+        this.colorSuelo = new THREE.Color( "rgb(168, 168, 168)" );
+
+
+
         // Estructuras posibles:
         // Muros ('Mn' con {n='Orientación (N,S,E,O...)'} )
         // Suelos ('S')
@@ -152,9 +174,11 @@ class H_estructura extends THREE.Object3D {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createSquareRoom() {
-        this.estr.S = this.createFloor( this.conf.largo, this.conf.profundidad, this.conf.grosor, new THREE.MeshMatcapMaterial() );
+        repeatTexture(this.suelo,12,12);
+        this.estr.S = this.createFloor( this.conf.largo, this.conf.profundidad, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorSuelo, map: this.suelo}) );
         
-        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshMatcapMaterial() );
+        repeatTexture(this.pared_gris,this.conf.profundidad/4.5,1.3);
+        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorPared, map: this.pared_gris, normalMap: this.pared_normal}) );
         this.estr.MN.position.z = -(this.conf.profundidad/2+this.conf.grosor/2);
         
         this.estr.MS = this.estr.MN.clone();
@@ -164,7 +188,10 @@ class H_estructura extends THREE.Object3D {
         this.estr.MO.rotation.y += PI/2;
         this.estr.MO.position.x = -(this.conf.largo/2+this.conf.grosor/2);
         
-        this.estr.ME = this.createWall( this.conf.profundidad, this.conf.alto+this.grosor_techo, this.conf.grosor, new THREE.MeshMatcapMaterial() );
+        repeatTexture(this.pared_gris,this.conf.profundidad/4.5,1.3);
+        //repeatTexture(this.pared_normal,3,1.2);
+
+        this.estr.ME = this.createWall( this.conf.profundidad, this.conf.alto+this.grosor_techo, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorPared, map: this.pared_gris, normalMap: this.pared_normal}) );
         this.estr.ME.rotation.y += PI/2;
         this.estr.ME.position.x = -this.estr.MO.position.x;
 
@@ -657,20 +684,21 @@ class H_estructura extends THREE.Object3D {
         puerta_eliminar.scale.x = 1 + this.conf.grosor/ancho_puerta;
         puerta_eliminar.scale.y = (alto_puerta + this.conf.grosor/2)/alto_puerta;
         puerta_eliminar.scale.z = 6;
-        //puerta_eliminar.position.x = (ancho_puerta+this.conf.grosor)/2;*/
 
         marco = new CSG().subtract([ marco, puerta_eliminar ]).toMesh();
 
         var puerta_eliminar_pared = puerta_eliminar.clone();
 
         puerta_eliminar.scale.y = 1.1;
-        puerta_eliminar.position.x;
 
         var p1_eliminar = puerta_eliminar.clone();
         p1_eliminar.position.z = -(3*this.conf.grosor + this.conf.grosor);
         puerta_eliminar.position.z = 3*this.conf.grosor + this.conf.grosor;
 
-        marco = new CSG().subtract([ marco, puerta_eliminar, p1_eliminar ]).toMesh();
+        var suelo_eliminar = new THREE.Mesh(new THREE.BoxGeometry(ancho_puerta+this.conf.grosor,1,1));
+        suelo_eliminar.position.y = -0.5;
+
+        marco = new CSG().subtract([ marco, suelo_eliminar, puerta_eliminar, p1_eliminar ]).toMesh();
 
         estructura_puerta.add( marco, puerta_OBJ );
         
@@ -720,11 +748,13 @@ class H_estructura extends THREE.Object3D {
 
         var anchoArcos = this.largo_boveda_pilares / this.num_bovedas_pilares;
         var posX_centroArcos_array = [];
-        for (var i in range(0,this.num_bovedas_pilares)) {
+        for (let i=0; i<this.num_bovedas_pilares; i++) {
             posX_centroArcos_array.push( 
-                -(this.largo_boveda_pilares/2 - anchoArcos/2) + i*l +
+                -(this.largo_boveda_pilares/2 - anchoArcos/2) + i*anchoArcos +
                 (op.largo/2 - this.largo_boveda_pilares/2 - this.radio_base_pilar) );
         }
+
+        var dist_anchoColumnas = op.profundidad/2 - op.radio_mayor -this.radio_base_pilar*4;
 
 
         return {
@@ -732,15 +762,24 @@ class H_estructura extends THREE.Object3D {
             profundidad: op.profundidad,
             alto: op.alto,
             grosor: op.grosor,
+            radio_central: op.radio_mayor,
+            radio_lateral: op.radio_menor,
+            rad_base_pilarPrisma: this.radio_base_pilar,
+            
+
+            dist_anchoColumnas: dist_anchoColumnas,
+            posZ_centroBovedasInterColumnas_positiva: op.radio_mayor + 2*this.radio_base_pilarPrisma + dist_anchoColumnas/2,
 
             posX_centroArcos_array: posX_centroArcos_array,                         // ES UN ARRAY, cada una de las posiciones en x donde están los centros de los espacios entre columnas (arcos)
             posZ_centroArcos_positiva: op.profundidad/2,                            // posición que es la distancia desde el centro hasta la pared SUR, para la pared NORTE se pone la misma en negativo
             dist_anchoArcos_estanteria: anchoArcos - 2*this.radio_base_pilar,       // distancia que es el ancho desde cada centro de columna pero sin el radio de la base (los prismas), esta es el espacio disponible entre cada columna
 
+
             posV2xz_centro_HabCircular_Lateral: new THREE.Vector2(-op.largo/2+op.radio_menor ,op.profundidad/2),    // ES UN VECTOR2, posición del centro de la hab_cir_lateral SUR, resulta estar justo al borde de la pared SUR/NORTE  ---  para la NORTE la z en negativo
             rad_HabCircular_Laterales: op.radio_menor,                                                              // radio de las habitaciones circulares laterales, es la distancia del centro del circulo a la pared (también circular)
 
-            posV2xz_centro_HabCircular_Principal: new THREE.Vector2(0,-op.largo/2),     // ES UN VECTOR2, posición del centro de la hab_cir_principal, resulta estar justo al borde de la pared OESTE
+
+            posV2xz_centro_HabCircular_Principal: new THREE.Vector2(-op.largo/2,0),     // ES UN VECTOR2, posición del centro de la hab_cir_principal, resulta estar justo al borde de la pared OESTE
             rad_HabCircular_Principal: op.radio_mayor,                                  // radio de la habitación circular principal
 
         }
