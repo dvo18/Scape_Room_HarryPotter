@@ -20,10 +20,15 @@ function shapeToVector3 ( shape , num_pts = 6 ) {
 }
 
 function repeatTexture(texture, repeatX, repeatY) {
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.x = repeatX;
-    texture.repeat.y = repeatY;
+    var t = texture.clone();
+
+    t.wrapS = THREE.RepeatWrapping;
+    t.wrapT = THREE.RepeatWrapping;
+
+    t.repeat.x = repeatX;
+    t.repeat.y = repeatY;
+
+    return t;
 }
 
 
@@ -118,14 +123,20 @@ class H_estructura extends THREE.Object3D {
 
         this.texturaLoader = new THREE.TextureLoader();
 
-        this.pared_gris = this.texturaLoader.load('../imgs/textura_paredPiedra2_gris.jpg');
-        this.pared_normal = this.texturaLoader.load('../imgs/textura_paredPiedra2_normal.jpg');
+        this.T_pared_gris = this.texturaLoader.load('../imgs/textura_paredPiedra2_gris.jpg');
+        this.T_pared_normal = this.texturaLoader.load('../imgs/textura_paredPiedra2_normal.jpg');
 
         this.colorPared = new THREE.Color( "rgb(62, 61, 89)" );
 
-        this.suelo = this.texturaLoader.load('../imgs/textura_suelo.jpg' );
+        this.T_suelo = this.texturaLoader.load('../imgs/textura_suelo.jpg' );
 
         this.colorSuelo = new THREE.Color( "rgb(168, 168, 168)" );
+
+        this.T_techo = this.texturaLoader.load('../imgs/textura_techo_piedra_negra.jpg' );
+
+        this.colorTecho = '';//'#3F3F3F';
+
+        this.T_columna = this.texturaLoader.load('../imgs/textura_caliza.jpg' );
 
 
 
@@ -174,24 +185,20 @@ class H_estructura extends THREE.Object3D {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createSquareRoom() {
-        repeatTexture(this.suelo,12,12);
-        this.estr.S = this.createFloor( this.conf.largo, this.conf.profundidad, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorSuelo, map: this.suelo}) );
+        this.estr.S = this.createFloor( this.conf.largo, this.conf.profundidad, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorSuelo, map: repeatTexture(this.T_suelo,12,12)}) );
         
-        repeatTexture(this.pared_gris,this.conf.profundidad/4.5,1.3);
-        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorPared, map: this.pared_gris, normalMap: this.pared_normal}) );
+        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.largo/5,0.8), normalMap: this.T_pared_normal}) );
         this.estr.MN.position.z = -(this.conf.profundidad/2+this.conf.grosor/2);
         
         this.estr.MS = this.estr.MN.clone();
         this.estr.MS.position.z = -this.estr.MN.position.z;
         
-        this.estr.MO = this.createWall( this.conf.profundidad, this.conf.alto, this.conf.grosor, new THREE.MeshMatcapMaterial() );
+        this.estr.MO = this.createWall( this.conf.profundidad, this.conf.alto, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,0.8)}) );
         this.estr.MO.rotation.y += PI/2;
         this.estr.MO.position.x = -(this.conf.largo/2+this.conf.grosor/2);
         
-        repeatTexture(this.pared_gris,this.conf.profundidad/4.5,1.3);
         //repeatTexture(this.pared_normal,3,1.2);
-
-        this.estr.ME = this.createWall( this.conf.profundidad, this.conf.alto+this.grosor_techo, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorPared, map: this.pared_gris, normalMap: this.pared_normal}) );
+        this.estr.ME = this.createWall( this.conf.profundidad, this.conf.alto+this.grosor_techo, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,1.4), normalMap: this.T_pared_normal}) );
         this.estr.ME.rotation.y += PI/2;
         this.estr.ME.position.x = -this.estr.MO.position.x;
 
@@ -319,8 +326,10 @@ class H_estructura extends THREE.Object3D {
             estructura_columnas_izq[columna].position.x = this.conf.largo/2 - this.largo_boveda_pilares/2 - this.radio_base_pilar;
         }
 
-        this.estr.MN = new CSG().union([this.estr.MN,estructura_columnas_der.pared]).toMesh();
-        this.estr.MS = new CSG().union([this.estr.MS,estructura_columnas_izq.pared]).toMesh();
+        /*this.estr.MN = new CSG().union([this.estr.MN,estructura_columnas_der.pared]).toMesh();
+        this.estr.MS = new CSG().union([this.estr.MS,estructura_columnas_izq.pared]).toMesh();*/
+        this.add(estructura_columnas_der.pared);
+        this.add(estructura_columnas_izq.pared);
 
         if (this.techo_visible) {
             this.estr.T = new CSG().subtract([this.estr.T,estructura_columnas_der.techo_eliminar]).toMesh();
@@ -412,6 +421,8 @@ class H_estructura extends THREE.Object3D {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createPillar() {
+        var columnaCompleta = new THREE.Object3D();
+
         var r = this.radio_pilar;
 
         var alto = this.conf.alto-r*this.PILAR_PROP_ALTO*2;
@@ -449,11 +460,12 @@ class H_estructura extends THREE.Object3D {
         colum.lineTo(0.1,alto+r/2);
         
         var points = colum.extractPoints(10).shape;
+
         var columna = new THREE.Mesh( new THREE.LatheGeometry(points, RESOLUCION, 0, Math.PI*2), new THREE.MeshMatcapMaterial() );
 
         columna.position.y = r*this.PILAR_PROP_ALTO;
 
-        return new CSG().union([base1,base2,columna]).toMesh();
+        return columnaCompleta.add(base1,base2,columna);
     }
 
 
