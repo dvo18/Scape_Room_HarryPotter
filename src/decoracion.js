@@ -2,7 +2,7 @@ import * as THREE from '../libs/three.module.js'
 import { OBJLoader } from '../libs/OBJLoader.js'
 import { MTLLoader } from '../libs/MTLLoader.js'
 import * as TWEEN from '../libs/tween.esm.js'
-import { CSG } from '../libs/CSG-v2.js'
+import { CSG } from '../libs/CSG-v2.js' 
  
 class Decoracion extends THREE.Object3D {
   constructor() {
@@ -11,16 +11,17 @@ class Decoracion extends THREE.Object3D {
     // Creamos las variables para cargar los materiales y objetos:
     var materialLoader = new MTLLoader();
     var objetoLoader = new OBJLoader();
+    var texturaLoader = new THREE.TextureLoader();
 
     this.createEstanteria(0.8);
     this.createMesa(materialLoader, objetoLoader);
     this.createTaburete(objetoLoader);
     this.createGato(materialLoader, objetoLoader);
 
-    this.createFrasco();
-    this.createCaldero(materialLoader, objetoLoader);
+    this.createFrasco(texturaLoader);
+    this.createCaldero(materialLoader, objetoLoader, texturaLoader);
     this.createSnitch();
-    this.createPensadero();
+    this.createPensadero(texturaLoader);
   }
 
   // ---------------------------------------------------------------
@@ -125,7 +126,11 @@ class Decoracion extends THREE.Object3D {
 
   // ---------------------------------------------------------------
 
-  createCaldero(materialLoader, objetoLoader){
+  createCaldero(materialLoader, objetoLoader, texturaLoader){
+    // --------- TEXTURAS ---------
+    var textura_caldero = texturaLoader.load ('../imgs/textura_caliza.jpg');
+    var textura_liquido = texturaLoader.load('../imgs/textura_liquido.jpg')
+
     // Primero voy a hacer el cuerpo del caldero:
     var shape = new THREE.Shape();
     this.puntos = [];
@@ -289,14 +294,21 @@ class Decoracion extends THREE.Object3D {
     this.caldero.add(contenido);
     this.caldero.add(asas);
     this.caldero.add(base);
-    //this.add(this.caldero);
+
+    this.caldero.scale.x = 1.3;
+    this.caldero.scale.z = 1.3;
+
+    this.add(this.caldero);
   }
 
   // ---------------------------------------------------------------
 
-  createFrasco(){
+  createFrasco(texturaLoader){
+    // --------- TEXTURAS ---------
+    var textura_frasco = texturaLoader.load ('../imgs/textura_frasco.jpg');
+
     // Para crear una geometría por revolución tenemos que crear un array de puntos:
-    this.puntos = [];
+    var puntos = [];
     var shape = new THREE.Shape();
 
     // Definimos el cuerpo de la frasco.
@@ -304,11 +316,11 @@ class Decoracion extends THREE.Object3D {
     shape.bezierCurveTo(0.2, 0, 0.2, 0.25, 0.065, 0.25);
     shape.quadraticCurveTo(0.01, 0.25, 0.020, 0.34)
     shape.bezierCurveTo(0.04, 0.35, 0.04, 0.37, 0.015, 0.38);
-    this.puntos = shape.extractPoints(10).shape;
+    puntos = shape.extractPoints(10).shape;
 
     // Para crear la figura por revolución.
-    var geometria = new THREE.LatheGeometry(this.puntos, 12, 0, Math.PI*2);
-    var material = new THREE.MeshNormalMaterial();
+    var geometria = new THREE.LatheGeometry(puntos, 12, 0, Math.PI*2);
+    var material = new THREE.MeshMatcapMaterial({map: textura_frasco});
     
     this.frasco = new THREE.Mesh(geometria, material);
     //this.add(this.frasco);
@@ -401,20 +413,24 @@ class Decoracion extends THREE.Object3D {
     //this.add(this.snitch);
   }
 
-  createPensadero(){
+  createPensadero(texturaLoader){
+    // --------- TEXTURAS ---------
+    var textura_piedra = texturaLoader.load ('../imgs/textura_caliza.jpg');
+    var textura_liquido = texturaLoader.load('../imgs/textura_liquido.jpg')
+
     // ---------- CUERPO ----------
     var cuerpo_geom = new THREE.CapsuleGeometry(0.5, 0.6, 9, 7);
     var cubo_geom = new THREE.BoxGeometry(1.1,1.1,1.1);
     var cilindro_geom = new THREE.CylinderGeometry(0.4, 0.3, 0.6, 10);
     var circulo_geom = new THREE.CircleGeometry(0.4, 20);
-    var torus_geom = new THREE.TorusGeometry(0.49, 0.04, 20, 20);
+    var torus_geom = new THREE.TorusGeometry(0.49, 0.036, 20, 20);
 
-    var material = new THREE.MeshMatcapMaterial({color: 0xF1ECDA});
-    var material2 = new THREE.MeshMatcapMaterial({color: 0x6CC5DE});
+    var piedra = new THREE.MeshMatcapMaterial({color: 0xF1ECDA, map: textura_piedra});
+    var agua = new THREE.MeshMatcapMaterial({color: 0x6CC5DE, map: textura_liquido});
     
-    var cilindro_CSG = new THREE.Mesh(cilindro_geom, material);
-    var cubo_CSG = new THREE.Mesh(cubo_geom, material);
-    var anillo_CSG = new THREE.Mesh(torus_geom, material);
+    var cilindro_CSG = new THREE.Mesh(cilindro_geom, piedra);
+    var cubo_CSG = new THREE.Mesh(cubo_geom, piedra);
+    var anillo_CSG = new THREE.Mesh(torus_geom, piedra);
 
     cubo_CSG.position.y = 0.55;
     cilindro_CSG.position.y = 0.5;
@@ -422,12 +438,12 @@ class Decoracion extends THREE.Object3D {
     anillo_CSG.rotateX(Math.PI/2);
     anillo_CSG.position.y = 0.4;
 
-    var liquido = new THREE.Mesh(circulo_geom, material2);
+    var liquido = new THREE.Mesh(circulo_geom, agua);
     liquido.rotateX(-Math.PI/2);
     liquido.position.y = 0.6;
 
     // Creamos el objeto CSG y oepramos con él:
-    var cuerpo_base = new THREE.Mesh(cuerpo_geom, material);
+    var cuerpo_base = new THREE.Mesh(cuerpo_geom, piedra);
     cuerpo_base = new CSG().subtract([cuerpo_base, cubo_CSG]).toMesh();
     cuerpo_base.position.y = 0.7;
 
@@ -450,14 +466,14 @@ class Decoracion extends THREE.Object3D {
 
     // Para crear la figura por revolución.
     var base_geom = new THREE.LatheGeometry(puntos, 7, 0, Math.PI*2);
-    var base = new THREE.Mesh(base_geom, material);
+    var base = new THREE.Mesh(base_geom, piedra);
 
     // ------------------
     this.pensadero = new THREE.Object3D();
     this.pensadero.add(cuerpo);
     this.pensadero.add(base);
 
-    this.add(this.pensadero);
+    //this.add(this.pensadero);
   }
 }
 
