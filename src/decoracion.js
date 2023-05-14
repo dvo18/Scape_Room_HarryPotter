@@ -16,7 +16,7 @@ class Decoracion extends THREE.Object3D {
 
   // ---------------------------------------------------------------
 
-  createEstanteria(largo){
+  createEstanteria(largo, tipo){
     // --------- TEXTURAS ---------
     var textura_madera = this.texturaLoader.load ('../imgs/textura_madera1.jpg');
 
@@ -47,7 +47,33 @@ class Decoracion extends THREE.Object3D {
 
     this.estanteria.scale.y = 1.5;
 
+    if(tipo == 1){
+
+    }
+
     return this.estanteria;
+  }
+
+  // ---------------------------------------------------------------
+
+  createLibro(){
+    // Creamos un objeto 3D para el taburete.
+    var libro = new THREE.Object3D();
+
+    this.materialLoader.load('../modelos/libro/book.mtl',
+    (materiales) => {
+      this.objetoLoader.setMaterials(materiales);
+      this.objetoLoader.load('../modelos/libro/book.obj',
+        (lib) => {
+            libro.add(lib); // Finalmente añadimos la mesa como hijo de Object3D.
+        }, null, null);
+    });
+
+    // libro.scale.x = 0.01;
+    // libro.scale.y = 0.01;
+    // libro.scale.z = 0.01;
+
+    return this.libro; 
   }
 
   // ---------------------------------------------------------------
@@ -134,7 +160,7 @@ class Decoracion extends THREE.Object3D {
 
   createCaldero(){
     // --------- TEXTURAS ---------
-    var textura_caldero = this.texturaLoader.load ('../imgs/textura_caldero.jpg');
+    var textura_caldero = this.texturaLoader.load ('../imgs/textura_caldero_2.jpg');
     var textura_liquido = this.texturaLoader.load('../imgs/textura_liquido.jpg');
     var textura_metal = this.texturaLoader.load('../imgs/textura_metal.jpg');
 
@@ -185,59 +211,97 @@ class Decoracion extends THREE.Object3D {
     burbuja4.position.x = 0.03;
     burbuja4.position.z = 0.05;
 
+    // ------------------------------------
     // Vamos a animar las burbujas para que suban y bajen, para simular que el líquido está hirviendo.
-    // Primero tenemos que declarar las variables de inicio/fin.
-    var altura = -0.10; // altura a la que se bajarán las burbujas.
-    
-    var burbuja_I = { y: 0 };
-    var burbuja_F = { y: altura };
+    var splineBurbuja1 = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0.08, 0.25, 0.02),
+      new THREE.Vector3(0.08, 0.22, 0.02),
+      new THREE.Vector3(0.08, 0.15, 0.02),
+      new THREE.Vector3(0.08, 0.08, 0.02),
+      new THREE.Vector3(0.08, -0.10, 0.02)
+    ]);
 
-    var burbuja2_I = { y: 0 };
-    var burbuja2_F = { y: altura };
+    var splineBurbuja2 = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.02, 0.25, -0.05),
+      new THREE.Vector3(-0.02, 0.22, -0.05),
+      new THREE.Vector3(-0.02, 0.15, -0.05),
+      new THREE.Vector3(-0.02, 0.08, -0.05),
+      new THREE.Vector3(-0.02, -0.10, -0.05)
+    ]);
 
-    var burbuja3_I = { y: 0 };
-    var burbuja3_F = { y: altura };
-    
-    var burbuja4_I = { y: 0 };
-    var burbuja4_F = { y: altura };
-    
-    // Crear los tweens para cada burbuja:
-    var animacion_B1 = new TWEEN.Tween(burbuja.position)
-    .to(burbuja_F, 1000)
-    .onComplete(function () {
-        new TWEEN.Tween(burbuja.position.y)
-            .to(burbuja_I, 1000)
-            .start();
-    });
-    var animacion_B2 = new TWEEN.Tween(burbuja2.position)
-    .to(burbuja2_F, 1000)
-    .onComplete(function () {
-        new TWEEN.Tween(burbuja2.position)
-            .to(burbuja2_I, 1000)
-            .start();
-    });
-    var animacion_B3 = new TWEEN.Tween(burbuja3.position)
-    .to(burbuja3_F, 1000)
-    .onComplete(function () {
-        new TWEEN.Tween(burbuja3.position)
-            .to(burbuja3_I, 1000)
-            .start();
-    });
-    var animacion_B4 = new TWEEN.Tween(burbuja4.position)
-    .to(burbuja4_F, 1000)
-    .onComplete(function () {
-        new TWEEN.Tween(burbuja.position)
-            .to(burbuja4_I, 1000)
-            .start();
+    var splineBurbuja3 = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.06, 0.25, 0.0),
+      new THREE.Vector3(-0.06, 0.22, 0.0),
+      new THREE.Vector3(-0.06, 0.15, 0.0),
+      new THREE.Vector3(-0.06, 0.08, 0.0),
+      new THREE.Vector3(-0.06, -0.10, 0.0)
+    ]);
+
+    var splineBurbuja4 = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0.03, 0.25, 0.05),
+      new THREE.Vector3(0.03, 0.22, 0.05),
+      new THREE.Vector3(0.03, 0.15, 0.05),
+      new THREE.Vector3(0.03, 0.08, 0.05),
+      new THREE.Vector3(0.03, -0.10, 0.05)
+    ]);
+
+    // -----------
+    var origen = { p : 0 } ; // 0 representa el principio.
+    var destino = { p : 1 } ; // representa el final.
+
+    var animacion1 = new TWEEN.Tween(origen).to(destino, 3000)
+    .onUpdate(() => {
+      var position = splineBurbuja1.getPoint(animacion1._object.t);
+      burbuja.position.copy(position);
+    })
+    .repeat(Infinity)
+    .onComplete(function(){
+      origen.p = 0; 
     });
 
-    // Anidamos las animaciones y comenzamos:
-    animacion_B1.chain(animacion_B2);
-    animacion_B2.chain(animacion_B3);
-    animacion_B3.chain(animacion_B4);
-    animacion_B4.chain(animacion_B1);
+    var animacion2 = new TWEEN.Tween(origen).to(destino, 3000)
+    .onUpdate(() => {
+      var position = splineBurbuja2.getPoint(animacion2._object.t);
+      burbuja2.position.copy(position);
+    })
+    .repeat(Infinity)
+    .onComplete(function(){
+      origen.p = 0; 
+    });
 
-    animacion_B1.start();
+    var animacion3 = new TWEEN.Tween(origen).to(destino, 3000)
+    .onUpdate(() => {
+      var position = splineBurbuja3.getPoint(animacion3._object.t);
+      burbuja3.position.copy(position);
+    })
+    .repeat(Infinity)
+    .onComplete(function(){
+      origen.p = 0; 
+    });
+
+    var animacion4 = new TWEEN.Tween(origen).to(destino, 3000)
+    .onUpdate(() => {
+      var position = splineBurbuja4.getPoint(animacion4._object.t);
+      burbuja4.position.copy(position);
+    })
+    .repeat(Infinity)
+    .onComplete(function(){
+      origen.p = 0; 
+    });
+
+    // Agrega un retardo aleatorio a cada animación para que las burbujas no suban y bajen al mismo tiempo.
+    animacion1.delay(Math.random() * 3000);
+    animacion2.delay(Math.random() * 3000);
+    animacion3.delay(Math.random() * 3000);
+    animacion4.delay(Math.random() * 3000);
+
+    // Comienza la animación.
+    animacion1.chain(animacion2);
+    animacion2.chain(animacion3);
+    animacion3.chain(animacion4);
+    animacion4.chain(animacion1);
+
+    animacion1.start();
 
     // ----------------
 
@@ -308,7 +372,9 @@ class Decoracion extends THREE.Object3D {
   createFrasco(colorFrasco, colorLiquido){
     // --------- TEXTURAS ---------
     var textura_frasco = this.texturaLoader.load ('../imgs/textura_frasco.jpg');
+    var textura_corcho = this.texturaLoader.load ('../imgs/textura_corcho.jpg');
 
+    // ------------ CUERPO ------------
     // Para crear una geometría por revolución tenemos que crear un array de puntos:
     var puntos = [];
     var shape = new THREE.Shape();
@@ -325,20 +391,70 @@ class Decoracion extends THREE.Object3D {
     var material = new THREE.MeshBasicMaterial({color: colorFrasco, map: textura_frasco, transparent: true, opacity: 0.8, side: THREE.DoubleSide});
     
     var frasco_base = new THREE.Mesh(geometria, material);
-    this.frasco = new THREE.Object3D;
-    this.frasco.add(frasco_base);
 
-    // Esfera que simula el contenido:
-    var cubo_CSG = new THREE.Mesh(new THREE.BoxGeometry(0.15,0.15,0.15), material);
+    // ------------ CONTENIDO ------------
+    var cubo_CSG = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.25,0.25), material);
     var esfera_CSG = new THREE.Mesh(new THREE.SphereGeometry(0.12), new THREE.MeshBasicMaterial({color: colorLiquido}));
-    esfera_CSG.position.y = 0.13;
-    cubo_CSG.position.y = 0.15;
+    esfera_CSG.position.y = 0.14;
+    cubo_CSG.position.y = 0.29;
 
     var liquido = new CSG().subtract([esfera_CSG, cubo_CSG]).toMesh();
+    liquido.scale.x = 1.1;
+    liquido.scale.z = 1.1;
 
-    this.frasco.add(liquido);
+    // ------------ TAPÓN ------------
+    var material2 = new THREE.MeshBasicMaterial({color: 0xC2A36D, map: textura_corcho});
+    var tapon = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.025), material2);
+    tapon.position.y = 0.38;
+
+    // --------------
+    this.frasco = new THREE.Object3D;
+    this.frasco.add(frasco_base, liquido, tapon);
 
     return this.frasco;
+  }
+
+  // ---------------------------------------------------------------
+
+  createPocion(colorFrasco, colorLiquido, altura){
+    // --------- TEXTURAS ---------
+    var textura_cristal = this.texturaLoader.load ('../imgs/textura_cristal.jpg');
+    var textura_corcho = this.texturaLoader.load ('../imgs/textura_corcho.jpg');
+
+    // ------------ CUERPO ------------
+    // Para crear una geometría por revolución tenemos que crear un array de puntos:
+    var puntos = [];
+    var shape = new THREE.Shape();
+
+    // Definimos el cuerpo de la frasco.
+    shape.moveTo(0.1, 0);
+    shape.lineTo(0.1, altura);
+    puntos = shape.extractPoints(10).shape;
+
+    // Para crear la figura por revolución.
+    var geometria = new THREE.LatheGeometry(puntos, 12, 0, Math.PI*2);
+    var material = new THREE.MeshBasicMaterial({color: colorFrasco, map: textura_cristal, transparent: true, opacity: 0.8, side: THREE.DoubleSide});
+    
+    var pocion_base = new THREE.Mesh(geometria, material);
+
+    // ------------ CONTENIDO ------------
+    var liquido_geom = new THREE.CylinderGeometry(0.09, 0.09, 0.2, 20);
+    var material2 = new THREE.MeshBasicMaterial({color: colorLiquido});
+
+    var liquido = new THREE.Mesh(liquido_geom, material2);
+    liquido.position.y = 0.12;
+
+    // ------------ TAPÓN ------------
+    var material3 = new THREE.MeshBasicMaterial({color: 0xC2A36D, map: textura_corcho});
+    var tapon = new THREE.Mesh(new THREE.CylinderGeometry(0.096,0.096,0.03, 20), material3);
+    tapon.position.y = altura;
+
+    // --------------
+    var pocion = new THREE.Object3D();
+    pocion.add(pocion_base, liquido, tapon);
+    pocion.rotateY(Math.PI);
+
+    return pocion;
   }
 
   // ---------------------------------------------------------------

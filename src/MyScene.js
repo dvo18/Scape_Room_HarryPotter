@@ -121,8 +121,14 @@ class MyScene extends THREE.Scene {
     // ------------------- FRASCOS -------------------
     var colorFrasco = 0xD6DCDE;
     var colorLiquido = 0x871B1B;
-    var frasco = this.decoracion.createFrasco(colorFrasco, colorLiquido);
-    this.add(frasco);
+    // var frasco = this.decoracion.createFrasco(colorFrasco, colorLiquido);
+    // this.add(frasco);
+
+    // var pocion = this.decoracion.createPocion(colorFrasco, colorLiquido, 0.3);
+    // this.add(pocion);
+
+    var libro = this.decoracion.createLibro();
+    this.add(libro);
   }
   
   initStats() {
