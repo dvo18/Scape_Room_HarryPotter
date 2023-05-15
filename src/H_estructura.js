@@ -185,20 +185,20 @@ class H_estructura extends THREE.Object3D {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createSquareRoom() {
-        this.estr.S = this.createFloor( this.conf.largo, this.conf.profundidad, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorSuelo, map: repeatTexture(this.T_suelo,12,12)}) );
+        this.estr.S = this.createFloor( this.conf.largo, this.conf.profundidad, this.conf.grosor, new THREE.MeshPhongMaterial({color: this.colorSuelo, map: repeatTexture(this.T_suelo,12,12)}) );
         
-        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.largo/5,0.8), normalMap: this.T_pared_normal}) );
+        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.largo/5,0.8), normalMap: this.T_pared_normal}) );
         this.estr.MN.position.z = -(this.conf.profundidad/2+this.conf.grosor/2);
         
         this.estr.MS = this.estr.MN.clone();
         this.estr.MS.position.z = -this.estr.MN.position.z;
         
-        this.estr.MO = this.createWall( this.conf.profundidad, this.conf.alto, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,0.8)}) );
+        this.estr.MO = this.createWall( this.conf.profundidad, this.conf.alto, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,0.8)}) );
         this.estr.MO.rotation.y += PI/2;
         this.estr.MO.position.x = -(this.conf.largo/2+this.conf.grosor/2);
         
         //repeatTexture(this.pared_normal,3,1.2);
-        this.estr.ME = this.createWall( this.conf.profundidad, this.conf.alto+this.grosor_techo, this.conf.grosor, new THREE.MeshBasicMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,1.4), normalMap: this.T_pared_normal}) );
+        this.estr.ME = this.createWall( this.conf.profundidad, this.conf.alto+this.grosor_techo, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,1.4), normalMap: this.T_pared_normal}) );
         this.estr.ME.rotation.y += PI/2;
         this.estr.ME.position.x = -this.estr.MO.position.x;
 
@@ -465,7 +465,16 @@ class H_estructura extends THREE.Object3D {
 
         columna.position.y = r*this.PILAR_PROP_ALTO;
 
-        return columnaCompleta.add(base1,base2,columna);
+        columnaCompleta.add(base1,base2,columna);
+
+        /*columnaCompleta.traverseVisible((unNodo) => {
+            unNodo.castShadow = true;
+            unNodo.receiveShadow = true;
+        });*/
+        //columnaCompleta.castShadow = true;
+        //columnaCompleta.receiveShadow = true;
+
+        return columnaCompleta;
     }
 
 
@@ -714,6 +723,9 @@ class H_estructura extends THREE.Object3D {
 
         estructura_puerta.add( marco, puerta_OBJ );
         
+        puerta_eliminar_pared.scale.x = 1.1;
+        puerta_eliminar_pared.scale.y = 1.1;
+
         return {
             puerta: estructura_puerta,
             puerta_eliminar: puerta_eliminar_pared
@@ -723,7 +735,7 @@ class H_estructura extends THREE.Object3D {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+
 
     createFloor( largo, profundidad, grosor, material ) {
         var plano = new THREE.Mesh( new THREE.BoxGeometry(largo,grosor,profundidad), material );

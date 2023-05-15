@@ -6,6 +6,11 @@ import { GUI } from '../libs/dat.gui.module.js'
 import { TrackballControls } from '../libs/TrackballControls.js'
 import { Stats } from '../libs/stats.module.js'
 
+import { FirstPersonControls } from '../libs/FirstPersonControls.js'
+import { PointerLockControls } from '../libs/PointerLockControls.js'
+
+import * as KeyCode from '../libs/keycode.esm.js'
+
 import { H_estructura } from './H_estructura.js'
 import { Decoracion  } from './decoracion.js'
 
@@ -20,11 +25,14 @@ class MyScene extends THREE.Scene {
   constructor (myCanvas) {
     super();
 
-    this.colorFondo = new THREE.Color(0xEEEEEE);
-    //this.colorFondo = new THREE.Color(0x000000);
+    //this.colorFondo = new THREE.Color(0xEEEEEE);
+    this.colorFondo = new THREE.Color(0x000000);
 
     // Lo primero, crear el visualizador, pasándole el lienzo sobre el que realizar los renderizados.
     this.renderer = this.createRenderer(myCanvas);
+
+    this.renderer.shadowMap.enable = true;
+    this.renderer.shadowMap.type = THREE.BasicShadowMap;
 
     // Se añade a la gui los controles para manipular los elementos de esta clase
     this.gui = this.createGUI ();
@@ -156,20 +164,23 @@ class MyScene extends THREE.Scene {
     //   Los planos de recorte cercano y lejano // 45 <--
     this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
     // También se indica dónde se coloca
-    this.camera.position.set (-6,3,0);//(20, 10, 20);
+    this.camera.position.set (0,1.75,0);//(20, 10, 20);
     // Y hacia dónde mira
-    var look = new THREE.Vector3 (0,4,3); //(0,0,0); 
+    var look = new THREE.Vector3 (0,0,0); //(0,0,0); 
     this.camera.lookAt(look);
     this.add (this.camera);
     
     // Para el control de cámara usamos una clase que ya tiene implementado los movimientos de órbita
-    this.cameraControl = new TrackballControls (this.camera, this.renderer.domElement);
+    this.cameraControl = new FirstPersonControls(this.camera, this.renderer.domElement);
+    //this.cameraControl = new TrackballControls(this.camera, this.renderer.domElement);
     // Se configuran las velocidades de los movimientos
-    this.cameraControl.rotateSpeed = 5;
+    /*this.cameraControl.rotateSpeed = 5;
     this.cameraControl.zoomSpeed = -2;
     this.cameraControl.panSpeed = 0.5;
     // Debe orbitar con respecto al punto de mira de la cámara
-    this.cameraControl.target = look;
+    this.cameraControl.target = look;*/
+
+    //this.cameraControl.lock();
   }
   
   createGUI () {
@@ -198,21 +209,19 @@ class MyScene extends THREE.Scene {
   }
   
   createLights () {
-    // Se crea una luz ambiental, evita que se vean complentamente negras las zonas donde no incide de manera directa una fuente de luz
-    // La luz ambiental solo tiene un color y una intensidad
-    // Se declara como   var   y va a ser una variable local a este método
-    //    se hace así puesto que no va a ser accedida desde otros métodos
-    var ambientLight = new THREE.AmbientLight(0xccddee, 0.35);
-    // La añadimos a la escena
-    this.add (ambientLight);
-    
-    // Se crea una luz focal que va a ser la luz principal de la escena
-    // La luz focal, además tiene una posición, y un punto de mira
-    // Si no se le da punto de mira, apuntará al (0,0,0) en coordenadas del mundo
-    // En este caso se declara como   this.atributo   para que sea un atributo accesible desde otros métodos.
-    this.spotLight = new THREE.SpotLight( 0xffffff, this.guiControls.lightIntensity );
-    this.spotLight.position.set( 60, 60, 40 );
-    this.add (this.spotLight);
+    var luzAmbiente = new THREE.AmbientLight('#828282', 0.65);
+    this.add(luzAmbiente);
+
+    var luzPrueba = new THREE.PointLight('#FFFFFF', 1, 10, 1);
+    luzPrueba.position.set(0,2,0);
+    this.add(luzPrueba);
+
+    /*luzPrueba.castShadow = true;
+    luzPrueba.shadow.mapSize.width = 512;
+    luzPrueba.shadow.mapSize.height = 512;
+    luzPrueba.shadow.camera.near = 0.5;
+    luzPrueba.shadow.camera.far = 500;*/
+
   }
   
   setLightIntensity (valor) {
@@ -265,7 +274,10 @@ class MyScene extends THREE.Scene {
     if (this.stats) this.stats.update();
 
     // Se actualiza la posición de la cámara según su controlador
-    this.cameraControl.update();
+    //this.cameraControl.update();
+    this.camera.position.y = 1.75;
+    this.cameraControl.update(1.5);
+    this.cameraControl.movementSpeed = 0.1;
     
     // Se actualiza el resto del modelo
     // this.model.update();
@@ -278,16 +290,33 @@ class MyScene extends THREE.Scene {
     // Si no existiera esta línea,  update()  se ejecutaría solo la primera vez.
     requestAnimationFrame(() => this.update())
   }
+
+
+  onKeyDown(event) {
+    var x = event.which || event.key;
+
+
+    /*switch (x) {
+      case KeyCode.KEY_0:
+        this.cameraControl.lock();
+        break;
+      case KeyCode.KEY_1:
+        this.cameraControl.unlock();
+        break;
+    }*/
+  }
+
 }
 
 /// La función   main
 $(function () {
-  
   // Se instancia la escena pasándole el  div  que se ha creado en el html para visualizar
   var scene = new MyScene("#WebGL-output");
 
   // Se añaden los listener de la aplicación. En este caso, el que va a comprobar cuándo se modifica el tamaño de la ventana de la aplicación.
   window.addEventListener ("resize", () => scene.onWindowResize());
+
+  window.addEventListener ("keydown", () => scene.onKeyDown());
   
   // Que no se nos olvide, la primera visualización.
   scene.update();
