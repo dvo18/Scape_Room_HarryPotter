@@ -2,9 +2,8 @@
 // Clases de la biblioteca
 
 import * as THREE from '../libs/three.module.js'
-import { GUI } from '../libs/dat.gui.module.js'
 import { TrackballControls } from '../libs/TrackballControls.js'
-import { Stats } from '../libs/stats.module.js'
+import { FirstPersonControls } from '../libs/FirstPersonControls.js'
 
 import { FirstPersonControls } from '../libs/FirstPersonControls.js'
 import { PointerLockControls } from '../libs/PointerLockControls.js'
@@ -17,13 +16,16 @@ import { Decoracion  } from './decoracion.js'
 import { OBJLoader } from '../libs/OBJLoader.js'
 import { MTLLoader } from '../libs/MTLLoader.js'
 
-
 const PI = Math.PI;
-
 
 class MyScene extends THREE.Scene {
   constructor (myCanvas) {
     super();
+    // ------------------ COLISIONES ------------------
+    this.rayo = new THREE.Raycaster();
+    this.impactados = [];
+    this.origen = new THREE.Vector3(0,0,0);
+
 
     //this.colorFondo = new THREE.Color(0xEEEEEE);
     this.colorFondo = new THREE.Color(0x000000);
@@ -135,26 +137,8 @@ class MyScene extends THREE.Scene {
     // var pocion = this.decoracion.createPocion(colorFrasco, colorLiquido, 0.3);
     // this.add(pocion);
 
-    var libro = this.decoracion.createLibro();
-    this.add(libro);
-  }
-  
-  initStats() {
-  
-    var stats = new Stats();
-    
-    stats.setMode(0); // 0: fps, 1: ms
-
-    this.rotacion = false;
-    
-    // Align top-left
-    stats.domElement.style.position = 'absolute';
-    stats.domElement.style.left = '0px';
-    stats.domElement.style.top = '0px';
-    
-    $("#Stats-output").append( stats.domElement );
-    
-    this.stats = stats;
+    // var libro = this.decoracion.createLibro();
+    // this.add(libro);
   }
   
   createCamera () {
@@ -181,31 +165,6 @@ class MyScene extends THREE.Scene {
     this.cameraControl.target = look;*/
 
     //this.cameraControl.lock();
-  }
-  
-  createGUI () {
-    // Se crea la interfaz gráfica de usuario
-    var gui = new GUI();
-    
-    // La escena le va a añadir sus propios controles. 
-    // Se definen mediante un objeto de control
-    // En este caso la intensidad de la luz y si se muestran o no los ejes
-    this.guiControls = {
-      // En el contexto de una función   this   alude a la función
-      lightIntensity : 0.5,
-      axisOnOff : false,
-      rotationOnOff : false
-    }
-
-    // Se crea una sección para los controles de esta clase
-    var folder = gui.addFolder ('Luz, Ejes y Rotacion');
-    
-    // Se le añade un control para la intensidad de la luz
-    folder.add (this.guiControls, 'lightIntensity', 0, 1, 0.1)
-      .name('Intensidad de la Luz : ')
-      .onChange ( (value) => this.setLightIntensity (value) );
-    
-    return gui;
   }
   
   createLights () {
@@ -270,8 +229,6 @@ class MyScene extends THREE.Scene {
   }
 
   update () {
-    
-    if (this.stats) this.stats.update();
 
     // Se actualiza la posición de la cámara según su controlador
     //this.cameraControl.update();
@@ -289,6 +246,23 @@ class MyScene extends THREE.Scene {
     // Literalmente le decimos al navegador: "La próxima vez que haya que refrescar la pantalla, llama al método que te indico".
     // Si no existiera esta línea,  update()  se ejecutaría solo la primera vez.
     requestAnimationFrame(() => this.update())
+
+    // ------------------ COLISIONES ------------------
+    this.direccion = new THREE.Vector3(0, 0, -1);
+    this.camera.getWorldPosition(this.direccion);
+    this.rayo.set(this.origen, this.direccion.normalize());
+
+    // Obtenemos los objetos con los que colisiona el rayo
+    this.impactados = this.rayo.intersectObjects(scene.children, true);
+
+    // Procesamos los objetos intersectados
+    if (this.impactados.length > 0) {
+      var interseccionCercana = this.impactados[0].distan;
+      var objetoCercano = interseccionCercana.object;
+      var userData = closestObject.userData;
+
+      
+    }
   }
 
 
