@@ -2,9 +2,8 @@
 // Clases de la biblioteca
 
 import * as THREE from '../libs/three.module.js'
-import { GUI } from '../libs/dat.gui.module.js'
 import { TrackballControls } from '../libs/TrackballControls.js'
-import { Stats } from '../libs/stats.module.js'
+import { FirstPersonControls } from '../libs/FirstPersonControls.js'
 
 import { H_estructura } from './H_estructura.js'
 import { Decoracion  } from './decoracion.js'
@@ -12,24 +11,22 @@ import { Decoracion  } from './decoracion.js'
 import { OBJLoader } from '../libs/OBJLoader.js'
 import { MTLLoader } from '../libs/MTLLoader.js'
 
-
 const PI = Math.PI;
-
 
 class MyScene extends THREE.Scene {
   constructor (myCanvas) {
     super();
+    // ------------------ COLISIONES ------------------
+    this.rayo = new THREE.Raycaster();
+    this.impactados = [];
+    this.origen = new THREE.Vector3(0,0,0);
+
 
     this.colorFondo = new THREE.Color(0xEEEEEE);
     //this.colorFondo = new THREE.Color(0x000000);
 
     // Lo primero, crear el visualizador, pasándole el lienzo sobre el que realizar los renderizados.
     this.renderer = this.createRenderer(myCanvas);
-
-    // Se añade a la gui los controles para manipular los elementos de esta clase
-    this.gui = this.createGUI ();
-
-    this.initStats();
 
     // Construimos los distinos elementos que tendremos en la escena
 
@@ -127,26 +124,8 @@ class MyScene extends THREE.Scene {
     // var pocion = this.decoracion.createPocion(colorFrasco, colorLiquido, 0.3);
     // this.add(pocion);
 
-    var libro = this.decoracion.createLibro();
-    this.add(libro);
-  }
-  
-  initStats() {
-  
-    var stats = new Stats();
-    
-    stats.setMode(0); // 0: fps, 1: ms
-
-    this.rotacion = false;
-    
-    // Align top-left
-    stats.domElement.style.position = 'absolute';
-    stats.domElement.style.left = '0px';
-    stats.domElement.style.top = '0px';
-    
-    $("#Stats-output").append( stats.domElement );
-    
-    this.stats = stats;
+    // var libro = this.decoracion.createLibro();
+    // this.add(libro);
   }
   
   createCamera () {
@@ -163,38 +142,13 @@ class MyScene extends THREE.Scene {
     this.add (this.camera);
     
     // Para el control de cámara usamos una clase que ya tiene implementado los movimientos de órbita
-    this.cameraControl = new TrackballControls (this.camera, this.renderer.domElement);
+    this.cameraControl = new FirstPersonControls (this.camera, this.renderer.domElement);
     // Se configuran las velocidades de los movimientos
     this.cameraControl.rotateSpeed = 5;
     this.cameraControl.zoomSpeed = -2;
     this.cameraControl.panSpeed = 0.5;
     // Debe orbitar con respecto al punto de mira de la cámara
     this.cameraControl.target = look;
-  }
-  
-  createGUI () {
-    // Se crea la interfaz gráfica de usuario
-    var gui = new GUI();
-    
-    // La escena le va a añadir sus propios controles. 
-    // Se definen mediante un objeto de control
-    // En este caso la intensidad de la luz y si se muestran o no los ejes
-    this.guiControls = {
-      // En el contexto de una función   this   alude a la función
-      lightIntensity : 0.5,
-      axisOnOff : false,
-      rotationOnOff : false
-    }
-
-    // Se crea una sección para los controles de esta clase
-    var folder = gui.addFolder ('Luz, Ejes y Rotacion');
-    
-    // Se le añade un control para la intensidad de la luz
-    folder.add (this.guiControls, 'lightIntensity', 0, 1, 0.1)
-      .name('Intensidad de la Luz : ')
-      .onChange ( (value) => this.setLightIntensity (value) );
-    
-    return gui;
   }
   
   createLights () {
@@ -210,7 +164,7 @@ class MyScene extends THREE.Scene {
     // La luz focal, además tiene una posición, y un punto de mira
     // Si no se le da punto de mira, apuntará al (0,0,0) en coordenadas del mundo
     // En este caso se declara como   this.atributo   para que sea un atributo accesible desde otros métodos.
-    this.spotLight = new THREE.SpotLight( 0xffffff, this.guiControls.lightIntensity );
+    this.spotLight = new THREE.SpotLight( 0xffffff, 0.5 );
     this.spotLight.position.set( 60, 60, 40 );
     this.add (this.spotLight);
   }
@@ -261,11 +215,9 @@ class MyScene extends THREE.Scene {
   }
 
   update () {
-    
-    if (this.stats) this.stats.update();
 
     // Se actualiza la posición de la cámara según su controlador
-    this.cameraControl.update();
+    this.cameraControl.update(1);
     
     // Se actualiza el resto del modelo
     // this.model.update();
@@ -277,6 +229,23 @@ class MyScene extends THREE.Scene {
     // Literalmente le decimos al navegador: "La próxima vez que haya que refrescar la pantalla, llama al método que te indico".
     // Si no existiera esta línea,  update()  se ejecutaría solo la primera vez.
     requestAnimationFrame(() => this.update())
+
+    // ------------------ COLISIONES ------------------
+    this.direccion = new THREE.Vector3(0, 0, -1);
+    this.camera.getWorldPosition(this.direccion);
+    this.rayo.set(this.origen, this.direccion.normalize());
+
+    // Obtenemos los objetos con los que colisiona el rayo
+    this.impactados = this.rayo.intersectObjects(scene.children, true);
+
+    // Procesamos los objetos intersectados
+    if (this.impactados.length > 0) {
+      var interseccionCercana = this.impactados[0].distan;
+      var objetoCercano = interseccionCercana.object;
+      var userData = closestObject.userData;
+
+      
+    }
   }
 }
 
