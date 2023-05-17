@@ -21,7 +21,7 @@ class Decoracion extends THREE.Object3D {
     var textura_madera = this.texturaLoader.load ('../imgs/textura_madera1.jpg');
 
     // Primero voy a declarar el material de la estantería:
-    var material = new THREE.MeshMatcapMaterial({color: 0x745E45, map: textura_madera});
+    var material = new THREE.MeshLambertMaterial({color: 0x745E45, map: textura_madera});
 
     // Ahora creo la geometría de lo que van a ser las tablas de madera:
     var geometriaHorizontal = new THREE.BoxGeometry(0.04, 0.8, 0.3);
@@ -88,7 +88,7 @@ class Decoracion extends THREE.Object3D {
     this.objetoLoader.load('../modelos/mesa/table.obj',
     (m) => {
         // Creamos un nuevo material básico con la textura de caldero.
-        var material = new THREE.MeshBasicMaterial({
+        var material = new THREE.MeshLambertMaterial({
             color: 0xB0915E,
             map: textura_madera
         });
@@ -176,14 +176,14 @@ class Decoracion extends THREE.Object3D {
 
     // Para crear la figura por revolución : geometría y material
     var geometria1 = new THREE.LatheGeometry(puntos, 20, 0, Math.PI*2);
-    var material1 = new THREE.MeshMatcapMaterial({map: textura_caldero});
+    var material1 = new THREE.MeshLambertMaterial({map: textura_caldero});
 
     var cuerpo = new THREE.Mesh(geometria1, material1);
 
     // ------------ CONTENIDO  ------------
     var liquido_geom = new THREE.CircleGeometry(0.12, 20);
     var burbujas_geom = new THREE.SphereGeometry(0.01, 20, 20);
-    var material2 = new THREE.MeshMatcapMaterial({color: 0x8FC269, map: textura_liquido});
+    var material2 = new THREE.MeshLambertMaterial({color: 0x8FC269, map: textura_liquido});
 
     var liquido = new THREE.Mesh(liquido_geom, material2);
     liquido.rotateX(-Math.PI/2);
@@ -312,7 +312,7 @@ class Decoracion extends THREE.Object3D {
     // ------------ LAS ASAS ------------
     var asas_geom = new THREE.TorusGeometry(0.025, 0.007, 16, 100);
     var sujeccion_geom = new THREE.SphereGeometry(0.015, 20, 20);
-    var material3 = new THREE.MeshMatcapMaterial({color: 0xE3E3E3, map: textura_metal});
+    var material3 = new THREE.MeshLambertMaterial({color: 0xE3E3E3, map: textura_metal});
 
     var asa = new THREE.Mesh(asas_geom, material1);
     asa.rotateY(Math.PI/2);
@@ -388,13 +388,13 @@ class Decoracion extends THREE.Object3D {
 
     // Para crear la figura por revolución.
     var geometria = new THREE.LatheGeometry(puntos, 12, 0, Math.PI*2);
-    var material = new THREE.MeshBasicMaterial({color: colorFrasco, map: textura_frasco, transparent: true, opacity: 0.8, side: THREE.DoubleSide});
+    var material = new THREE.MeshLambertMaterial({color: colorFrasco, map: textura_frasco, transparent: true, opacity: 0.8, side: THREE.DoubleSide});
     
     var frasco_base = new THREE.Mesh(geometria, material);
 
     // ------------ CONTENIDO ------------
     var cubo_CSG = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.25,0.25), material);
-    var esfera_CSG = new THREE.Mesh(new THREE.SphereGeometry(0.12), new THREE.MeshBasicMaterial({color: colorLiquido}));
+    var esfera_CSG = new THREE.Mesh(new THREE.SphereGeometry(0.12), new THREE.MeshLambertMaterial({color: colorLiquido}));
     esfera_CSG.position.y = 0.14;
     cubo_CSG.position.y = 0.29;
 
@@ -403,7 +403,7 @@ class Decoracion extends THREE.Object3D {
     liquido.scale.z = 1.1;
 
     // ------------ TAPÓN ------------
-    var material2 = new THREE.MeshBasicMaterial({color: 0xC2A36D, map: textura_corcho});
+    var material2 = new THREE.MeshLambertMaterial({color: 0xC2A36D, map: textura_corcho});
     var tapon = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.025), material2);
     tapon.position.y = 0.38;
 
@@ -433,19 +433,19 @@ class Decoracion extends THREE.Object3D {
 
     // Para crear la figura por revolución.
     var geometria = new THREE.LatheGeometry(puntos, 12, 0, Math.PI*2);
-    var material = new THREE.MeshBasicMaterial({color: colorFrasco, map: textura_cristal, transparent: true, opacity: 0.8, side: THREE.DoubleSide});
+    var material = new THREE.MeshLambertMaterial({color: colorFrasco, map: textura_cristal, transparent: true, opacity: 0.8, side: THREE.DoubleSide});
     
     var pocion_base = new THREE.Mesh(geometria, material);
 
     // ------------ CONTENIDO ------------
     var liquido_geom = new THREE.CylinderGeometry(0.09, 0.09, 0.2, 20);
-    var material2 = new THREE.MeshBasicMaterial({color: colorLiquido});
+    var material2 = new THREE.MeshLambertMaterial({color: colorLiquido});
 
     var liquido = new THREE.Mesh(liquido_geom, material2);
     liquido.position.y = 0.12;
 
     // ------------ TAPÓN ------------
-    var material3 = new THREE.MeshBasicMaterial({color: 0xC2A36D, map: textura_corcho});
+    var material3 = new THREE.MeshLambertMaterial({color: 0xC2A36D, map: textura_corcho});
     var tapon = new THREE.Mesh(new THREE.CylinderGeometry(0.096,0.096,0.03, 20), material3);
     tapon.position.y = altura;
 
@@ -455,6 +455,42 @@ class Decoracion extends THREE.Object3D {
     pocion.rotateY(Math.PI);
 
     return pocion;
+  }
+
+  // ---------------------------------------------------------------
+
+  createCuadro(imagen, ancho, largo){
+    imagen = 2;
+
+    // --------------- CUERPO DEL CUADRO ---------------
+    // Primero creo la forma que quiero con un objeto Shape.
+    var shape = new THREE.Shape();
+    shape.moveTo(-ancho/2, 0);
+    shape.lineTo(ancho/2, 0);
+    shape.lineTo(ancho/2, largo);
+    shape.lineTo(-ancho/2, largo);
+    shape.lineTo(-ancho/2, 0);
+
+    var opciones = {
+      steps: 1,
+      depth: 0.1,
+      bevelEnabled: true,
+      bevelThickness: 0.1,
+      bevelSize: 0.2,
+      bevelOffset: ancho,
+      bevelSegments: 1
+    };
+
+    var cuadro_geom = new THREE.ExtrudeGeometry(shape, opciones);
+    var material = new THREE.MeshLambertMaterial({color: 0xD3BC64});
+
+    var cuadro_base = new THREE.Mesh(cuadro_geom, material);
+    
+    // -------------
+    var cuadro = new THREE.Object3D();
+    cuadro.add(cuadro_base);
+
+    return cuadro;
   }
 
   // ---------------------------------------------------------------
@@ -489,7 +525,7 @@ class Decoracion extends THREE.Object3D {
 
     // Creamos la geometría con el shape y las opciones. Después creamos el material.
     var geometria1 = new THREE.ExtrudeGeometry(shape1, opciones);
-    var material1 = new THREE.MeshMatcapMaterial({color: 0xD6C359});
+    var material1 = new THREE.MeshLambertMaterial({color: 0xD6C359});
     
     // Finalmente construimos el shape y lo añadimos como hijo de Object3D.
     var cuerpo = new THREE.Mesh(geometria1, material1);
@@ -519,7 +555,7 @@ class Decoracion extends THREE.Object3D {
 
     //Creamos la geometría con el shape y las opciones. Después creamos el material.
     var geometria2 = new THREE.ExtrudeGeometry(shape, opciones);
-    var material2 = new THREE.MeshMatcapMaterial({color: 0xFFFFFF});
+    var material2 = new THREE.MeshLambertMaterial({color: 0xFFFFFF});
     
     // Finalmente construimos el shape y lo añadimos como hijo de Object3D.
     var ala1 = new THREE.Mesh(geometria2, material2);
@@ -554,8 +590,8 @@ class Decoracion extends THREE.Object3D {
     var circulo_geom = new THREE.CircleGeometry(0.4, 20);
     var torus_geom = new THREE.TorusGeometry(0.49, 0.036, 20, 20);
 
-    var piedra = new THREE.MeshMatcapMaterial({color: 0xF1ECDA, map: textura_piedra});
-    var agua = new THREE.MeshMatcapMaterial({color: 0x6CC5DE, map: textura_liquido});
+    var piedra = new THREE.MeshLambertMaterial({color: 0xF1ECDA, map: textura_piedra});
+    var agua = new THREE.MeshLambertMaterial({color: 0x6CC5DE, map: textura_liquido});
     
     var cilindro_CSG = new THREE.Mesh(cilindro_geom, piedra);
     var cubo_CSG = new THREE.Mesh(cubo_geom, piedra);

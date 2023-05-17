@@ -5,7 +5,6 @@ import * as THREE from '../libs/three.module.js'
 import { TrackballControls } from '../libs/TrackballControls.js'
 import { FirstPersonControls } from '../libs/FirstPersonControls.js'
 
-import { FirstPersonControls } from '../libs/FirstPersonControls.js'
 import { PointerLockControls } from '../libs/PointerLockControls.js'
 
 import * as KeyCode from '../libs/keycode.esm.js'
@@ -23,10 +22,10 @@ class MyScene extends THREE.Scene {
     super();
     // ------------------ COLISIONES ------------------
     this.rayo = new THREE.Raycaster();
-    this.impactados = [];
-    this.origen = new THREE.Vector3(0,0,0);
-
-
+    this.direccion = new THREE.Vector3();
+    this.intersectados = [];
+    
+    // ------------------------------
     //this.colorFondo = new THREE.Color(0xEEEEEE);
     this.colorFondo = new THREE.Color(0x000000);
 
@@ -35,11 +34,6 @@ class MyScene extends THREE.Scene {
 
     this.renderer.shadowMap.enable = true;
     this.renderer.shadowMap.type = THREE.BasicShadowMap;
-
-    // Se añade a la gui los controles para manipular los elementos de esta clase
-    this.gui = this.createGUI ();
-
-    this.initStats();
 
     // Construimos los distinos elementos que tendremos en la escena
 
@@ -139,6 +133,10 @@ class MyScene extends THREE.Scene {
 
     // var libro = this.decoracion.createLibro();
     // this.add(libro);
+
+    // ------------------
+    var cuadro = this.decoracion.createCuadro('', 0.1, 0.2);
+    this.add(cuadro);
   }
   
   createCamera () {
@@ -248,18 +246,20 @@ class MyScene extends THREE.Scene {
     requestAnimationFrame(() => this.update())
 
     // ------------------ COLISIONES ------------------
-    this.direccion = new THREE.Vector3(0, 0, -1);
+    this.direccion.set(0, 0, -1);
     this.camera.getWorldPosition(this.direccion);
-    this.rayo.set(this.origen, this.direccion.normalize());
+    this.rayo.set(this.camera.position, this.direccion.normalize());
 
     // Obtenemos los objetos con los que colisiona el rayo
-    this.impactados = this.rayo.intersectObjects(scene.children, true);
+    this.intersectados = this.rayo.intersectObjects(this.children, true);
 
     // Procesamos los objetos intersectados
-    if (this.impactados.length > 0) {
-      var interseccionCercana = this.impactados[0].distan;
-      var objetoCercano = interseccionCercana.object;
-      var userData = closestObject.userData;
+    if (this.intersectados.length > 0) {
+      var interseccionCercana = this.intersectados[0].distance;
+
+      if(interseccionCercana < 2){
+        this.cameraControl.moveForward = false;
+      }
 
       
     }
@@ -267,7 +267,7 @@ class MyScene extends THREE.Scene {
 
 
   onKeyDown(event) {
-    var x = event.which || event.key;
+    //var x = event.which || event.key;
 
 
     /*switch (x) {
