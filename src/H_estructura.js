@@ -636,7 +636,7 @@ class H_estructura extends THREE.Object3D {
         var puerta_OBJ = new THREE.Object3D();
 
         var ancho_puerta = 1.35;
-        var alto_puerta = 2.5;
+        var alto_puerta = 2.8;
 
         var puerta = this.createWall( ancho_puerta, 3*alto_puerta/4, this.conf.grosor, new THREE.MeshMatcapMaterial() );
         var cil = new THREE.Mesh( new THREE.CylinderGeometry( ancho_puerta/2, ancho_puerta/2, this.conf.grosor, RESOLUCION/2 ), new THREE.MeshMatcapMaterial() );
