@@ -4,7 +4,6 @@
 import * as THREE from '../libs/three.module.js'
 import { TrackballControls } from '../libs/TrackballControls.js'
 import { FirstPersonControls } from '../libs/FirstPersonControls.js'
-
 import { PointerLockControls } from '../libs/PointerLockControls.js'
 
 import * as KeyCode from '../libs/keycode.esm.js'
@@ -14,6 +13,7 @@ import { Decoracion  } from './decoracion.js'
 
 import { OBJLoader } from '../libs/OBJLoader.js'
 import { MTLLoader } from '../libs/MTLLoader.js'
+
 
 const PI = Math.PI;
 
@@ -28,6 +28,23 @@ class MyScene extends THREE.Scene {
     // ------------------------------
     //this.colorFondo = new THREE.Color(0xEEEEEE);
     this.colorFondo = new THREE.Color(0x000000);
+    this.impactados = [];
+    this.origen = new THREE.Vector3(0,0,0);
+
+    // ------------------ CONTROLES ------------------
+
+    // 0: adelante, 1: atrás, 2: izquierda, 3: derecha
+    this.movimiento = [false, false, false, false];
+
+    this.velocidad = 0.075;
+
+    this.altura = 2;
+    this.agachado = false;
+
+    // ------------------ LUZ ------------------
+
+    this.colorFondo = new THREE.Color(0xEEEEEE);
+    //this.colorFondo = new THREE.Color(0x000000);
 
     // Lo primero, crear el visualizador, pasándole el lienzo sobre el que realizar los renderizados.
     this.renderer = this.createRenderer(myCanvas);
@@ -143,26 +160,17 @@ class MyScene extends THREE.Scene {
     // Para crear una cámara le indicamos
     //   El ángulo del campo de visión en grados sexagesimales
     //   La razón de aspecto ancho/alto
-    //   Los planos de recorte cercano y lejano // 45 <--
-    this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    // También se indica dónde se coloca
-    this.camera.position.set (0,1.75,0);//(20, 10, 20);
-    // Y hacia dónde mira
-    var look = new THREE.Vector3 (0,0,0); //(0,0,0); 
-    this.camera.lookAt(look);
+    //   Los planos de recorte cercano y lejano
+    this.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+    
+    this.camera.position.set (0,this.altura,0);
+
+    this.camera.lookAt(new THREE.Vector3 (10,this.altura,0));
+
     this.add (this.camera);
     
-    // Para el control de cámara usamos una clase que ya tiene implementado los movimientos de órbita
-    this.cameraControl = new FirstPersonControls(this.camera, this.renderer.domElement);
-    //this.cameraControl = new TrackballControls(this.camera, this.renderer.domElement);
-    // Se configuran las velocidades de los movimientos
-    /*this.cameraControl.rotateSpeed = 5;
-    this.cameraControl.zoomSpeed = -2;
-    this.cameraControl.panSpeed = 0.5;
-    // Debe orbitar con respecto al punto de mira de la cámara
-    this.cameraControl.target = look;*/
-
-    //this.cameraControl.lock();
+    
+    this.cameraControl = new PointerLockControls(this.camera, this.renderer.domElement);
   }
   
   createLights () {
@@ -227,12 +235,19 @@ class MyScene extends THREE.Scene {
   }
 
   update () {
+    var alto_cam, velocidad_cam;
 
-    // Se actualiza la posición de la cámara según su controlador
-    //this.cameraControl.update();
-    this.camera.position.y = 1.75;
-    this.cameraControl.update(1.5);
-    this.cameraControl.movementSpeed = 0.1;
+    if (this.agachado) {
+      alto_cam = this.altura * 0.7;
+      velocidad_cam = this.velocidad * 0.5;
+    }
+    else {
+      alto_cam = this.altura;
+      velocidad_cam = this.velocidad;
+    }
+
+    this.camera.position.y = alto_cam;
+
     
     // Se actualiza el resto del modelo
     // this.model.update();
@@ -245,6 +260,39 @@ class MyScene extends THREE.Scene {
     // Si no existiera esta línea,  update()  se ejecutaría solo la primera vez.
     requestAnimationFrame(() => this.update())
 
+
+    // ------------------ MOVIMIENTO ------------------
+
+    if ( this.movimiento.some((valor) => valor === true) ) {
+
+      var donde_estoy = new THREE.Vector3();
+      var a_donde_miro = new THREE.Vector3();
+
+      donde_estoy.copy(this.camera.position);
+      this.cameraControl.getDirection(a_donde_miro);
+
+      a_donde_miro.y = 0;
+      a_donde_miro.normalize();
+
+      if (this.movimiento[0])
+        if (!this.testColisiona(donde_estoy,a_donde_miro))
+          this.cameraControl.moveForward(velocidad_cam);
+
+      if (this.movimiento[1])
+        if (!this.testColisiona(donde_estoy,a_donde_miro.applyAxisAngle(new THREE.Vector3(0,1,0),PI)))
+          this.cameraControl.moveForward(-velocidad_cam);
+
+      if (this.movimiento[2])
+        if (!this.testColisiona(donde_estoy,a_donde_miro.applyAxisAngle(new THREE.Vector3(0,1,0),PI/2)))
+          this.cameraControl.moveRight(-velocidad_cam);
+
+      if (this.movimiento[3])
+        if (!this.testColisiona(donde_estoy,a_donde_miro.applyAxisAngle(new THREE.Vector3(0,1,0),-PI/2)))
+          this.cameraControl.moveRight(velocidad_cam);
+
+    }
+
+    // esto creo que no se llegará a usar aquí
     // ------------------ COLISIONES ------------------
     this.direccion.set(0, 0, -1);
     this.camera.getWorldPosition(this.direccion);
@@ -266,19 +314,99 @@ class MyScene extends THREE.Scene {
   }
 
 
-  onKeyDown(event) {
-    //var x = event.which || event.key;
+  // ------------------ COLISIONES ------------------
+  testColisiona(donde_estoy,a_donde_miro) {
+    // tener en cuenta que el vector a_donde_miro es horizontal (y = 0), lo que significa que se usará la altura
+    // que da "donde_estoy" para saber desde donde sale el rayo (además de también la x y la z de donde_estoy),
+    // también creo que no se usará el camara.getWorldPosition(), pero no estoy seguro, no se bien como van los rayos
+    // ten en cuenta que se deberá comprobar si se "detecta colisión" con alguno de los dos rayos que se van a crear:
 
+    // se crea un rayo desde la cámara hasta la dirección a_donde_miro
+    // CREAR RAYO
 
-    /*switch (x) {
-      case KeyCode.KEY_0:
-        this.cameraControl.lock();
-        break;
-      case KeyCode.KEY_1:
-        this.cameraControl.unlock();
-        break;
-    }*/
+    // se crea otro rayo desde las posición de la cámara + "pequña distancia (decidir) (en la dirección a_donde_miro)",
+    // pero este rayo parte desde la altura de la cámara y con posición x y z relacionadas al vector dirección a_donde_miro (decidir cantidad)
+    // recordamos que este rayo tiene que estar un poco por delante en la dirección a la que apunta la cámara (a_donde_miro)
+    // se ve mejor ilustradi con el dibujo que te habré pasado Tere
+    // CREAR RAYO
+
+    // el método devolverá un booleano según:
+    // 1 - el la distancia del primer objeto del rayo 1 es menor que la altura (this.altura) de la cámara - 0.1 (para evitar posibles problemas)
+    // Ó
+    // 2 - el rayo 2 choca con un objeto que está a una distancia menor que la decidida
+
+    // por defecto, devuelve false (no hay colisiones) --> quitar cuando hagas el método
+    return false;
   }
+
+
+  onKeyDown(event) {
+
+    switch (event.which || event.key) {
+
+      case KeyCode.KEY_CONTROL:
+        if (this.cameraControl.isLocked) this.cameraControl.unlock();
+        else this.cameraControl.lock();
+        break;
+
+      case KeyCode.KEY_SHIFT:
+        this.agachado = true;
+        break;
+    }
+
+    switch ( String.fromCharCode (event.which || event.key) ) {
+      case 'W':
+        this.movimiento[0] = true;
+        break;
+      case 'S':
+        this.movimiento[1] = true;
+        break;
+      case 'A':
+        this.movimiento[2] = true;
+        break;
+      case 'D':
+        this.movimiento[3] = true;
+        break;
+    }
+  }
+  
+  onKeyUp(event) {
+
+    switch (event.which || event.key) {
+
+      case KeyCode.KEY_SHIFT:
+        this.agachado = false;
+        break;
+    }
+
+    switch ( String.fromCharCode (event.which || event.key) ) {
+      case 'W':
+        this.movimiento[0] = false;
+        break;
+      case 'S':
+        this.movimiento[1] = false;
+        break;
+      case 'A':
+        this.movimiento[2] = false;
+        break;
+      case 'D':
+        this.movimiento[3] = false;
+        break;
+    }
+  }
+
+  /*onKeyPress(event) {
+    switch (event.key || event.which) {
+      case KeyCode.KEY_ESCAPE:
+        if (this.cameraControl.isLocked) {
+          this.cameraControl.unlock();
+        }
+        else {
+          this.cameraControl.lock();
+        }
+        break;
+    }
+  }*/
 
 }
 
@@ -290,7 +418,9 @@ $(function () {
   // Se añaden los listener de la aplicación. En este caso, el que va a comprobar cuándo se modifica el tamaño de la ventana de la aplicación.
   window.addEventListener ("resize", () => scene.onWindowResize());
 
-  window.addEventListener ("keydown", () => scene.onKeyDown());
+  window.addEventListener ("keydown", (event) => scene.onKeyDown(event));
+  window.addEventListener ("keyup", (event) => scene.onKeyUp(event));
+  //window.addEventListener ("keypress", (event) => scene.onKeyPress(event));
   
   // Que no se nos olvide, la primera visualización.
   scene.update();
