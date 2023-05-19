@@ -184,9 +184,34 @@ class MyScene extends THREE.Scene {
     // var libro = this.decoracion.createLibro();
     // this.add(libro);
 
-    // ------------------
-    var cuadro = this.decoracion.createCuadro('', 0.1, 0.2);
-    //this.add(cuadro);
+    // ------------------- CUADROS -------------------
+    var ancho = 0.5;
+    var largo = 0.6;
+    var altura = 1.5;
+
+    var cuadro = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_1.jpg', ancho, largo);
+    var cuadro2 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_2.jpg', ancho, largo);
+    var cuadro3 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_3.jpg', ancho, largo);
+    
+    cuadro.position.x = dim.posX_centroArcos_array[0];
+    cuadro.position.y = altura;
+    cuadro.position.z = -dim.posZ_centroArcos_positiva[0];
+
+    cuadro2.position.x = dim.posX_centroArcos_array[1];
+    cuadro2.position.y = altura;
+    cuadro2.position.z = -dim.posZ_centroArcos_positiva[1];
+
+    cuadro3.position.x = dim.posX_centroArcos_array[2];
+    cuadro3.position.y = altura;
+    cuadro3.position.z = -dim.posZ_centroArcos_positiva[2];
+
+    this.add(cuadro, cuadro2, cuadro3);
+
+    var cuadro4 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_4.jpg', ancho, largo);
+    var cuadro5 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_5.jpg', ancho, largo);
+    var cuadro6 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_6.jpg', ancho, largo);
+
+    
   }
   
   createCamera () {
