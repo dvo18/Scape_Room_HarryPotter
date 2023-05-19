@@ -152,7 +152,7 @@ class MyScene extends THREE.Scene {
     // this.add(libro);
 
     // ------------------
-    var cuadro = this.decoracion.createCuadro('', 0.1, 0.2);
+    var cuadro = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_1.jpg', 0.5, 0.6);
     this.add(cuadro);
   }
   

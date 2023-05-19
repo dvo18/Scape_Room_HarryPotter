@@ -459,39 +459,40 @@ class Decoracion extends THREE.Object3D {
 
   // ---------------------------------------------------------------
 
-  createCuadro(imagen, ancho, largo){
-    imagen = 2;
-
-    // --------------- CUERPO DEL CUADRO ---------------
-    // Primero creo la forma que quiero con un objeto Shape.
-    var shape = new THREE.Shape();
-    shape.moveTo(-ancho/2, 0);
-    shape.lineTo(ancho/2, 0);
-    shape.lineTo(ancho/2, largo);
-    shape.lineTo(-ancho/2, largo);
-    shape.lineTo(-ancho/2, 0);
-
-    var opciones = {
-      steps: 1,
-      depth: 0.1,
-      bevelEnabled: true,
-      bevelThickness: 0.1,
-      bevelSize: 0.2,
-      bevelOffset: ancho,
-      bevelSegments: 1
-    };
-
-    var cuadro_geom = new THREE.ExtrudeGeometry(shape, opciones);
-    var material = new THREE.MeshLambertMaterial({color: 0xD3BC64});
-
-    var cuadro_base = new THREE.Mesh(cuadro_geom, material);
+  createCuadro(imagen, ancho, largo) {
     
-    // -------------
-    var cuadro = new THREE.Object3D();
-    cuadro.add(cuadro_base);
+  
+    // Dimensiones del marco
+    var marco_ancho = ancho + 0.1; // Ancho del marco (mayor que la imagen)
+    var marcho_alto = largo + 0.1; // Alto del marco (mayor que la imagen)
+    var profundidad = 0.05; // Profundidad del marco
 
+    // --------------------------------------
+    // Crear geometría del marco
+    var marcoGeom = new THREE.BoxGeometry(marco_ancho, marcho_alto, profundidad);
+    var marcoMaterial = new THREE.MeshLambertMaterial({ color: 0xD3BC64 });
+    var marco = new THREE.Mesh(marcoGeom, marcoMaterial);
+    
+    // --------------------------------------
+    // Crear geometría de la imagen
+    var imagenGeom = new THREE.PlaneGeometry(ancho, largo);
+    var textura_imagen = this.texturaLoader.load(imagen);
+
+    var material_imagen = new THREE.MeshLambertMaterial({ map: textura_imagen });
+    var imagen_cuadro = new THREE.Mesh(imagenGeom, material_imagen);
+  
+    // Asegurarse de que la imagen esté delante del marco
+    imagen_cuadro.position.z = profundidad / 2 + 0.001;
+    
+    // --------------------------------------
+    var cuadro = new THREE.Object3D();
+    cuadro.add(marco, imagen_cuadro);
+    cuadro.position.y = marcho_alto / 2;
+    cuadro.position.z = 0.025;
+  
     return cuadro;
   }
+  
 
   // ---------------------------------------------------------------
 
