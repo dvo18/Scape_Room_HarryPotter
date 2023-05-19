@@ -19,11 +19,17 @@ function shapeToVector3 ( shape , num_pts = 6 ) {
     return v3 ;
 }
 
-function repeatTexture(texture, repeatX, repeatY) {
+function repeatTexture(texture, repeatX, repeatY, espejo=false) {
     var t = texture.clone();
 
-    t.wrapS = THREE.RepeatWrapping;
-    t.wrapT = THREE.RepeatWrapping;
+    if (espejo) {
+        t.wrapS = THREE.MirroredRepeatWrapping;
+        t.wrapT = THREE.MirroredRepeatWrapping;
+    }
+    else {
+        t.wrapS = THREE.RepeatWrapping;
+        t.wrapT = THREE.RepeatWrapping;
+    }
 
     t.repeat.x = repeatX;
     t.repeat.y = repeatY;
@@ -123,8 +129,8 @@ class H_estructura extends THREE.Object3D {
 
         this.texturaLoader = new THREE.TextureLoader();
 
-        this.T_pared_gris = this.texturaLoader.load('../imgs/textura_paredPiedra2_gris.jpg');
-        this.T_pared_normal = this.texturaLoader.load('../imgs/textura_paredPiedra2_normal.jpg');
+        this.T_pared_gris = this.texturaLoader.load('../imgs/textura_paredPiedra2_gris_V2inv.jpg');
+        this.T_pared_normal = this.texturaLoader.load('../imgs/textura_paredPiedra2_normal_V2inv.jpg');
 
         this.colorPared = new THREE.Color( "rgb(62, 61, 89)" );
 
@@ -187,22 +193,22 @@ class H_estructura extends THREE.Object3D {
     createSquareRoom() {
         this.estr.S = this.createFloor( this.conf.largo, this.conf.profundidad, this.conf.grosor, new THREE.MeshPhongMaterial({color: this.colorSuelo, map: repeatTexture(this.T_suelo,12,12)}) );
         
-        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.largo/5,0.8), normalMap: this.T_pared_normal}) );
+        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshLambertMaterial ({color: /*this.colorPared*/ '#FFFFFF', map: repeatTexture(this.T_pared_gris,this.conf.largo/5,0.8,true), normalMap: repeatTexture(this.T_pared_normal,this.conf.largo/5,0.8,true), normalScale: new THREE.Vector2(3,2)}) );
         this.estr.MN.position.z = -(this.conf.profundidad/2+this.conf.grosor/2);
         
         this.estr.MS = this.estr.MN.clone();
         this.estr.MS.position.z = -this.estr.MN.position.z;
         
-        this.estr.MO = this.createWall( this.conf.profundidad, this.conf.alto, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,0.8)}) );
+        this.estr.MO = this.createWall( this.conf.profundidad, this.conf.alto, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,0.8,true), normalMap: repeatTexture(this.T_pared_normal,this.conf.profundidad/4.5,0.8,true), normalScale: new THREE.Vector2(3,2)}) );
         this.estr.MO.rotation.y += PI/2;
         this.estr.MO.position.x = -(this.conf.largo/2+this.conf.grosor/2);
         
         //repeatTexture(this.pared_normal,3,1.2);
-        this.estr.ME = this.createWall( this.conf.profundidad, this.conf.alto+this.grosor_techo, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,1.4), normalMap: this.T_pared_normal}) );
+        this.estr.ME = this.createWall( this.conf.profundidad, this.conf.alto+this.grosor_techo, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,1.4), normalMap: repeatTexture(this.T_pared_normal,this.conf.profundidad/4.5,1.4), normalScale: new THREE.Vector2(3,2)}) );
         this.estr.ME.rotation.y += PI/2;
         this.estr.ME.position.x = -this.estr.MO.position.x;
 
-        this.estr.T = this.createFloor(this.conf.largo, this.conf.profundidad, this.grosor_techo+this.conf.grosor, new THREE.MeshMatcapMaterial() );
+        this.estr.T = this.createFloor(this.conf.largo, this.conf.profundidad, this.grosor_techo+this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared}) );
         this.estr.T.position.y += this.conf.alto + this.grosor_techo + this.conf.grosor;
 
         var roda_pie = this.estr.S.clone();
@@ -463,6 +469,11 @@ class H_estructura extends THREE.Object3D {
 
         var columna = new THREE.Mesh( new THREE.LatheGeometry(points, RESOLUCION, 0, Math.PI*2), new THREE.MeshMatcapMaterial() );
 
+        var cil = new THREE.Mesh( new THREE.CylinderGeometry(r+0.001,r+0.001,alto,RESOLUCION), new THREE.MeshLambertMaterial({color: '#FFFFFF', map: repeatTexture(this.T_columna,1,3,true)}) );
+        cil.position.y = alto/2;
+
+        columna = new CSG().union([cil,columna]).toMesh();
+
         columna.position.y = r*this.PILAR_PROP_ALTO;
 
         columnaCompleta.add(base1,base2,columna);
@@ -473,6 +484,8 @@ class H_estructura extends THREE.Object3D {
         });*/
         //columnaCompleta.castShadow = true;
         //columnaCompleta.receiveShadow = true;
+
+        columnaCompleta.rotation.y = PI;
 
         return columnaCompleta;
     }
@@ -555,13 +568,13 @@ class H_estructura extends THREE.Object3D {
         var circulo = new THREE.Shape();
         circulo.absarc(0,0,this.radio_pilar,0,PI*2,false);
 
-        var curva_path = new THREE.CatmullRomCurve3(shapeToVector3( curva, RESOLUCION/2 ));
+        var curva_path = new THREE.CatmullRomCurve3(shapeToVector3( curva, RESOLUCION/4 ));
         
         var arco = new THREE.Mesh( new THREE.ExtrudeGeometry( circulo, {
             steps: RESOLUCION/2,
-            curveSegments: RESOLUCION/2,
+            curveSegments: RESOLUCION/4,
             extrudePath: curva_path
-        } ), new THREE.MeshMatcapMaterial() );
+        } ), new THREE.MeshLambertMaterial({color: '#FFFFFF', map: this.T_columna}) );
 
         arco.position.z = -this.profundidad_boveda_pilares/2;
 
@@ -583,7 +596,7 @@ class H_estructura extends THREE.Object3D {
         boveda.quadraticCurveTo( ancho/2, 2*this.grosor_techo/3, /**/ 0, this.grosor_techo );
         boveda.quadraticCurveTo( -ancho/2, 2*this.grosor_techo/3, /**/ -ancho/2, 0 );
 
-        boveda = new THREE.Shape(shapeToVector3( boveda, RESOLUCION/2 ) );
+        boveda = new THREE.Shape(shapeToVector3( boveda, RESOLUCION/4 ) );
 
         var largo_boveda = this.profundidad_boveda_pilares+2*this.radio_base_pilar+this.conf.radio_mayor;
 
@@ -781,6 +794,19 @@ class H_estructura extends THREE.Object3D {
         var dist_anchoColumnas = op.profundidad/2 - op.radio_mayor -this.radio_base_pilar*4;
 
 
+        var posV2xz_columnas_array = [];
+        for (let i = 0; i<2*(this.num_bovedas_pilares+1); i++) {
+            if (i!=3 && i!=7) {
+                if (i<this.num_bovedas_pilares+1) {
+                    posV2xz_columnas_array.push( new THREE.Vector2( -this.largo_boveda_pilares/2 + i*anchoArcos + (this.conf.largo/2 - this.largo_boveda_pilares/2 - this.radio_base_pilar), -op.radio_mayor - this.radio_base_pilar ) );
+                }
+                else {
+                    posV2xz_columnas_array.push( new THREE.Vector2( -this.largo_boveda_pilares/2 + (i-(this.num_bovedas_pilares+1))*anchoArcos + (this.conf.largo/2 - this.largo_boveda_pilares/2 - this.radio_base_pilar), op.radio_mayor + this.radio_base_pilar ) );
+                }
+            }
+        }
+
+
         return {
             largo: op.largo,
             profundidad: op.profundidad,
@@ -788,11 +814,16 @@ class H_estructura extends THREE.Object3D {
             grosor: op.grosor,
             radio_central: op.radio_mayor,
             radio_lateral: op.radio_menor,
+            rad_pilar: this.radio_pilar,
             rad_base_pilarPrisma: this.radio_base_pilar,
+
+
+            posV2xz_columnas_array: posV2xz_columnas_array,                         // ES UN ARRAY, cada una de las posiciones en xz donde están los centros de las columnas
             
 
             dist_anchoColumnas: dist_anchoColumnas,
             posZ_centroBovedasInterColumnas_positiva: op.radio_mayor + 2*this.radio_base_pilarPrisma + dist_anchoColumnas/2,
+
 
             posX_centroArcos_array: posX_centroArcos_array,                         // ES UN ARRAY, cada una de las posiciones en x donde están los centros de los espacios entre columnas (arcos)
             posZ_centroArcos_positiva: op.profundidad/2,                            // posición que es la distancia desde el centro hasta la pared SUR, para la pared NORTE se pone la misma en negativo

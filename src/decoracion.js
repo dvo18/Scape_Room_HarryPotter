@@ -639,6 +639,126 @@ class Decoracion extends THREE.Object3D {
 
     return this.pensadero;
   }
+
+  createAntorcha(especial,color_llama,color_luz){
+    var antorcha_OBJ = new THREE.Object3D();
+
+    var antorcha = new THREE.Shape();
+    antorcha.moveTo(0, 0);
+    antorcha.quadraticCurveTo( 0.025, 0, /**/ 0.025, 0.05 );
+    antorcha.lineTo(0.04, 0.6);
+    antorcha.lineTo(0, 0.6);
+
+    var points = antorcha.extractPoints(5).shape;
+    antorcha = new THREE.Mesh( new THREE.LatheGeometry(points, 6), new THREE.MeshMatcapMaterial() );
+
+
+    var metal = new THREE.Mesh( new THREE.CylinderGeometry(0.08,0.08,0.1,8), new THREE.MeshMatcapMaterial() );
+    metal.position.y = 0.65;
+
+    var cil_interno = metal.clone();
+    cil_interno.scale.y = 1 - 0.005/0.1;
+    cil_interno.scale.x = 1 - 0.005/0.08;
+    cil_interno.scale.z = 1 - 0.005/0.08;
+    cil_interno.position.y += 0.005;
+
+    var csg = new CSG();
+
+    csg.subtract([metal, cil_interno]);
+
+    var cilindro = new THREE.Mesh( new THREE.CylinderGeometry(0.06, 0.05, 0.06, 6), new THREE.MeshMatcapMaterial() );
+    var base = cilindro.clone();
+    cilindro.position.y = 0.57;
+
+    csg.union([cilindro]);
+
+    var cubo = new THREE.Mesh( new THREE.BoxGeometry(0.5, 0.1, 0.04) );
+    cubo.position.y = 0.69;
+    cubo.rotation.y = 22.5 * Math.PI/180;
+
+    for (let i=0; i<4; i++) {
+      cubo.rotation.y += 45 * Math.PI/180;
+      csg.subtract([cubo]);
+    }
+
+    metal = csg.toMesh();
+
+    var llama = new THREE.Shape();
+    llama.moveTo(0.001, 0);
+    llama.bezierCurveTo( 0.07, 0, /**/ 0.07, 0.06, /**/ 0.055, 0.08 );
+    llama.quadraticCurveTo( 0.02, 0.12, /**/ 0.001, 0.2 );
+
+    points = llama.extractPoints(8).shape;
+
+    var fuego = this.texturaLoader.load('../imgs/textura_fuego.jpg');
+    llama = new THREE.Mesh( new THREE.LatheGeometry(points, 16), new THREE.MeshLambertMaterial({emissive: color_llama, emissiveMap: fuego, emissiveIntensity: 2}) );
+
+    var llama1 = llama.clone();
+    llama1.scale.x = 0.5;
+    llama1.scale.z = 0.5;
+    llama1.scale.y = 0.7;
+    llama1.position.y += 0.05;
+    llama1.position.x -= 0.02;
+
+    var llama2 = llama1.clone();
+    llama2.position.x += 0.04;
+    llama2.position.z += 0.03;
+    llama2.position.y -= 0.025;
+
+    var llama3 = llama2.clone();
+    llama3.rotation.z = -15 * Math.PI/180;
+    llama3.position.z = -0.03;
+    llama3.position.y += 0.005;
+    llama3.position.x = 0.005;
+
+    llama = new CSG().union([llama,llama1,llama2,llama3]).toMesh();
+
+    llama.rotation.y = Math.PI;
+
+    cilindro.position.y = 0.425;
+    cilindro.scale.x = 0.75;
+    cilindro.scale.z = 0.75;
+
+    llama.rotation.z = -20 * Math.PI/180;
+
+    llama.position.y = 0.6;
+
+    llama.position.x = (20 * 0.025) / 20;
+
+
+    var luzFuego = new THREE.PointLight(color_luz, 1.5, 10, 2);
+    luzFuego.position.set(0,0.7,0);
+
+    antorcha_OBJ.add(antorcha,metal,llama,cilindro,luzFuego);
+
+    antorcha_OBJ.position.y -= 0.425
+
+
+    var obj_aux = new THREE.Object3D();
+    obj_aux.add(antorcha_OBJ);
+
+    obj_aux.rotation.z = -20 * Math.PI/180;
+    obj_aux.position.x = 0.02;
+    obj_aux.position.x += Math.sin(20*Math.PI/180)*0.425;
+
+
+    var cil = new THREE.Mesh( new THREE.CylinderGeometry(0.025, 0.025, Math.sin(20*Math.PI/180)*0.425, 8), new THREE.MeshMatcapMaterial() );
+    cil.rotation.z = Math.PI/2;
+    cil.position.x = Math.sin(20*Math.PI/180)*0.425/2;
+
+    base.scale.x = 0.7;
+    base.scale.z = 0.7;
+    base.scale.y = 1.2;
+    base.rotation.z = Math.PI/2;
+
+    cil = new CSG().union([cil,base]).toMesh();
+
+
+    var antorcha_final = new THREE.Object3D();
+    antorcha_final.add(obj_aux, cil);
+
+    return antorcha_final;
+  }
 }
 
 export { Decoracion };
