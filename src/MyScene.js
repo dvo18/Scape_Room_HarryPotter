@@ -193,17 +193,17 @@ class MyScene extends THREE.Scene {
     var cuadro2 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_2.jpg', ancho, largo);
     var cuadro3 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_3.jpg', ancho, largo);
     
-    cuadro.position.x = dim.posX_centroArcos_array[0];
+    cuadro.position.x = this.dim.posX_centroArcos_array[0];
     cuadro.position.y = altura;
-    cuadro.position.z = -dim.posZ_centroArcos_positiva[0];
+    cuadro.position.z = -this.dim.posZ_centroArcos_positiva[0];
 
-    cuadro2.position.x = dim.posX_centroArcos_array[1];
+    cuadro2.position.x = this.dim.posX_centroArcos_array[1];
     cuadro2.position.y = altura;
-    cuadro2.position.z = -dim.posZ_centroArcos_positiva[1];
+    cuadro2.position.z = -this.dim.posZ_centroArcos_positiva[1];
 
-    cuadro3.position.x = dim.posX_centroArcos_array[2];
+    cuadro3.position.x = this.dim.posX_centroArcos_array[2];
     cuadro3.position.y = altura;
-    cuadro3.position.z = -dim.posZ_centroArcos_positiva[2];
+    cuadro3.position.z = -this.dim.posZ_centroArcos_positiva[2];
 
     this.add(cuadro, cuadro2, cuadro3);
 
