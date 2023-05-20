@@ -176,14 +176,14 @@ class Decoracion extends THREE.Object3D {
 
     // Para crear la figura por revolución : geometría y material
     var geometria1 = new THREE.LatheGeometry(puntos, 20, 0, Math.PI*2);
-    var material1 = new THREE.MeshLambertMaterial({map: textura_caldero});
+    var material1 = new THREE.MeshPhongMaterial({map: textura_caldero});
 
     var cuerpo = new THREE.Mesh(geometria1, material1);
 
     // ------------ CONTENIDO  ------------
     var liquido_geom = new THREE.CircleGeometry(0.12, 20);
     var burbujas_geom = new THREE.SphereGeometry(0.01, 20, 20);
-    var material2 = new THREE.MeshLambertMaterial({color: 0x8FC269, map: textura_liquido});
+    var material2 = new THREE.MeshPhongMaterial({color: 0x8FC269, map: textura_liquido});
 
     var liquido = new THREE.Mesh(liquido_geom, material2);
     liquido.rotateX(-Math.PI/2);
@@ -592,7 +592,7 @@ class Decoracion extends THREE.Object3D {
     var torus_geom = new THREE.TorusGeometry(0.49, 0.036, 20, 20);
 
     var piedra = new THREE.MeshLambertMaterial({color: 0xF1ECDA, map: textura_piedra});
-    var agua = new THREE.MeshLambertMaterial({color: 0x6CC5DE, map: textura_liquido});
+    var agua = new THREE.MeshPhongMaterial({color: 0x6CC5DE, map: textura_liquido});
     
     var cilindro_CSG = new THREE.Mesh(cilindro_geom, piedra);
     var cubo_CSG = new THREE.Mesh(cubo_geom, piedra);
@@ -644,6 +644,9 @@ class Decoracion extends THREE.Object3D {
   createAntorcha(especial,color_llama,color_luz,intensity,distance,decay){
     var antorcha_OBJ = new THREE.Object3D();
 
+    var T_metal = this.texturaLoader.load('../imgs/textura_pomo.png');
+    var T_madera = this.texturaLoader.load('../imgs/textura_madera_vieja.jpg');
+
     var antorcha = new THREE.Shape();
     antorcha.moveTo(0, 0);
     antorcha.quadraticCurveTo( 0.025, 0, /**/ 0.025, 0.05 );
@@ -651,10 +654,10 @@ class Decoracion extends THREE.Object3D {
     antorcha.lineTo(0, 0.6);
 
     var points = antorcha.extractPoints(5).shape;
-    antorcha = new THREE.Mesh( new THREE.LatheGeometry(points, 6), new THREE.MeshMatcapMaterial() );
+    antorcha = new THREE.Mesh( new THREE.LatheGeometry(points, 6), new THREE.MeshLambertMaterial({color: '#B5B5B5', map: T_madera}) );
 
 
-    var metal = new THREE.Mesh( new THREE.CylinderGeometry(0.08,0.08,0.1,8), new THREE.MeshMatcapMaterial() );
+    var metal = new THREE.Mesh( new THREE.CylinderGeometry(0.08,0.08,0.1,8), new THREE.MeshLambertMaterial({color: '#FFFFFF', map: T_metal}) );
     metal.position.y = 0.65;
 
     var cil_interno = metal.clone();
@@ -667,7 +670,7 @@ class Decoracion extends THREE.Object3D {
 
     csg.subtract([metal, cil_interno]);
 
-    var cilindro = new THREE.Mesh( new THREE.CylinderGeometry(0.06, 0.05, 0.06, 6), new THREE.MeshMatcapMaterial() );
+    var cilindro = new THREE.Mesh( new THREE.CylinderGeometry(0.06, 0.05, 0.06, 6), new THREE.MeshLambertMaterial({color: '#FFFFFF', map: T_metal}) );
     var base = cilindro.clone();
     cilindro.position.y = 0.57;
 
@@ -743,7 +746,7 @@ class Decoracion extends THREE.Object3D {
     obj_aux.position.x += Math.sin(20*Math.PI/180)*0.425;
 
 
-    var cil = new THREE.Mesh( new THREE.CylinderGeometry(0.025, 0.025, Math.sin(20*Math.PI/180)*0.425, 8), new THREE.MeshMatcapMaterial() );
+    var cil = new THREE.Mesh( new THREE.CylinderGeometry(0.025, 0.025, Math.sin(20*Math.PI/180)*0.425, 8), new THREE.MeshLambertMaterial({color: '#FFFFFF', map: T_metal}) );
     cil.rotation.z = Math.PI/2;
     cil.position.x = Math.sin(20*Math.PI/180)*0.425/2;
 

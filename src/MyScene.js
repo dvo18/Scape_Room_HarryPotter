@@ -20,17 +20,8 @@ const PI = Math.PI;
 class MyScene extends THREE.Scene {
   constructor (myCanvas) {
     super();
-    // ------------------ COLISIONES ------------------
-    /*this.rayo = new THREE.Raycaster();
-    this.direccion = new THREE.Vector3();
-    this.intersectados = [];*/
     
-    // ------------------------------
-    //this.colorFondo = new THREE.Color(0xEEEEEE);
-    this.colorFondo = new THREE.Color(0x000000);
-    this.impactados = [];
-    this.origen = new THREE.Vector3(0,0,0);
-
+    
     // ------------------ CONTROLES ------------------
 
     // 0: adelante, 1: atrás, 2: izquierda, 3: derecha
@@ -43,8 +34,8 @@ class MyScene extends THREE.Scene {
 
     // ------------------ LUZ ------------------
 
-    this.colorFondo = new THREE.Color(0xEEEEEE);
-    //this.colorFondo = new THREE.Color(0x000000);
+    //this.colorFondo = new THREE.Color(0xEEEEEE);
+    this.colorFondo = new THREE.Color(0x000000);
 
     // Lo primero, crear el visualizador, pasándole el lienzo sobre el que realizar los renderizados.
     this.renderer = this.createRenderer(myCanvas);
@@ -251,7 +242,7 @@ class MyScene extends THREE.Scene {
     
     this.camera.position.set (/*0,this.altura,0*/ 0,this.altura,0);
 
-    this.camera.lookAt(new THREE.Vector3 (/*10,this.altura,0*/-this.dim.largo/2,this.altura,0));
+    this.camera.lookAt(new THREE.Vector3 (/*10,this.altura,0*/this.dim.largo/2,this.altura,0));
 
     this.add (this.camera);
     

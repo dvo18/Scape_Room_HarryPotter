@@ -125,12 +125,15 @@ class H_estructura extends THREE.Object3D {
         this.largo_boveda_pilares = opciones.largo - opciones.radio_menor*2 - (opciones.largo*opciones.porcentaje_pared - opciones.radio_menor) - this.radio_base_pilar*2;
         this.profundidad_boveda_pilares = opciones.profundidad/2 - opciones.radio_mayor - this.radio_base_pilar*2;
 
-
+        
+        this.colorCaliza = '#FDD7A4';
 
         this.texturaLoader = new THREE.TextureLoader();
 
-        this.T_pared_gris = this.texturaLoader.load('../imgs/textura_paredPiedra2_gris_V2inv.jpg');
-        this.T_pared_normal = this.texturaLoader.load('../imgs/textura_paredPiedra2_normal_V2inv.jpg');
+        this.T_pared_gris1 = this.texturaLoader.load('../imgs/textura_paredPiedra2_gris_V2inv.jpg');
+        this.T_pared_normal1 = this.texturaLoader.load('../imgs/textura_paredPiedra2_normal_V2inv.jpg');
+        this.T_pared_gris2 = this.texturaLoader.load('../imgs/textura_paredPiedra2_gris.jpg');
+        this.T_pared_normal2 = this.texturaLoader.load('../imgs/textura_paredPiedra2_normal.jpg');
 
         this.colorPared = new THREE.Color( /*'#A8A7C4'*/'#949CFC' );
 
@@ -143,6 +146,12 @@ class H_estructura extends THREE.Object3D {
         this.colorTecho = '#3B3975';
 
         this.T_columna = this.texturaLoader.load('../imgs/textura_caliza.jpg' );
+
+        this.T_puerta = this.texturaLoader.load('../imgs/textura_puerta1_1.png' );
+        this.T_pomo = this.texturaLoader.load('../imgs/textura_pomo.png' );
+
+        this.T_ladrillo = this.texturaLoader.load('../imgs/textura_techo.jpg' );
+        this.colorLadrillo = '#4B589A';
 
 
 
@@ -180,6 +189,16 @@ class H_estructura extends THREE.Object3D {
                 else if (clave == 'CL')
                     for (let e in this.estr[clave])
                         this.add(this.estr[clave][e]);
+                else if (clave == 'R') {
+                    var r = this.estr[clave].clone();
+                    r.position.y = this.conf.alto-this.conf.grosor;
+
+                    var cubo = new THREE.Mesh(new THREE.BoxGeometry(this.conf.largo-2*this.conf.radio_menor, this.conf.alto, this.conf.profundidad));
+                    cubo.position.x = this.conf.radio_menor;
+                    cubo.position.y = this.conf.alto/2;
+                    r = new CSG().subtract([r,cubo]).toMesh();
+                    this.add(r);
+                }
                 this.add(this.estr[clave]);
             }
         }
@@ -193,17 +212,18 @@ class H_estructura extends THREE.Object3D {
     createSquareRoom() {
         this.estr.S = this.createFloor( this.conf.largo, this.conf.profundidad, this.conf.grosor, new THREE.MeshPhongMaterial({color: this.colorSuelo, map: repeatTexture(this.T_suelo,12,12)}) );
         
-        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshLambertMaterial ({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.largo/5,0.8,true), normalMap: repeatTexture(this.T_pared_normal,this.conf.largo/5,0.8,true), normalScale: new THREE.Vector2(3,2)}) );
+        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshLambertMaterial ({color: this.colorPared, map: repeatTexture(this.T_pared_gris1,this.conf.largo/5,0.8,true), normalMap: repeatTexture(this.T_pared_normal1,this.conf.largo/5,0.8,true), normalScale: new THREE.Vector2(3,2)}) );
         this.estr.MN.position.z = -(this.conf.profundidad/2+this.conf.grosor/2);
         
         this.estr.MS = this.estr.MN.clone();
+        this.estr.MS.material = new THREE.MeshLambertMaterial ({color: this.colorPared, map: repeatTexture(this.T_pared_gris2,this.conf.largo/5,0.8,true), normalMap: repeatTexture(this.T_pared_normal2,this.conf.largo/5,0.8,true), normalScale: new THREE.Vector2(3,2)});
         this.estr.MS.position.z = -this.estr.MN.position.z;
         
-        this.estr.MO = this.createWall( this.conf.profundidad, this.conf.alto, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,0.8,true), normalMap: repeatTexture(this.T_pared_normal,this.conf.profundidad/4.5,0.8,true), normalScale: new THREE.Vector2(3,2)}) );
+        this.estr.MO = this.createWall( this.conf.profundidad, this.conf.alto, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris2,this.conf.profundidad/4.5,0.8,true), normalMap: repeatTexture(this.T_pared_normal2,this.conf.profundidad/4.5,0.8,true), normalScale: new THREE.Vector2(3,2)}) );
         this.estr.MO.rotation.y += PI/2;
         this.estr.MO.position.x = -(this.conf.largo/2+this.conf.grosor/2);
         
-        this.estr.ME = this.createWall( this.conf.profundidad, this.conf.alto+this.grosor_techo, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,1.4), normalMap: repeatTexture(this.T_pared_normal,this.conf.profundidad/4.5,1.4), normalScale: new THREE.Vector2(3,2)}) );
+        this.estr.ME = this.createWall( this.conf.profundidad, this.conf.alto+this.grosor_techo, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris1,this.conf.profundidad/4.5,1.4,true), normalMap: repeatTexture(this.T_pared_normal1,this.conf.profundidad/4.5,1.4,true), normalScale: new THREE.Vector2(3,2)}) );
         this.estr.ME.rotation.y += PI/2;
         this.estr.ME.position.x = -this.estr.MO.position.x;
 
@@ -217,9 +237,7 @@ class H_estructura extends THREE.Object3D {
         roda_pie_eliminar.scale.x = 1-this.conf.grosor/(2*(this.conf.largo+this.conf.radio_mayor))
         roda_pie_eliminar.scale.z = 1-this.conf.grosor/(2*(this.conf.profundidad+this.conf.radio_menor*2));
 
-        roda_pie = new CSG().subtract([roda_pie,roda_pie_eliminar]).toMesh();
-
-        this.estr.S = new CSG().union([this.estr.S,roda_pie]).toMesh();
+        this.estr.R = new CSG().subtract([roda_pie,roda_pie_eliminar]).toMesh();
     }
 
 
@@ -236,7 +254,8 @@ class H_estructura extends THREE.Object3D {
             partes[parte].position.x += -this.conf.largo/2;
         }
 
-        this.estr.S = new CSG().subtract([this.estr.S,partes.pared_eliminar]).toMesh();
+        this.estr.R = new CSG().subtract([this.estr.R,partes.pared_eliminar]).toMesh();
+        this.estr.R = new CSG().union([this.estr.R,partes.roda_pie]).toMesh();
 
         this.estr.S = new CSG().union([this.estr.S,partes.suelo]).toMesh();
 
@@ -297,7 +316,8 @@ class H_estructura extends THREE.Object3D {
 
         this.createCircularRoom();
 
-        this.estr.S = new CSG().subtract([this.estr.S,partes1.pared_eliminar,partes2.pared_eliminar]).toMesh();
+        this.estr.R = new CSG().subtract([this.estr.R,partes1.pared_eliminar,partes2.pared_eliminar]).toMesh();
+        this.estr.R = new CSG().union([this.estr.R,partes1.roda_pie,partes2.roda_pie]).toMesh();
 
         this.estr.S = new CSG().union([this.estr.S,partes1.suelo,partes2.suelo]).toMesh();
 
@@ -356,8 +376,7 @@ class H_estructura extends THREE.Object3D {
         p.puerta_eliminar.position.x = this.conf.largo/2 + this.conf.grosor/2;
 
         this.estr.ME = new CSG().subtract([this.estr.ME,p.puerta_eliminar]).toMesh();
-        this.estr.S = new CSG().subtract([this.estr.S,p.puerta_eliminar]).toMesh();
-
+        this.estr.R = new CSG().subtract([this.estr.R,p.puerta_eliminar]).toMesh();
         this.estr.P = p.puerta;
     }
 
@@ -411,9 +430,8 @@ class H_estructura extends THREE.Object3D {
 
         roda_pie = new CSG().subtract([roda_pie,roda_pie_eliminar]).toMesh();
 
-        cil = new CSG().union([cil,roda_pie]).toMesh();
-
         return {
+            roda_pie: new CSG().subtract([roda_pie,cub]).toMesh(),
             suelo: new CSG().subtract([cil,cub]).toMesh(),
             techo: new CSG().subtract([techo,esf_techo]).toMesh(),
             pared: new CSG().subtract([p,cub]).toMesh(),
@@ -434,10 +452,10 @@ class H_estructura extends THREE.Object3D {
 
         var alto = this.conf.alto-r*this.PILAR_PROP_ALTO*2;
 
-        var prisma1 = new THREE.Mesh( new THREE.CylinderGeometry(r,r*this.PILAR_PROP_RADIO,r*this.PILAR_PROP_ALTO,4), new THREE.MeshMatcapMaterial() );
-        var prisma2 = new THREE.Mesh( new THREE.CylinderGeometry(r,this.radio_base_pilar,r*this.PILAR_PROP_ALTO,8), new THREE.MeshMatcapMaterial() );
+        var prisma1 = new THREE.Mesh( new THREE.CylinderGeometry(r,r*this.PILAR_PROP_RADIO,r*this.PILAR_PROP_ALTO,4), new THREE.MeshLambertMaterial({color: this.colorPared, map: this.T_columna/*repeatTexture(this.T_columna,1,3,true)*/}) );
+        var prisma2 = new THREE.Mesh( new THREE.CylinderGeometry(r,this.radio_base_pilar,r*this.PILAR_PROP_ALTO,8), new THREE.MeshLambertMaterial({color: this.colorTecho, map: this.T_columna/*repeatTexture(this.T_columna,1,3,true)*/}) );
 
-        var prisma = new CSG().union([prisma1,prisma2]).toMesh();
+        var prisma = new THREE.Object3D().add(prisma1,prisma2);
         prisma.position.y = r*this.PILAR_PROP_ALTO/2;
 
         prisma.rotation.y = PI/4;
@@ -470,7 +488,7 @@ class H_estructura extends THREE.Object3D {
 
         var columna = new THREE.Mesh( new THREE.LatheGeometry(points, RESOLUCION, 0, Math.PI*2), new THREE.MeshMatcapMaterial() );
 
-        var cil = new THREE.Mesh( new THREE.CylinderGeometry(r+0.001,r+0.001,alto,RESOLUCION), new THREE.MeshLambertMaterial({color: '#FFFFFF', map: repeatTexture(this.T_columna,1,3,true)}) );
+        var cil = new THREE.Mesh( new THREE.CylinderGeometry(r+0.001,r+0.001,alto,RESOLUCION), new THREE.MeshLambertMaterial({color: '#AAAAAA', map: repeatTexture(this.T_columna,1,3,true)}) );
         cil.position.y = alto/2;
 
         columna = new CSG().union([cil,columna]).toMesh();
@@ -539,7 +557,7 @@ class H_estructura extends THREE.Object3D {
             depth: this.radio_base_pilar,
             steps: 1,
             bevelEnabled: false,
-        } ), new THREE.MeshMatcapMaterial() );
+        } ), new THREE.MeshLambertMaterial({color: this.colorLadrillo, map: repeatTexture(this.T_ladrillo,0.5,0.5,true)}));
 
         muro.position.z = -this.radio_base_pilar;
 
@@ -575,7 +593,7 @@ class H_estructura extends THREE.Object3D {
             steps: RESOLUCION/2,
             curveSegments: RESOLUCION/4,
             extrudePath: curva_path
-        } ), new THREE.MeshLambertMaterial({color: '#FFFFFF', map: this.T_columna}) );
+        } ), new THREE.MeshLambertMaterial({color: '#AAAAAA', map: this.T_columna}) );
 
         arco.position.z = -this.profundidad_boveda_pilares/2;
 
@@ -652,19 +670,21 @@ class H_estructura extends THREE.Object3D {
         var ancho_puerta = 1.35;
         var alto_puerta = 2.8;
 
-        var puerta = this.createWall( ancho_puerta, 3*alto_puerta/4, this.conf.grosor, new THREE.MeshMatcapMaterial() );
-        var cil = new THREE.Mesh( new THREE.CylinderGeometry( ancho_puerta/2, ancho_puerta/2, this.conf.grosor, RESOLUCION/2 ), new THREE.MeshMatcapMaterial() );
+        var puerta = this.createWall( ancho_puerta, alto_puerta, this.conf.grosor, new THREE.MeshLambertMaterial({color: '#AAAAAA', map: repeatTexture(this.T_puerta, 1, 1.2, true)}) );
+        var cil = new THREE.Mesh( new THREE.CylinderGeometry( ancho_puerta/2, ancho_puerta/2, this.conf.grosor, RESOLUCION/2 ) );
 
         cil.scale.z = alto_puerta/(2*ancho_puerta);
         cil.rotation.x = PI/2;
         cil.position.y = 3*alto_puerta/4;
 
-        puerta = new CSG().union([puerta, cil]).toMesh();
+        var cubo = new THREE.Mesh( new THREE.BoxGeometry( ancho_puerta, alto_puerta/4, this.conf.grosor ) );
+        cubo.position.y = 3*alto_puerta/4 + alto_puerta/8;
 
+        cubo = new CSG().subtract([cubo, cil]).toMesh();
 
-        //var barras_metal = new THREE.Mesh( new THREE.BoxGeometry( ancho_puerta, alto_puerta/4, this.conf.grosor/2 ), new THREE.MeshMatcapMaterial() );
+        puerta = new CSG().subtract([puerta, cubo]).toMesh();
 
-        var pomo = new THREE.Mesh( new THREE.CylinderGeometry( 0.04, 0.04, 0.1, RESOLUCION/4 ), new THREE.MeshMatcapMaterial() );
+        var pomo = new THREE.Mesh( new THREE.CylinderGeometry( 0.04, 0.04, 0.1, RESOLUCION/4 ), new THREE.MeshPhongMaterial({color: '#AAAAAA', map: this.T_pomo}) );
         var toro = new THREE.Mesh( new THREE.TorusGeometry( 0.1, 0.02, RESOLUCION/8, RESOLUCION/4 ), new THREE.MeshMatcapMaterial() );
 
         pomo.rotation.x = PI/2;
@@ -711,7 +731,9 @@ class H_estructura extends THREE.Object3D {
 
         marco_SHAPE = new THREE.Shape(shapeToVector3( marco_SHAPE, RESOLUCION/4 ) );
 
-        var marco = new THREE.Mesh( new THREE.ExtrudeGeometry( marco_SHAPE, { depth: 2*this.conf.grosor, bevelThickness: 0.16, bevelSegments: 4 } ), new THREE.MeshMatcapMaterial() );
+        var T_marco = this.T_columna.clone();
+        T_marco.offset.x = 0.5;
+        var marco = new THREE.Mesh( new THREE.ExtrudeGeometry( marco_SHAPE, { depth: 2*this.conf.grosor, bevelThickness: 0.16, bevelSegments: 4 } ), new THREE.MeshLambertMaterial({color: '#AAAAAA', map: T_marco}) );
         marco.position.z = -this.conf.grosor;
 
         puerta.position.x += ancho_puerta/2;
