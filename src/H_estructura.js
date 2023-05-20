@@ -132,7 +132,7 @@ class H_estructura extends THREE.Object3D {
         this.T_pared_gris = this.texturaLoader.load('../imgs/textura_paredPiedra2_gris_V2inv.jpg');
         this.T_pared_normal = this.texturaLoader.load('../imgs/textura_paredPiedra2_normal_V2inv.jpg');
 
-        this.colorPared = new THREE.Color( "rgb(62, 61, 89)" );
+        this.colorPared = new THREE.Color( /*'#A8A7C4'*/'#949CFC' );
 
         this.T_suelo = this.texturaLoader.load('../imgs/textura_suelo.jpg' );
 
@@ -140,7 +140,7 @@ class H_estructura extends THREE.Object3D {
 
         this.T_techo = this.texturaLoader.load('../imgs/textura_techo_piedra_negra.jpg' );
 
-        this.colorTecho = '';//'#3F3F3F';
+        this.colorTecho = '#3B3975';
 
         this.T_columna = this.texturaLoader.load('../imgs/textura_caliza.jpg' );
 
@@ -193,7 +193,7 @@ class H_estructura extends THREE.Object3D {
     createSquareRoom() {
         this.estr.S = this.createFloor( this.conf.largo, this.conf.profundidad, this.conf.grosor, new THREE.MeshPhongMaterial({color: this.colorSuelo, map: repeatTexture(this.T_suelo,12,12)}) );
         
-        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshLambertMaterial ({color: /*this.colorPared*/ '#FFFFFF', map: repeatTexture(this.T_pared_gris,this.conf.largo/5,0.8,true), normalMap: repeatTexture(this.T_pared_normal,this.conf.largo/5,0.8,true), normalScale: new THREE.Vector2(3,2)}) );
+        this.estr.MN = this.createWall( this.conf.largo, this.conf.alto, this.conf.grosor, new THREE.MeshLambertMaterial ({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.largo/5,0.8,true), normalMap: repeatTexture(this.T_pared_normal,this.conf.largo/5,0.8,true), normalScale: new THREE.Vector2(3,2)}) );
         this.estr.MN.position.z = -(this.conf.profundidad/2+this.conf.grosor/2);
         
         this.estr.MS = this.estr.MN.clone();
@@ -203,12 +203,11 @@ class H_estructura extends THREE.Object3D {
         this.estr.MO.rotation.y += PI/2;
         this.estr.MO.position.x = -(this.conf.largo/2+this.conf.grosor/2);
         
-        //repeatTexture(this.pared_normal,3,1.2);
         this.estr.ME = this.createWall( this.conf.profundidad, this.conf.alto+this.grosor_techo, this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared, map: repeatTexture(this.T_pared_gris,this.conf.profundidad/4.5,1.4), normalMap: repeatTexture(this.T_pared_normal,this.conf.profundidad/4.5,1.4), normalScale: new THREE.Vector2(3,2)}) );
         this.estr.ME.rotation.y += PI/2;
         this.estr.ME.position.x = -this.estr.MO.position.x;
 
-        this.estr.T = this.createFloor(this.conf.largo, this.conf.profundidad, this.grosor_techo+this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorPared}) );
+        this.estr.T = this.createFloor(this.conf.largo, this.conf.profundidad, this.grosor_techo+this.conf.grosor, new THREE.MeshLambertMaterial({color: this.colorTecho}) );
         this.estr.T.position.y += this.conf.alto + this.grosor_techo + this.conf.grosor;
 
         var roda_pie = this.estr.S.clone();
@@ -394,6 +393,8 @@ class H_estructura extends THREE.Object3D {
 
         var c1 = this.createPillar();
         var c2 = c1.clone();
+
+        c1.rotation.y = -PI/2;
 
         c1.position.z = radio;
         c2.position.z = -radio;

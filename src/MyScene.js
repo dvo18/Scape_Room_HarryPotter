@@ -80,7 +80,7 @@ class MyScene extends THREE.Scene {
     // ------------------- ANTORCHAS -------------------
 
     // primera varible por ahora nada, 1º color: color llama, 2º color: color de luz proyectada
-    var antorcha_roja = this.decoracion.createAntorcha(false,'#9E4F27','#EAC77F');
+    var antorcha_roja = this.decoracion.createAntorcha(false,'#9E4F27','#EAC77F', 1.75, 8, 2);
 
     for (let i in this.dim.posV2xz_columnas_array) {
       let t = antorcha_roja.clone();
@@ -91,15 +91,43 @@ class MyScene extends THREE.Scene {
       this.add(t);
     }
 
-    var antorcha_azul = this.decoracion.createAntorcha(false,'#1B4F72','#AED6F1');
+
+    var antorcha_azul = this.decoracion.createAntorcha(false,'#3360B4','#AED6F1', 1, 6, 2);
     var t = antorcha_azul.clone();
+    t.rotation.y = PI/2;
+    t.position.x = -this.dim.largo/2;
+    t.position.z = this.dim.radio_central - this.dim.rad_pilar;
+    t.position.y = 2*this.dim.alto/3;
+    this.add(t);
+
+    t = t.clone();
+    t.rotation.y += PI;
+    t.position.z -= 2*this.dim.radio_central - 2*this.dim.rad_pilar;
+    this.add(t);
+
+
+    var antorcha_verde = this.decoracion.createAntorcha(false,'#127817','#AED581', 2, 7.5, 2);
+    var t = antorcha_verde.clone();
     t.position.x = -this.dim.largo/2 + this.dim.rad_pilar;
     t.position.z = -this.dim.profundidad/2;
     t.position.y = 2*this.dim.alto/3;
     this.add(t);
 
     t = t.clone();
-    t.rotation.y = -PI;
+    t.rotation.y += PI;
+    t.position.x += 2*this.dim.radio_lateral - 2*this.dim.rad_pilar;
+    this.add(t);
+
+
+    var antorcha_morada = this.decoracion.createAntorcha(false,'#6109CA','#864FDA', 1.25, 7.5, 2);
+    var t = antorcha_morada.clone();
+    t.position.x = -this.dim.largo/2 + this.dim.rad_pilar;
+    t.position.z = this.dim.profundidad/2;
+    t.position.y = 2*this.dim.alto/3;
+    this.add(t);
+
+    t = t.clone();
+    t.rotation.y += PI;
     t.position.x += 2*this.dim.radio_lateral - 2*this.dim.rad_pilar;
     this.add(t);
 
@@ -221,9 +249,9 @@ class MyScene extends THREE.Scene {
     //   Los planos de recorte cercano y lejano
     this.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
     
-    this.camera.position.set (/*0,this.altura,0*/ 0,0,0);
+    this.camera.position.set (/*0,this.altura,0*/ 0,this.altura,0);
 
-    this.camera.lookAt(new THREE.Vector3 (/*10,this.altura,0*/this.dim.largo/2,2,0));
+    this.camera.lookAt(new THREE.Vector3 (/*10,this.altura,0*/-this.dim.largo/2,this.altura,0));
 
     this.add (this.camera);
     
@@ -237,7 +265,7 @@ class MyScene extends THREE.Scene {
   }
   
   createLights () {
-    var luzAmbiente = new THREE.AmbientLight(/*'#828282'*/'#646464', 0.65);
+    var luzAmbiente = new THREE.AmbientLight(/*'#828282'*/'#646464', 0.4);
     this.add(luzAmbiente);
 
     /*var luzPrueba = new THREE.PointLight('#FFFFFF', 1, 10, 1);

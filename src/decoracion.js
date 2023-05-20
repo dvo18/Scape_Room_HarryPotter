@@ -641,7 +641,7 @@ class Decoracion extends THREE.Object3D {
     return this.pensadero;
   }
 
-  createAntorcha(especial,color_llama,color_luz){
+  createAntorcha(especial,color_llama,color_luz,intensity,distance,decay){
     var antorcha_OBJ = new THREE.Object3D();
 
     var antorcha = new THREE.Shape();
@@ -691,7 +691,7 @@ class Decoracion extends THREE.Object3D {
 
     points = llama.extractPoints(8).shape;
 
-    var fuego = this.texturaLoader.load('../imgs/textura_fuego.jpg');
+    var fuego = this.texturaLoader.load('../imgs/textura_fuego_gris.jpg');
     llama = new THREE.Mesh( new THREE.LatheGeometry(points, 16), new THREE.MeshLambertMaterial({emissive: color_llama, emissiveMap: fuego, emissiveIntensity: 2}) );
 
     var llama1 = llama.clone();
@@ -727,7 +727,7 @@ class Decoracion extends THREE.Object3D {
     llama.position.x = (20 * 0.025) / 20;
 
 
-    var luzFuego = new THREE.PointLight(color_luz, 1.5, 10, 2);
+    var luzFuego = new THREE.PointLight(color_luz, intensity, distance, decay);
     luzFuego.position.set(0,0.7,0);
 
     antorcha_OBJ.add(antorcha,metal,llama,cilindro,luzFuego);
