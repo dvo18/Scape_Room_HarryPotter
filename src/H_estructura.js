@@ -1,4 +1,5 @@
 import * as THREE from '../libs/three.module.js'
+import * as TWEEN from '../libs/tween.esm.js'
 import { CSG } from '../libs/CSG-v2.js'
  
 const PI = Math.PI;
@@ -202,8 +203,33 @@ class H_estructura extends THREE.Object3D {
                 this.add(this.estr[clave]);
             }
         }
+
+        this.reloj = new THREE.Clock();
+        this.velocidad_puerta = 0.5;
     }
     
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    
+
+    updatePuerta() {
+        var origen = {p: 0};
+        var destino = {p: PI/2};
+
+        if (this.estr.P.children[1].rotation.y == PI/2) {
+            origen.p = PI/2;
+            destino.p = 0;
+        }
+
+        new TWEEN.Tween(origen).to(destino, 2000).onUpdate(() => {
+            this.estr.P.children[1].rotation.y = origen.p;
+        }).onComplete(() => {
+            origen.p = 0;
+        }).start();
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -663,7 +689,7 @@ class H_estructura extends THREE.Object3D {
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    createDoor( rotacion ) {
+    createDoor() {
         var estructura_puerta = new THREE.Object3D();
         var puerta_OBJ = new THREE.Object3D();
 
@@ -708,10 +734,10 @@ class H_estructura extends THREE.Object3D {
         puerta.position.x = -ancho_puerta/2;
         pomo.position.x = -ancho_puerta/2;
 
+        pomo.name = 'pomo';
+
         puerta_OBJ.add(puerta.clone());
         puerta_OBJ.add(pomo);
-        
-        puerta_OBJ.rotateY( rotacion );
 
         puerta_OBJ.position.x = ancho_puerta/2;// + this.conf.grosor/2;
 
@@ -757,10 +783,13 @@ class H_estructura extends THREE.Object3D {
 
         marco = new CSG().subtract([ marco, suelo_eliminar, puerta_eliminar, p1_eliminar ]).toMesh();
 
+        puerta_OBJ.name = 'puerta';
         estructura_puerta.add( marco, puerta_OBJ );
         
         puerta_eliminar_pared.scale.x = 1.1;
         puerta_eliminar_pared.scale.y = 1.1;
+
+        estructura_puerta.name = 'estructura_puerta_OBJ';
 
         return {
             puerta: estructura_puerta,

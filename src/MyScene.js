@@ -2,6 +2,7 @@
 // Clases de la biblioteca
 
 import * as THREE from '../libs/three.module.js'
+import * as TWEEN from '../libs/tween.esm.js'
 import { TrackballControls } from '../libs/TrackballControls.js'
 import { FirstPersonControls } from '../libs/FirstPersonControls.js'
 import { PointerLockControls } from '../libs/PointerLockControls.js'
@@ -20,7 +21,23 @@ const PI = Math.PI;
 class MyScene extends THREE.Scene {
   constructor (myCanvas) {
     super();
+
+    this.colisiones = false;
     
+    // ------------------ SELECCIONES ------------------
+
+    this.mouse = new THREE.Vector2();
+    this.rayo_mouse = new THREE.Raycaster();
+
+    this.objetosSeleccionables = [];
+
+    this.objetoSeleccionado = null;
+
+
+    // ------------------ COLISIONES ------------------
+
+    this.rayo = new THREE.Raycaster();
+    this.intersectados = [];
     
     // ------------------ CONTROLES ------------------
 
@@ -50,13 +67,15 @@ class MyScene extends THREE.Scene {
     this.createLights ();
 
     // Y unos ejes. Imprescindibles para orientarnos sobre dónde están las cosas
-    this.axis = new THREE.AxesHelper (5);
-    //this.add (this.axis);
+    /*this.axis = new THREE.AxesHelper (5);
+    this.add (this.axis);*/
 
     //this.axis.visible.value = false;
 
     this.h_estructura = new H_estructura( {grosor: 0.1, alto: 3, largo: 20, profundidad: 16, techo_visible: true, radio_mayor: 3, radio_menor: 3.5, porcentaje_pared: 3.5/20});
     this.add(this.h_estructura);
+
+    this.objetosSeleccionables.push(this.h_estructura.getObjectByName('estructura_puerta_OBJ').getObjectByName('puerta').getObjectByName('pomo'));
 
     this.dim = this.h_estructura.getDimensiones();
 
@@ -204,33 +223,45 @@ class MyScene extends THREE.Scene {
     // this.add(libro);
 
     // ------------------- CUADROS -------------------
-    var ancho = 0.5;
-    var largo = 0.6;
-    var altura = 1.5;
 
-    var cuadro = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_1.jpg', ancho, largo);
-    var cuadro2 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_2.jpg', ancho, largo);
-    var cuadro3 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_3.jpg', ancho, largo);
+    var cuadro = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_1.jpg', 1.4, 1);
+    var cuadro2 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_2.jpg', 1.2, 1.3);
+    var cuadro3 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_3.jpg', 1, 1.1);
+    var cuadro4 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_4.jpg', 1.3,1);
+    var cuadro5 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_5.jpg', 1.1,1.3);
+    var cuadro6 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_6.jpg', 1,1);
     
     cuadro.position.x = this.dim.posX_centroArcos_array[0];
-    cuadro.position.y = altura;
-    cuadro.position.z = -this.dim.posZ_centroArcos_positiva[0];
+    cuadro.position.y = 3.25;
+    cuadro.position.z = -this.dim.posZ_centroArcos_positiva + 3*this.dim.grosor;
 
     cuadro2.position.x = this.dim.posX_centroArcos_array[1];
-    cuadro2.position.y = altura;
-    cuadro2.position.z = -this.dim.posZ_centroArcos_positiva[1];
+    cuadro2.position.y = 3.125;
+    cuadro2.position.z = -this.dim.posZ_centroArcos_positiva + 3*this.dim.grosor;
 
     cuadro3.position.x = this.dim.posX_centroArcos_array[2];
-    cuadro3.position.y = altura;
-    cuadro3.position.z = -this.dim.posZ_centroArcos_positiva[2];
+    cuadro3.position.y = 3.25;
+    cuadro3.position.z = -this.dim.posZ_centroArcos_positiva + 3*this.dim.grosor;
 
-    this.add(cuadro, cuadro2, cuadro3);
+    cuadro4.rotation.y = PI;
+    cuadro4.position.x = this.dim.posX_centroArcos_array[0];
+    cuadro4.position.y = 3.25;
+    cuadro4.position.z = this.dim.posZ_centroArcos_positiva - 3*this.dim.grosor;
 
-    var cuadro4 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_4.jpg', ancho, largo);
-    var cuadro5 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_5.jpg', ancho, largo);
-    var cuadro6 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_6.jpg', ancho, largo);
+    cuadro5.rotation.y = PI;
+    cuadro5.position.x = this.dim.posX_centroArcos_array[1];
+    cuadro5.position.y = 3.125;
+    cuadro5.position.z = this.dim.posZ_centroArcos_positiva - 3*this.dim.grosor;
 
+    cuadro6.rotation.y = PI;
+    cuadro6.position.x = this.dim.posX_centroArcos_array[2];
+    cuadro6.position.y = 3.25;
+    cuadro6.position.z = this.dim.posZ_centroArcos_positiva - 3*this.dim.grosor;
+
+    this.add(cuadro, cuadro2, cuadro3, cuadro4, cuadro5, cuadro6);
     
+    this.objetosSeleccionables.push(cuadro, cuadro2, cuadro3, cuadro4, cuadro5, cuadro6);
+
   }
   
   createCamera () {
@@ -317,7 +348,7 @@ class MyScene extends THREE.Scene {
   }
 
   update () {
-    //this.cameraControl.update();
+    TWEEN.update();
 
     var alto_cam, velocidad_cam;
 
@@ -338,11 +369,6 @@ class MyScene extends THREE.Scene {
     
     // Le decimos al renderizador "visualiza la escena que te indico usando la cámara que te estoy pasando"
     this.renderer.render (this, this.getCamera());
-
-    // Este método debe ser llamado cada vez que queramos visualizar la escena de nuevo.
-    // Literalmente le decimos al navegador: "La próxima vez que haya que refrescar la pantalla, llama al método que te indico".
-    // Si no existiera esta línea,  update()  se ejecutaría solo la primera vez.
-    requestAnimationFrame(() => this.update())
 
 
     // ------------------ MOVIMIENTO ------------------
@@ -376,49 +402,91 @@ class MyScene extends THREE.Scene {
 
     }
 
+
+    // Este método debe ser llamado cada vez que queramos visualizar la escena de nuevo.
+    // Literalmente le decimos al navegador: "La próxima vez que haya que refrescar la pantalla, llama al método que te indico".
+    // Si no existiera esta línea,  update()  se ejecutaría solo la primera vez.
+    requestAnimationFrame(() => this.update())
   }
 
 
   // ------------------ COLISIONES ------------------
   testColisiona(donde_estoy,a_donde_miro) {
-    var porcentaje = 0.3;
-    var altura = this.altura;
-    if (this.agachado) altura *= 0.7;
+    if (this.colisiones) {
+      var porcentaje = 0.3;
+      var altura = this.altura;
+      if (this.agachado) altura *= 0.7;
 
-    var colision_H = false, colision_V = false;
+      var colision_H = false, colision_V = false;
 
-    var rayo_H = new THREE.Raycaster(donde_estoy,a_donde_miro);
-    var intersectados_H = rayo_H.intersectObjects(this.children, true);
-    
-    // tener en cuenta que el vector a_donde_miro es horizontal (y = 0), lo que significa que se usará la altura
-    // que da "donde_estoy" para saber desde donde sale el rayo (además de también la x y la z de donde_estoy),
-    // también creo que no se usará el camara.getWorldPosition(), pero no estoy seguro, no se bien como van los rayos
-    // ten en cuenta que se deberá comprobar si se "detecta colisión" con alguno de los dos rayos que se van a crear:
+      this.rayo.set(donde_estoy,a_donde_miro);
+      this.intersectados = this.rayo.intersectObjects(this.children, true);
+      
+      // tener en cuenta que el vector a_donde_miro es horizontal (y = 0), lo que significa que se usará la altura
+      // que da "donde_estoy" para saber desde donde sale el rayo (además de también la x y la z de donde_estoy),
+      // también creo que no se usará el camara.getWorldPosition(), pero no estoy seguro, no se bien como van los rayos
+      // ten en cuenta que se deberá comprobar si se "detecta colisión" con alguno de los dos rayos que se van a crear:
 
-    if (intersectados_H.length > 0 && intersectados_H[0].distance < 0.8)
-      colision_H = true;
+      if (this.intersectados.length > 0 && this.intersectados[0].distance < 0.8)
+        colision_H = true;
 
-    // se crea otro rayo desde las posición de la cámara + "pequeña distancia (decidir) (en la dirección a_donde_miro)",
-    // pero este rayo parte desde la altura de la cámara y con posición x y z relacionadas al vector dirección a_donde_miro (decidir cantidad)
-    // recordamos que este rayo tiene que estar un poco por delante en la dirección a la que apunta la cámara (a_donde_miro)
-    a_donde_miro.multiplyScalar(porcentaje);
-    var punto = donde_estoy.add(a_donde_miro);
-
-
-    var rayo_V= new THREE.Raycaster(punto, new THREE.Vector3(0,-1,0));
-    var intersectados_V = rayo_V.intersectObjects(this.children, true);
-
-    if ((intersectados_V.length > 0 && intersectados_V[0].distance < altura-0.1) || intersectados_V.length == 0)
-      colision_V = true;
+      // se crea otro rayo desde las posición de la cámara + "pequeña distancia (decidir) (en la dirección a_donde_miro)",
+      // pero este rayo parte desde la altura de la cámara y con posición x y z relacionadas al vector dirección a_donde_miro (decidir cantidad)
+      // recordamos que este rayo tiene que estar un poco por delante en la dirección a la que apunta la cámara (a_donde_miro)
+      a_donde_miro.multiplyScalar(porcentaje);
+      var punto = donde_estoy.add(a_donde_miro);
 
 
-    // el método devolverá un booleano según:
-    // 1 - el la distancia del primer objeto del rayo 1 es menor que la altura (this.altura) de la cámara - 0.1 (para evitar posibles problemas)
-    // Ó
-    // 2 - el rayo 2 choca con un objeto que está a una distancia menor que la decidida
+      this.rayo.set(punto, new THREE.Vector3(0,-1,0));
+      this.intersectados = this.rayo.intersectObjects(this.children, true);
 
-    // por defecto, devuelve false (no hay colisiones) --> quitar cuando hagas el método
-    return colision_H || colision_V;
+      if ((this.intersectados.length > 0 && this.intersectados[0].distance < altura-0.1) || this.intersectados.length == 0)
+        colision_V = true;
+
+
+      // el método devolverá un booleano según:
+      // 1 - el la distancia del primer objeto del rayo 1 es menor que la altura (this.altura) de la cámara - 0.1 (para evitar posibles problemas)
+      // Ó
+      // 2 - el rayo 2 choca con un objeto que está a una distancia menor que la decidida
+
+      // por defecto, devuelve false (no hay colisiones) --> quitar cuando hagas el método
+      return colision_H || colision_V;
+    }
+  }
+
+
+  onMouseDown(event) {
+    this.mouse.x = 0;//(event.clientX / window.innerWidth) * 2 - 1;
+    this.mouse.y = 0;//1 - 2 * (event.clientY / window.innerHeight);
+
+    this.rayo_mouse.setFromCamera(this.mouse, this.getCamera());
+
+    var pickedObjects = this.rayo_mouse.intersectObjects(this.objetosSeleccionables, true);
+
+    var selecionado = null;
+
+    if (pickedObjects.length > 0) {
+      
+      if (pickedObjects[0].object.userData instanceof THREE.Object3D)
+        selecionado = pickedObjects[0].object.userData;
+      
+        else if (pickedObjects[0] instanceof THREE.Mesh)
+        selecionado = pickedObjects[0];
+      
+        else
+        selecionado = pickedObjects[0].object;
+
+
+      switch (selecionado.name) {
+        case 'pomo':
+          this.h_estructura.updatePuerta();
+          break;
+        
+        case 'cuadro':
+          break;
+      }
+    }
+
   }
 
 
@@ -477,19 +545,6 @@ class MyScene extends THREE.Scene {
     }
   }
 
-  /*onKeyPress(event) {
-    switch (event.key || event.which) {
-      case KeyCode.KEY_ESCAPE:
-        if (this.cameraControl.isLocked) {
-          this.cameraControl.unlock();
-        }
-        else {
-          this.cameraControl.lock();
-        }
-        break;
-    }
-  }*/
-
 }
 
 /// La función   main
@@ -502,7 +557,8 @@ $(function () {
 
   window.addEventListener ("keydown", (event) => scene.onKeyDown(event));
   window.addEventListener ("keyup", (event) => scene.onKeyUp(event));
-  //window.addEventListener ("keypress", (event) => scene.onKeyPress(event));
+
+  window.addEventListener ("mousedown", (event) => scene.onMouseDown(event));
   
   // Que no se nos olvide, la primera visualización.
   scene.update();

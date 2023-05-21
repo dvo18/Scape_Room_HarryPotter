@@ -249,7 +249,7 @@ class Decoracion extends THREE.Object3D {
     var origen = { p : 0 } ; // 0 representa el principio.
     var destino = { p : 1 } ; // representa el final.
 
-    var animacion1 = new TWEEN.Tween(origen).to(destino, 3000)
+    /*var animacion1 = new TWEEN.Tween(origen).to(destino, 3000)
     .onUpdate(() => {
       var position = splineBurbuja1.getPoint(animacion1._object.t);
       burbuja.position.copy(position);
@@ -301,7 +301,7 @@ class Decoracion extends THREE.Object3D {
     animacion3.chain(animacion4);
     animacion4.chain(animacion1);
 
-    animacion1.start();
+    animacion1.start();*/
 
     // ----------------
 
@@ -470,7 +470,8 @@ class Decoracion extends THREE.Object3D {
     // --------------------------------------
     // Crear geometría del marco
     var marcoGeom = new THREE.BoxGeometry(marco_ancho, marcho_alto, profundidad);
-    var marcoMaterial = new THREE.MeshLambertMaterial({ color: 0xD3BC64 });
+    var marcoTexture = this.texturaLoader.load('../imgs/cuadros/textura_marco_cuadro.png');
+    var marcoMaterial = new THREE.MeshLambertMaterial({ color: 0xD3BC64, map: marcoTexture });
     var marco = new THREE.Mesh(marcoGeom, marcoMaterial);
     
     // --------------------------------------
@@ -485,10 +486,18 @@ class Decoracion extends THREE.Object3D {
     imagen_cuadro.position.z = profundidad / 2 + 0.001;
     
     // --------------------------------------
+    var cuadro_aux = new THREE.Object3D();
+    cuadro_aux.add(marco, imagen_cuadro);
+    cuadro_aux.position.y = marcho_alto / 2;
+    cuadro_aux.position.z = 0.025;
+
     var cuadro = new THREE.Object3D();
-    cuadro.add(marco, imagen_cuadro);
-    cuadro.position.y = marcho_alto / 2;
-    cuadro.position.z = 0.025;
+    cuadro.add(cuadro_aux);
+
+    marco.userData = cuadro;
+    imagen_cuadro.userData = cuadro;
+
+    cuadro.name = 'cuadro';
   
     return cuadro;
   }
