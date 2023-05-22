@@ -496,7 +496,16 @@ class Decoracion extends THREE.Object3D {
     var cuadro_aux3 = new THREE.Object3D().add(cuadro_aux2);
     cuadro_aux3.position.x = ancho/2;
 
-    var cuadro = new THREE.Object3D().add(cuadro_aux3);
+    var luz = new THREE.SpotLight(0xffffff, 1, 25, Math.PI/12, 0.325, 2);
+    luz.position.set(0,largo+largo*0.5,3);
+    var target = new THREE.Object3D();
+    target.position.set(0,largo*0.625,0);
+
+    luz.target = target;
+
+    luz.visible = false;
+
+    var cuadro = new THREE.Object3D().add(cuadro_aux3,luz,target);
 
     marco.userData = cuadro;
     imagen_cuadro.userData = cuadro;

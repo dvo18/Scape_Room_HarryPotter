@@ -22,7 +22,7 @@ class MyScene extends THREE.Scene {
   constructor (myCanvas) {
     super();
 
-    this.colisiones = false;
+    this.colisiones = true;
     
     // ------------------ SELECCIONES ------------------
 
@@ -455,18 +455,30 @@ class MyScene extends THREE.Scene {
 
 
   abrirCuadro(id) {
-    var cuadro = this.getObjectById(id).children[0].children[0];
+    var cuadro_origen = this.getObjectById(id);
+    cuadro_origen.children[1].visible = true;
+
+    var apagar = false;
+
+    var cuadro = cuadro_origen.children[0].children[0];
 
     var origen = {p: 0};
     var destino = {p: Math.PI/2 - Math.PI/8};
 
+    if (cuadro.rotation.y != 0) {
+      origen.p = cuadro.rotation.y;
+      destino.p = 0;
+      apagar = true;
+    }
+
     new TWEEN.Tween(origen).to(destino, 2000)
-    .onUpdate(() => {
-      cuadro.rotation.y = origen.p;
-    })
-    .onComplete(() => {
-      origen.p = 0;
-    }).start();
+      .onUpdate(() => {
+        cuadro.rotation.y = origen.p;
+      })
+      .onComplete(() => {
+        origen.p = 0;
+        if (apagar) cuadro_origen.children[1].visible = false;
+      }).start();
   }
 
 
