@@ -214,11 +214,11 @@ class Decoracion extends THREE.Object3D {
     // ------------------------------------
     // Vamos a animar las burbujas para que suban y bajen, para simular que el líquido está hirviendo.
     var splineBurbuja1 = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0.08, 0.25, 0.02),
+      new THREE.Vector3(0.08, 0.11, 0.02),
       new THREE.Vector3(0.08, 0.22, 0.02),
-      new THREE.Vector3(0.08, 0.15, 0.02),
-      new THREE.Vector3(0.08, 0.08, 0.02),
-      new THREE.Vector3(0.08, -0.10, 0.02)
+      new THREE.Vector3(0.08, 0.32, 0.02),
+      new THREE.Vector3(0.08, 0.42, 0.02),
+      new THREE.Vector3(0.08, 0.52, 0.02)
     ]);
 
     var splineBurbuja2 = new THREE.CatmullRomCurve3([
@@ -249,16 +249,17 @@ class Decoracion extends THREE.Object3D {
     var origen = { p : 0 } ; // 0 representa el principio.
     var destino = { p : 1 } ; // representa el final.
 
-    /*var animacion1 = new TWEEN.Tween(origen).to(destino, 3000)
+    var animacion1 = new TWEEN.Tween(origen).to(destino, 4000)
     .onUpdate(() => {
-      var position = splineBurbuja1.getPoint(animacion1._object.t);
-      burbuja.position.copy(position);
+      burbuja.position.copy(splineBurbuja1.getPoint(animacion1._object.p));
     })
     .repeat(Infinity)
     .onComplete(function(){
-      origen.p = 0; 
-    });
-
+      origen.p = 0;
+    })
+    .delay(Math.random() * 3000)
+    .start();
+/*
     var animacion2 = new TWEEN.Tween(origen).to(destino, 3000)
     .onUpdate(() => {
       var position = splineBurbuja2.getPoint(animacion2._object.t);
@@ -287,21 +288,18 @@ class Decoracion extends THREE.Object3D {
     .repeat(Infinity)
     .onComplete(function(){
       origen.p = 0; 
-    });
+    });*/
 
     // Agrega un retardo aleatorio a cada animación para que las burbujas no suban y bajen al mismo tiempo.
-    animacion1.delay(Math.random() * 3000);
-    animacion2.delay(Math.random() * 3000);
+    /*animacion2.delay(Math.random() * 3000);
     animacion3.delay(Math.random() * 3000);
-    animacion4.delay(Math.random() * 3000);
+    animacion4.delay(Math.random() * 3000);*/
 
     // Comienza la animación.
-    animacion1.chain(animacion2);
+    /*animacion1.chain(animacion2);
     animacion2.chain(animacion3);
     animacion3.chain(animacion4);
-    animacion4.chain(animacion1);
-
-    animacion1.start();*/
+    animacion4.chain(animacion1);*/
 
     // ----------------
 
@@ -491,12 +489,18 @@ class Decoracion extends THREE.Object3D {
     cuadro_aux.position.y = marcho_alto / 2;
     cuadro_aux.position.z = 0.025;
 
-    var cuadro = new THREE.Object3D();
-    cuadro.add(cuadro_aux);
+    cuadro_aux.position.x = -ancho/2;
+
+    var cuadro_aux2 = new THREE.Object3D().add(cuadro_aux);
+    // esto se hace para poder aplicar la rotación sin que los valores de posición cambien
+    var cuadro_aux3 = new THREE.Object3D().add(cuadro_aux2);
+    cuadro_aux3.position.x = ancho/2;
+
+    var cuadro = new THREE.Object3D().add(cuadro_aux3);
 
     marco.userData = cuadro;
     imagen_cuadro.userData = cuadro;
-
+    
     cuadro.name = 'cuadro';
   
     return cuadro;

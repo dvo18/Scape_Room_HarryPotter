@@ -261,7 +261,6 @@ class MyScene extends THREE.Scene {
     this.add(cuadro, cuadro2, cuadro3, cuadro4, cuadro5, cuadro6);
     
     this.objetosSeleccionables.push(cuadro, cuadro2, cuadro3, cuadro4, cuadro5, cuadro6);
-
   }
   
   createCamera () {
@@ -455,6 +454,22 @@ class MyScene extends THREE.Scene {
   }
 
 
+  abrirCuadro(id) {
+    var cuadro = this.getObjectById(id).children[0].children[0];
+
+    var origen = {p: 0};
+    var destino = {p: Math.PI/2 - Math.PI/8};
+
+    new TWEEN.Tween(origen).to(destino, 2000)
+    .onUpdate(() => {
+      cuadro.rotation.y = origen.p;
+    })
+    .onComplete(() => {
+      origen.p = 0;
+    }).start();
+  }
+
+
   onMouseDown(event) {
     this.mouse.x = 0;//(event.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = 0;//1 - 2 * (event.clientY / window.innerHeight);
@@ -474,7 +489,7 @@ class MyScene extends THREE.Scene {
         selecionado = pickedObjects[0];
       
         else
-        selecionado = pickedObjects[0].object;
+        selecionado = pickedObjects[0].object; 
 
 
       switch (selecionado.name) {
@@ -483,6 +498,7 @@ class MyScene extends THREE.Scene {
           break;
         
         case 'cuadro':
+          this.abrirCuadro(selecionado.id);
           break;
       }
     }
