@@ -189,8 +189,9 @@ class MyScene extends THREE.Scene {
 
 
     // ------------------- MESAS Y TABURETES -------------------
-    // var mesa = this.decoracion.createMesa();
-    // this.add(mesa);
+    //var mesa = this.decoracion.createMesa();
+    //mesa.position.y = 0.2;
+    //this.add(mesa);
 
 
     // ------------------- CALDERO -------------------
@@ -211,16 +212,50 @@ class MyScene extends THREE.Scene {
 
 
     // ------------------- FRASCOS -------------------
-    var colorFrasco = 0xD6DCDE;
-    var colorLiquido = 0x871B1B;
-    // var frasco = this.decoracion.createFrasco(colorFrasco, colorLiquido);
-    // this.add(frasco);
+    var colorFrasco1 = 0xD6DCDE;
+    var colorFrasco2 = 0xE7EBEC;
 
-    // var pocion = this.decoracion.createPocion(colorFrasco, colorLiquido, 0.3);
-    // this.add(pocion);
+    var colorLiquido1 = 0x871B1B;
+    var colorLiquido2 = 0x1B8760;
+    var colorLiquido3 = 0xCD8125;
 
-    // var libro = this.decoracion.createLibro();
-    // this.add(libro);
+    var frasco1 = this.decoracion.createFrasco(colorFrasco1, colorLiquido1);
+    var frasco2 = this.decoracion.createFrasco(colorFrasco2, colorLiquido2);
+    var frasco3 = this.decoracion.createFrasco(colorFrasco1, colorLiquido3);
+    var frasco4 = this.decoracion.createFrasco(colorFrasco2, colorLiquido3);
+
+    for (let i = 0; i < 5; i++) {
+      var t = i/4; // Valor normalizado entre 0 y 1
+      var angulo = 13/12*PI + t * (23/12*PI - 13/12*PI); // Ángulo para cada objeto
+      
+      // Cálculo de la posición x/z en función del centro de la habitación, el ángulo y el radio de la misma.
+      var x = this.dim.posV2xz_centro_HabCircular_Lateral.x + (this.dim.rad_HabCircular_Laterales-0.35) * Math.cos(angulo);
+      var z = -this.dim.posV2xz_centro_HabCircular_Lateral.y + (this.dim.rad_HabCircular_Laterales-0.35) * Math.sin(angulo);
+      
+      if( i % 2 == 0){
+        var frasco = this.decoracion.createFrasco(colorFrasco1, colorLiquido1);
+        frasco.scale.set(2.2, 2.2, 2.2);
+      }
+      else{
+        var frasco = this.decoracion.createFrasco(colorFrasco2, colorLiquido3);
+        frasco.scale.set(2.6, 2.6, 2.6);
+      }
+      
+      frasco.rotation.y = PI;
+      frasco.position.set(x, 0, z);
+      this.add(frasco);
+    }
+
+    frasco1.scale.set(2,2,2);
+    frasco1.position.x = -this.dim.largo/2 - 1;
+    frasco1.position.z = 2.5;
+
+    frasco1.scale.set(1.5,1.5,1.5);
+    frasco2.position.x = -this.dim.largo/2 - 0.5;
+    frasco2.position.z = 2.7;
+
+    this.add(frasco1, frasco2);
+
 
     // ------------------- CUADROS -------------------
 
@@ -261,6 +296,36 @@ class MyScene extends THREE.Scene {
     this.add(cuadro, cuadro2, cuadro3, cuadro4, cuadro5, cuadro6);
     
     this.objetosSeleccionables.push(cuadro, cuadro2, cuadro3, cuadro4, cuadro5, cuadro6);
+
+    // ------------
+
+    var cuadro7 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_7.jpg', 1.4, 1.4);
+    var cuadro8 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_8.jpg', 1.4, 1.4);
+    var cuadro9 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_9.jpg', 1.4, 1.4);
+    var cuadro10 = this.decoracion.createCuadro('../imgs/cuadros/textura_cuadro_10.jpg', 1.4, 1.4);
+
+    cuadro7.rotation.y = (PI/2);
+    cuadro7.position.x = -this.dim.largo/2;
+    cuadro7.position.y = 0.8;
+    cuadro7.position.z = 6.5;
+
+    cuadro8.rotation.y = (PI/2);
+    cuadro8.position.x = -this.dim.largo/2;
+    cuadro8.position.y = 0.8;
+    cuadro8.position.z = 4.5;
+
+    cuadro9.rotation.y = (PI/2);
+    cuadro9.position.x = -this.dim.largo/2;
+    cuadro9.position.y = 0.8;
+    cuadro9.position.z = -6.5;
+
+    cuadro10.rotation.y = (PI/2);
+    cuadro10.position.x = -this.dim.largo/2;
+    cuadro10.position.y = 0.8;
+    cuadro10.position.z = -4.5;
+
+    this.add(cuadro7, cuadro8, cuadro9, cuadro10);
+
   }
   
   createCamera () {
@@ -421,7 +486,7 @@ class MyScene extends THREE.Scene {
       this.rayo.set(donde_estoy,a_donde_miro);
       this.intersectados = this.rayo.intersectObjects(this.children, true);
       
-      // tener en cuenta que el vector a_donde_miro es horizontal (y = 0), lo que significa que se usará la altura
+      // Tener en cuenta que el vector a_donde_miro es horizontal (y = 0), lo que significa que se usará la altura
       // que da "donde_estoy" para saber desde donde sale el rayo (además de también la x y la z de donde_estoy),
       // también creo que no se usará el camara.getWorldPosition(), pero no estoy seguro, no se bien como van los rayos
       // ten en cuenta que se deberá comprobar si se "detecta colisión" con alguno de los dos rayos que se van a crear:
@@ -429,12 +494,11 @@ class MyScene extends THREE.Scene {
       if (this.intersectados.length > 0 && this.intersectados[0].distance < 0.8)
         colision_H = true;
 
-      // se crea otro rayo desde las posición de la cámara + "pequeña distancia (decidir) (en la dirección a_donde_miro)",
+      // Se crea otro rayo desde las posición de la cámara + "pequeña distancia (decidir) (en la dirección a_donde_miro)",
       // pero este rayo parte desde la altura de la cámara y con posición x y z relacionadas al vector dirección a_donde_miro (decidir cantidad)
       // recordamos que este rayo tiene que estar un poco por delante en la dirección a la que apunta la cámara (a_donde_miro)
       a_donde_miro.multiplyScalar(porcentaje);
       var punto = donde_estoy.add(a_donde_miro);
-
 
       this.rayo.set(punto, new THREE.Vector3(0,-1,0));
       this.intersectados = this.rayo.intersectObjects(this.children, true);
@@ -443,7 +507,7 @@ class MyScene extends THREE.Scene {
         colision_V = true;
 
 
-      // el método devolverá un booleano según:
+      // El método devolverá un booleano según:
       // 1 - el la distancia del primer objeto del rayo 1 es menor que la altura (this.altura) de la cámara - 0.1 (para evitar posibles problemas)
       // Ó
       // 2 - el rayo 2 choca con un objeto que está a una distancia menor que la decidida

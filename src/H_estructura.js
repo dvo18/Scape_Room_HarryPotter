@@ -144,7 +144,7 @@ class H_estructura extends THREE.Object3D {
 
         this.T_techo = this.texturaLoader.load('../imgs/textura_techo_piedra_negra.jpg' );
 
-        this.colorTecho = '#3B3975';
+        this.colorTecho = '#28274F';
 
         this.T_columna = this.texturaLoader.load('../imgs/textura_caliza.jpg' );
 

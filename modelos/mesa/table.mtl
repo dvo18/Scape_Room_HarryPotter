@@ -6,7 +6,7 @@ newmtl Mat.1
     map_Kd WoodSeemles1.jpg
     Ks 1 1 1
     Ns 50
-    illum 7
+    illum 3
 
 newmtl Mat
     Ka 1 1 1
@@ -14,5 +14,4 @@ newmtl Mat
     map_Kd WoodSeemles.jpg
     Ks 1 1 1
     Ns 50
-    illum 7
-
+    illum 3

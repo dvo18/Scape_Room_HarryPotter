@@ -80,37 +80,29 @@ class Decoracion extends THREE.Object3D {
   
   createMesa(){
     // --------- TEXTURAS ---------
-    var textura_madera = this.texturaLoader.load ('../imgs/textura_madera.jpg');
+    //var textura_madera = this.texturaLoader.load ('../imgs/textura_madera.jpg');
 
-    // Creamos un objeto 3D para el taburete.
-    this.mesa = new THREE.Object3D();
+    // Creamos un objeto 3D para el mesa.
+    var mesa = new THREE.Object3D();
 
-    this.objetoLoader.load('../modelos/mesa/table.obj',
-    (m) => {
-        // Creamos un nuevo material básico con la textura de caldero.
-        var material = new THREE.MeshLambertMaterial({
-            color: 0xB0915E,
-            map: textura_madera
-        });
+    // Cargamos la figura OBJ:
+    this.materialLoader.load('../modelos/mesa2/Desk_OBJ.mtl',
+    (materiales) => {
+      this.objetoLoader.setMaterials(materiales);
+      this.objetoLoader.load('../modelos/mesa2/Desk_OBJ.obj',
+        (mes) => {
+            mesa.add(mes); // Finalmente añadimos la mesa como hijo de Object3D.
+        }, null, null);
+    });
 
-        // Asignamos el material al objeto OBJ.
-        m.traverse(function(child) {
-            if (child instanceof THREE.Mesh) {
-                child.material = material;
-            }
-        });
+    // Creamos un objeto 3D para el mesa.
+    var mesa_final = new THREE.Object3D().add(mesa);
 
-        // Añadimos la mesa como hijo de Object3D.
-        this.mesa.add(m);
-    }, null, null);
+    mesa_final.scale.x = 1;
+    mesa_final.scale.y = 1;
+    mesa_final.scale.z = 1;
 
-    this.mesa.scale.x = 0.002;
-    this.mesa.scale.y = 0.002;
-    this.mesa.scale.z = 0.002;
-
-    this.add(this.mesa);
-
-    return this.mesa;
+    return mesa_final;
   }
 
   // ---------------------------------------------------------------
@@ -132,7 +124,7 @@ class Decoracion extends THREE.Object3D {
     return this.taburete;
   }
 
-  // ---------------------------------------------------------------
+  // ------------que se encienda al clicar un interruptor---------------------------------------------------
 
   createGato(){
     // Creamos un objeto 3D para el taburete.
@@ -214,42 +206,40 @@ class Decoracion extends THREE.Object3D {
     // ------------------------------------
     // Vamos a animar las burbujas para que suban y bajen, para simular que el líquido está hirviendo.
     var splineBurbuja1 = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0.08, 0.11, 0.02),
+      new THREE.Vector3(0.08, 0.256, 0.02),
       new THREE.Vector3(0.08, 0.22, 0.02),
-      new THREE.Vector3(0.08, 0.32, 0.02),
-      new THREE.Vector3(0.08, 0.42, 0.02),
-      new THREE.Vector3(0.08, 0.52, 0.02)
+      new THREE.Vector3(0.08, 0.19, 0.02),
+      new THREE.Vector3(0.08, 0.15, 0.02)
     ]);
 
     var splineBurbuja2 = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-0.02, 0.25, -0.05),
+      new THREE.Vector3(-0.02, 0.256, -0.05),
       new THREE.Vector3(-0.02, 0.22, -0.05),
-      new THREE.Vector3(-0.02, 0.15, -0.05),
-      new THREE.Vector3(-0.02, 0.08, -0.05),
-      new THREE.Vector3(-0.02, -0.10, -0.05)
+      new THREE.Vector3(-0.02, 0.19, -0.05),
+      new THREE.Vector3(-0.02, 0.15, -0.05)
     ]);
 
     var splineBurbuja3 = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-0.06, 0.25, 0.0),
+      new THREE.Vector3(-0.06, 0.256, 0.0),
       new THREE.Vector3(-0.06, 0.22, 0.0),
-      new THREE.Vector3(-0.06, 0.15, 0.0),
-      new THREE.Vector3(-0.06, 0.08, 0.0),
-      new THREE.Vector3(-0.06, -0.10, 0.0)
+      new THREE.Vector3(-0.06, 0.19, 0.0),
+      new THREE.Vector3(-0.06, 0.15, 0.0)
     ]);
 
     var splineBurbuja4 = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0.03, 0.25, 0.05),
+      new THREE.Vector3(0.03, 0.265, 0.05),
       new THREE.Vector3(0.03, 0.22, 0.05),
-      new THREE.Vector3(0.03, 0.15, 0.05),
-      new THREE.Vector3(0.03, 0.08, 0.05),
-      new THREE.Vector3(0.03, -0.10, 0.05)
+      new THREE.Vector3(0.03, 0.19, 0.05),
+      new THREE.Vector3(0.03, 0.15, 0.05)
     ]);
 
-    // -----------
+    
     var origen = { p : 0 } ; // 0 representa el principio.
     var destino = { p : 1 } ; // representa el final.
+    var duracion = 2500;
 
-    var animacion1 = new TWEEN.Tween(origen).to(destino, 4000)
+    var animacion1 = new TWEEN.Tween(origen).to(destino, duracion)
+    .easing(TWEEN.Easing.Sinusoidal.InOut)
     .onUpdate(() => {
       burbuja.position.copy(splineBurbuja1.getPoint(animacion1._object.p));
     })
@@ -257,49 +247,53 @@ class Decoracion extends THREE.Object3D {
     .onComplete(function(){
       origen.p = 0;
     })
-    .delay(Math.random() * 3000)
+    .delay(Math.random() * duracion)
     .start();
-/*
-    var animacion2 = new TWEEN.Tween(origen).to(destino, 3000)
+
+    // -----------
+
+    var animacion2 = new TWEEN.Tween(origen).to(destino, duracion)
+    .easing(TWEEN.Easing.Sinusoidal.InOut)
     .onUpdate(() => {
-      var position = splineBurbuja2.getPoint(animacion2._object.t);
-      burbuja2.position.copy(position);
+      burbuja2.position.copy(splineBurbuja2.getPoint(animacion2._object.p));
     })
     .repeat(Infinity)
     .onComplete(function(){
       origen.p = 0; 
-    });
+    })
+    .delay(Math.random() * duracion)
+    .start();
 
-    var animacion3 = new TWEEN.Tween(origen).to(destino, 3000)
+    // -----------
+
+    var animacion3 = new TWEEN.Tween(origen).to(destino, duracion)
+    .easing(TWEEN.Easing.Sinusoidal.InOut)
     .onUpdate(() => {
-      var position = splineBurbuja3.getPoint(animacion3._object.t);
-      burbuja3.position.copy(position);
+      burbuja3.position.copy(splineBurbuja3.getPoint(animacion3._object.p));
     })
     .repeat(Infinity)
     .onComplete(function(){
       origen.p = 0; 
-    });
+    })
+    .delay(Math.random() * duracion)
+    .start();
 
-    var animacion4 = new TWEEN.Tween(origen).to(destino, 3000)
+    // -----------
+
+    var animacion4 = new TWEEN.Tween(origen).to(destino, duracion)
+    .easing(TWEEN.Easing.Sinusoidal.InOut)
     .onUpdate(() => {
-      var position = splineBurbuja4.getPoint(animacion4._object.t);
-      burbuja4.position.copy(position);
+      burbuja4.position.copy(splineBurbuja4.getPoint(animacion4._object.p));
     })
     .repeat(Infinity)
     .onComplete(function(){
       origen.p = 0; 
-    });*/
+    })
+    .delay(Math.random() * duracion)
+    .start();
 
-    // Agrega un retardo aleatorio a cada animación para que las burbujas no suban y bajen al mismo tiempo.
-    /*animacion2.delay(Math.random() * 3000);
-    animacion3.delay(Math.random() * 3000);
-    animacion4.delay(Math.random() * 3000);*/
+    // Agregamos un retardo aleatorio a cada animación para que las burbujas no suban y bajen al mismo tiempo.
 
-    // Comienza la animación.
-    /*animacion1.chain(animacion2);
-    animacion2.chain(animacion3);
-    animacion3.chain(animacion4);
-    animacion4.chain(animacion1);*/
 
     // ----------------
 
