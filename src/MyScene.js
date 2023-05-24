@@ -22,7 +22,15 @@ class MyScene extends THREE.Scene {
   constructor (myCanvas) {
     super();
 
-    this.colisiones = true;
+    this.colisiones = false;
+
+
+
+    // ------------------ BOOLEANOS CONDICIONALES ------------------
+
+    this.papel_obtenido = false;
+    this.puerta_abierta = false;
+    this.movimiento_bloqueado = false;
     
     // ------------------ SELECCIONES ------------------
 
@@ -85,6 +93,41 @@ class MyScene extends THREE.Scene {
 
 
     this.decoracion = new Decoracion();
+
+
+
+    // ------------------- PAPEL -------------------
+
+    var material_papel_antiguo = new THREE.MeshLambertMaterial({color: '#FFFFFF', map: new THREE.TextureLoader().load('../imgs/textura_papel_antiguo.jpg')});
+    material_papel_antiguo.alphaMap = new THREE.TextureLoader().load('../imgs/alphas/textura_alpha_papel.jpg');
+    material_papel_antiguo.transparent = true;
+    material_papel_antiguo.side = THREE.DoubleSide;
+    var papel = new THREE.Mesh( new THREE.PlaneGeometry(1,1), material_papel_antiguo );
+    papel.scale.set(0.75,0.5,1);
+    papel.position.y = 0.25 + 3.5;
+
+    var num_cuadro = Math.floor(Math.random() * 6);
+    papel.position.x = this.dim.posX_centroArcos_array[num_cuadro%3];
+    if (num_cuadro > 2) {
+      papel.position.z = this.dim.profundidad/2 - this.dim.rad_base_pilarPrisma - 0.01;
+      papel.rotation.y = PI;
+    }
+    else papel.position.z = -this.dim.profundidad/2 + this.dim.rad_base_pilarPrisma + 0.01;
+
+    papel.name = 'papel';
+
+    this.objetosSeleccionables.push(papel);
+    console.log(num_cuadro);
+
+    this.posicion_original_papel = new THREE.Vector3().copy(papel.position);
+
+    this.add(papel);
+
+
+    // ------------------- OBJECTO RARO CONO (1) -------------------
+
+    //var cono_raro = this.decoracion.createObjetoRaro1(0.2,0.5,this,this.window);
+    //this.add(cono_raro);
 
 
     // ------------------- ANTORCHAS -------------------
@@ -335,7 +378,7 @@ class MyScene extends THREE.Scene {
     //   Los planos de recorte cercano y lejano
     this.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
     
-    this.camera.position.set (/*0,this.altura,0*/ 0,this.altura,0);
+    this.camera.position.set (/*0,this.altura,0*/ 4,this.altura,0);
 
     this.camera.lookAt(new THREE.Vector3 (/*10,this.altura,0*/this.dim.largo/2,this.altura,0));
 
@@ -414,56 +457,63 @@ class MyScene extends THREE.Scene {
   update () {
     TWEEN.update();
 
-    var alto_cam, velocidad_cam;
+    //this.getObjectByName('cono_raro').children[0].update(this.renderer, this);
+    //this.getObjectByName('camara_esferica').update(this.renderer,this);
 
-    if (this.agachado) {
-      alto_cam = this.altura * 0.7;
-      velocidad_cam = this.velocidad * 0.5;
+
+    if (!this.movimiento_bloqueado) {
+      var alto_cam, velocidad_cam;
+
+      if (this.agachado) {
+        alto_cam = this.altura * 0.7;
+        velocidad_cam = this.velocidad * 0.5;
+      }
+      else {
+        alto_cam = this.altura;
+        velocidad_cam = this.velocidad;
+      }
+
+      this.camera.position.y = alto_cam;
     }
-    else {
-      alto_cam = this.altura;
-      velocidad_cam = this.velocidad;
-    }
 
-    this.camera.position.y = alto_cam;
-
-    
-    // Se actualiza el resto del modelo
-    // this.model.update();
-    
-    // Le decimos al renderizador "visualiza la escena que te indico usando la cámara que te estoy pasando"
-    this.renderer.render (this, this.getCamera());
+      
+      // Se actualiza el resto del modelo
+      // this.model.update();
+      
+      // Le decimos al renderizador "visualiza la escena que te indico usando la cámara que te estoy pasando"
+      this.renderer.render (this, this.getCamera());
 
 
-    // ------------------ MOVIMIENTO ------------------
+    if (!this.movimiento_bloqueado) {
+      // ------------------ MOVIMIENTO ------------------
 
-    if ( this.movimiento.some((valor) => valor === true) ) {
+      if ( this.movimiento.some((valor) => valor === true) ) {
 
-      var donde_estoy = new THREE.Vector3();
-      var a_donde_miro = new THREE.Vector3();
+        var donde_estoy = new THREE.Vector3();
+        var a_donde_miro = new THREE.Vector3();
 
-      donde_estoy.copy(this.camera.position);
-      this.cameraControl.getDirection(a_donde_miro);
+        donde_estoy.copy(this.camera.position);
+        this.cameraControl.getDirection(a_donde_miro);
 
-      a_donde_miro.y = 0;
-      a_donde_miro.normalize();
+        a_donde_miro.y = 0;
+        a_donde_miro.normalize();
 
-      if (this.movimiento[0])
-        if (!this.testColisiona(donde_estoy,a_donde_miro))
-          this.cameraControl.moveForward(velocidad_cam);
+        if (this.movimiento[0])
+          if (!this.testColisiona(donde_estoy,a_donde_miro))
+            this.cameraControl.moveForward(velocidad_cam);
 
-      if (this.movimiento[1])
-        if (!this.testColisiona(donde_estoy,new THREE.Vector3().copy(a_donde_miro).negate().normalize()))
-          this.cameraControl.moveForward(-velocidad_cam);
+        if (this.movimiento[1])
+          if (!this.testColisiona(donde_estoy,new THREE.Vector3().copy(a_donde_miro).negate().normalize()))
+            this.cameraControl.moveForward(-velocidad_cam);
 
-      if (this.movimiento[2])
-        if (!this.testColisiona(donde_estoy, new THREE.Vector3(0,1,0).cross(new THREE.Vector3().copy(a_donde_miro)).normalize()))
-          this.cameraControl.moveRight(-velocidad_cam);
+        if (this.movimiento[2])
+          if (!this.testColisiona(donde_estoy, new THREE.Vector3(0,1,0).cross(new THREE.Vector3().copy(a_donde_miro)).normalize()))
+            this.cameraControl.moveRight(-velocidad_cam);
 
-      if (this.movimiento[3])
-        if (!this.testColisiona(donde_estoy, new THREE.Vector3().copy(a_donde_miro).cross(new THREE.Vector3(0,1,0)).normalize()))
-          this.cameraControl.moveRight(velocidad_cam);
-
+        if (this.movimiento[3])
+          if (!this.testColisiona(donde_estoy, new THREE.Vector3().copy(a_donde_miro).cross(new THREE.Vector3(0,1,0)).normalize()))
+            this.cameraControl.moveRight(velocidad_cam);
+      }
     }
 
 
@@ -545,6 +595,34 @@ class MyScene extends THREE.Scene {
       }).start();
   }
 
+  cogerPapel(papel) {
+    if (!this.papel_obtenido) this.papel_obtenido = true;
+    this.movimiento_bloqueado = true;
+
+    if (this.cameraControl.lock) this.cameraControl.unlock();
+
+    var direccion = new THREE.Vector3();
+
+    this.cameraControl.getDirection(direccion);
+    
+    var punto = new THREE.Vector3().copy(this.camera.position).add(direccion.normalize().multiplyScalar(0.5));
+    papel.position.set(punto.x, punto.y, punto.z);
+
+    papel.lookAt(this.camera.position);
+  }
+
+  soltarPapel(papel) {
+    this.movimiento_bloqueado = false;
+
+    this.cameraControl.lock();
+
+    papel.position.set(this.posicion_original_papel.x, this.posicion_original_papel.y, this.posicion_original_papel.z);
+    var direccion = new THREE.Vector3().copy(this.posicion_original_papel);
+    direccion.z = 0;
+
+    papel.lookAt(direccion);
+  }
+
 
   onMouseDown(event) {
     this.mouse.x = 0;//(event.clientX / window.innerWidth) * 2 - 1;
@@ -561,11 +639,11 @@ class MyScene extends THREE.Scene {
       if (pickedObjects[0].object.userData instanceof THREE.Object3D)
         selecionado = pickedObjects[0].object.userData;
       
-        else if (pickedObjects[0] instanceof THREE.Mesh)
-        selecionado = pickedObjects[0];
-      
-        else
-        selecionado = pickedObjects[0].object; 
+      else if (pickedObjects[0] instanceof THREE.Mesh)
+      selecionado = pickedObjects[0];
+    
+      else
+      selecionado = pickedObjects[0].object;
 
 
       switch (selecionado.name) {
@@ -575,6 +653,11 @@ class MyScene extends THREE.Scene {
         
         case 'cuadro':
           this.abrirCuadro(selecionado.id);
+          break;
+
+        case 'papel':
+          if (!this.movimiento_bloqueado) this.cogerPapel(selecionado);
+          else this.soltarPapel(selecionado);
           break;
       }
     }
@@ -588,11 +671,11 @@ class MyScene extends THREE.Scene {
 
       case KeyCode.KEY_CONTROL:
         if (this.cameraControl.isLocked) this.cameraControl.unlock();
-        else this.cameraControl.lock();
+        else if (!this.movimiento_bloqueado) this.cameraControl.lock();
         break;
 
       case KeyCode.KEY_SHIFT:
-        this.agachado = true;
+        if (!this.movimiento_bloqueado) this.agachado = true;
         break;
     }
 

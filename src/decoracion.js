@@ -779,6 +779,49 @@ class Decoracion extends THREE.Object3D {
 
     return antorcha_final;
   }
+
+  createObjetoRaro1(radio, altura, escena, window) {
+    var objeto_raro = new THREE.Object3D();
+
+    var renderTarget = new THREE.WebGLCubeRenderTarget( 128, { generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter } );
+
+    var cubeCamera = new THREE.CubeCamera( 1, 100000, renderTarget );
+    cubeCamera.position.set(0,altura+radio+radio*0.2,0);
+    cubeCamera.name = 'camara_esferica';
+    escena.add(cubeCamera);
+
+    var material_alpha = new THREE.MeshPhongMaterial({color: '#D3BF52', shininess: 100});
+    material_alpha.alphaMap = this.texturaLoader.load('../imgs/alphas/textura_alpha1.jpg');
+    material_alpha.transparent = true;
+    material_alpha.side = THREE.DoubleSide;
+
+    var cono = new THREE.Mesh( new THREE.ConeGeometry(1.5*radio, 2*altura, 96), material_alpha );
+
+
+    var material_alpha2 = new THREE.MeshToonMaterial({color: '#D3BF52'/*, shininess: 100*/});
+    material_alpha2.alphaMap = this.texturaLoader.load('../imgs/alphas/textura_alpha2.jpg');
+    material_alpha2.transparent = true;
+    material_alpha2.side = THREE.DoubleSide;
+
+    var toro = new THREE.Mesh( new THREE.TorusGeometry(radio, radio*0.05/0.3, 32, 32), material_alpha2 );
+    toro.rotation.x = Math.PI/2;
+    toro.position.y = altura;
+
+    var material_reflexion = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      needsUpdate: true,
+      envMap: cubeCamera.renderTarget.texture
+    });
+
+    var esfera = new THREE.Mesh( new THREE.SphereGeometry(radio+radio*0.1, 32, 32), material_reflexion );
+    esfera.position.y = altura + radio + radio*0.2;
+
+    objeto_raro.add(cono, toro, esfera);
+
+    objeto_raro.name = "cono_raro";
+
+    return objeto_raro;
+  }
 }
 
 export { Decoracion };
