@@ -1,7 +1,7 @@
 import * as THREE from '../libs/three.module.js'
+import * as TWEEN from '../libs/tween.esm.js'
 import { OBJLoader } from '../libs/OBJLoader.js'
 import { MTLLoader } from '../libs/MTLLoader.js'
-import * as TWEEN from '../libs/tween.esm.js'
 import { CSG } from '../libs/CSG-v2.js' 
  
 class Decoracion extends THREE.Object3D {
@@ -779,6 +779,23 @@ class Decoracion extends THREE.Object3D {
 
     return antorcha_final;
   }
+
+  createPedestal(){
+    // // Creamos un objeto3D para el pedestal
+    // var pedestal = new THREE.Object3D();
+
+    // this.materialLoader.load('../modelos/Ancient_podium/obj/objPodium.mtl',
+    // (materiales) => {
+    //   this.objetoLoader.setMaterials(materiales);
+    //   this.objetoLoader.load('../modelos/Ancient_podium/obj/objPodium.obj',
+    //     (aux) => {
+    //         pedestal.add(aux); // Añadimos el pedestal.
+    //     }, null, null);
+    // });
+
+    // return pedestal;
+  }
+
 }
 
 export { Decoracion };

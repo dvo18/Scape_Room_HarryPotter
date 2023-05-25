@@ -11,6 +11,7 @@ import * as KeyCode from '../libs/keycode.esm.js'
 
 import { H_estructura } from './H_estructura.js'
 import { Decoracion  } from './decoracion.js'
+import { Maniqui } from './maniqui.js'
 
 import { OBJLoader } from '../libs/OBJLoader.js'
 import { MTLLoader } from '../libs/MTLLoader.js'
@@ -22,7 +23,7 @@ class MyScene extends THREE.Scene {
   constructor (myCanvas) {
     super();
 
-    this.colisiones = true;
+    this.colisiones = false;
     
     // ------------------ SELECCIONES ------------------
 
@@ -202,6 +203,21 @@ class MyScene extends THREE.Scene {
     caldero.scale.set(4.5, 4.5, 4.5);
     this.add(caldero);
 
+    // ------------------- PEDESTAL -------------------
+    // var pedestal = this.decoracion.createPedestal();
+    // pedestal.position.x = this.dim.posV2xz_centro_HabCircular_Lateral.x;
+    // pedestal.position.z = this.dim.posV2xz_centro_HabCircular_Lateral.y;
+
+    // pedestal.scale.set(0.3, 0.3, 0.3);
+    // this.add(pedestal);
+
+    // ------------------- MANIQUI -------------------
+    var maniqui = new Maniqui();
+    maniqui.position.x = this.dim.posV2xz_centro_HabCircular_Lateral.x;
+    maniqui.position.y = 0.8;
+    maniqui.position.z = this.dim.posV2xz_centro_HabCircular_Lateral.y;
+
+    this.add(maniqui);
 
     // ------------------- PENSADERO -------------------
     var pensadero = this.decoracion.createPensadero();
@@ -246,11 +262,11 @@ class MyScene extends THREE.Scene {
       this.add(frasco);
     }
 
-    frasco1.scale.set(2,2,2);
+    frasco1.scale.set(2.6,2.6,2.6);
     frasco1.position.x = -this.dim.largo/2 - 1;
     frasco1.position.z = 2.5;
 
-    frasco1.scale.set(1.5,1.5,1.5);
+    frasco1.scale.set(2,2,2);
     frasco2.position.x = -this.dim.largo/2 - 0.5;
     frasco2.position.z = 2.7;
 
@@ -325,6 +341,8 @@ class MyScene extends THREE.Scene {
     cuadro10.position.z = -4.5;
 
     this.add(cuadro7, cuadro8, cuadro9, cuadro10);
+
+    
 
   }
   
