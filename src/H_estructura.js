@@ -223,11 +223,13 @@ class H_estructura extends THREE.Object3D {
             destino.p = 0;
         }
 
-        new TWEEN.Tween(origen).to(destino, 2000).onUpdate(() => {
+        var animacion = new TWEEN.Tween(origen).to(destino, 2000).onUpdate(() => {
             this.estr.P.children[1].rotation.y = origen.p;
         }).onComplete(() => {
             origen.p = 0;
         }).start();
+
+        return animacion;
     }
 
 

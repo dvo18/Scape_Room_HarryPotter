@@ -29,8 +29,12 @@ class MyScene extends THREE.Scene {
     // ------------------ BOOLEANOS CONDICIONALES ------------------
 
     this.papel_obtenido = false;
+    this.llave_obtenida = false;
     this.puerta_abierta = false;
+    this.juego_ganado = false;
     this.movimiento_bloqueado = false;
+
+    this.animacionPuerta = new TWEEN.Tween();
     
     // ------------------ SELECCIONES ------------------
 
@@ -252,6 +256,36 @@ class MyScene extends THREE.Scene {
     pensadero.position.z = this.dim.posV2xz_centro_HabCircular_Principal.y;
 
     this.add(pensadero);
+    this.objetosSeleccionables.push(this.getObjectByName('pensadero').getObjectByName('cuerpo_pensadero').getObjectByName('liquido_pensadero'));
+    
+    var origenAnimacionPensadero = {pos: 0, esc: 0};
+    var destinoAnimacionPensadero = {pos: 0.09, esc: 0.02};
+
+    var posicion = this.getObjectByName('pensadero').getObjectByName('cuerpo_pensadero').getObjectByName('liquido_pensadero').position.y;
+    var escalado = this.getObjectByName('pensadero').getObjectByName('cuerpo_pensadero').getObjectByName('liquido_pensadero').scale.x;
+
+    this.animacionPensadero = new TWEEN.Tween(origenAnimacionPensadero).to(destinoAnimacionPensadero, 1000)
+      .onUpdate(() => {
+        this.getObjectByName('pensadero').getObjectByName('cuerpo_pensadero').getObjectByName('liquido_pensadero').position.y = posicion - origenAnimacionPensadero.pos;
+        this.getObjectByName('pensadero').getObjectByName('cuerpo_pensadero').getObjectByName('liquido_pensadero').scale.set(escalado-origenAnimacionPensadero.esc, escalado-origenAnimacionPensadero.esc);
+      })
+      .easing(TWEEN.Easing.Quadratic.In)
+      .onComplete(() => {
+        origenAnimacionPensadero.pos = 0;
+        posicion = this.getObjectByName('pensadero').getObjectByName('cuerpo_pensadero').getObjectByName('liquido_pensadero').position.y;
+        escalado = this.getObjectByName('pensadero').getObjectByName('cuerpo_pensadero').getObjectByName('liquido_pensadero').scale.x;
+      });
+
+
+    // ------------------- LLAVE -------------------
+
+    var llave = this.decoracion.createLlave();
+
+    llave.position.set(this.getObjectByName('pensadero').position.x,0.8,this.getObjectByName('pensadero').position.z);
+
+    this.objetosSeleccionables.push(llave);
+
+    this.add(llave);
 
 
     // ------------------- FRASCOS -------------------
@@ -368,7 +402,6 @@ class MyScene extends THREE.Scene {
     cuadro10.position.z = -4.5;
 
     this.add(cuadro7, cuadro8, cuadro9, cuadro10);
-
   }
   
   createCamera () {
@@ -455,6 +488,12 @@ class MyScene extends THREE.Scene {
   }
 
   update () {
+
+    if (this.puerta_abierta && !this.juego_ganado && !this.animacionPuerta.isPlaying()) {
+      this.juego_ganado = true;
+      window.alert('La puerta se ha abierto!\n¡Has escapado!');
+    }
+
     TWEEN.update();
 
     //this.getObjectByName('cono_raro').children[0].update(this.renderer, this);
@@ -606,7 +645,7 @@ class MyScene extends THREE.Scene {
     this.cameraControl.getDirection(direccion);
     
     var punto = new THREE.Vector3().copy(this.camera.position).add(direccion.normalize().multiplyScalar(0.5));
-    papel.position.set(punto.x, punto.y, punto.z);
+    papel.position.copy(punto);
 
     papel.lookAt(this.camera.position);
   }
@@ -621,6 +660,11 @@ class MyScene extends THREE.Scene {
     direccion.z = 0;
 
     papel.lookAt(direccion);
+  }
+
+  beberAgua() {
+    if (!this.animacionPensadero.isPlaying() && this.getObjectByName('pensadero').getObjectByName('cuerpo_pensadero').getObjectByName('liquido_pensadero').position.y > 0.2)
+      this.animacionPensadero.start();
   }
 
 
@@ -648,7 +692,11 @@ class MyScene extends THREE.Scene {
 
       switch (selecionado.name) {
         case 'pomo':
-          this.h_estructura.updatePuerta();
+          if (this.llave_obtenida) {
+            this.animacionPuerta = this.h_estructura.updatePuerta();
+            this.puerta_abierta = true;
+          }
+          else window.alert('La puerta está cerrada!\nNecesitas una llave para abrirla.');
           break;
         
         case 'cuadro':
@@ -658,6 +706,16 @@ class MyScene extends THREE.Scene {
         case 'papel':
           if (!this.movimiento_bloqueado) this.cogerPapel(selecionado);
           else this.soltarPapel(selecionado);
+          break;
+
+        case 'liquido_pensadero':
+          if (this.papel_obtenido)
+            this.beberAgua();
+          break;
+
+        case 'Key_01_polySurface1':
+          selecionado.visible = false;
+          this.llave_obtenida = true;
           break;
       }
     }

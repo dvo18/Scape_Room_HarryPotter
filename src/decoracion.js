@@ -2,7 +2,7 @@ import * as THREE from '../libs/three.module.js'
 import { OBJLoader } from '../libs/OBJLoader.js'
 import { MTLLoader } from '../libs/MTLLoader.js'
 import * as TWEEN from '../libs/tween.esm.js'
-import { CSG } from '../libs/CSG-v2.js' 
+import { CSG } from '../libs/CSG-v2.js'
  
 class Decoracion extends THREE.Object3D {
   constructor() {
@@ -604,7 +604,7 @@ class Decoracion extends THREE.Object3D {
     var cuerpo_geom = new THREE.CapsuleGeometry(0.5, 0.6, 9, 7);
     var cubo_geom = new THREE.BoxGeometry(1.1,1.1,1.1);
     var cilindro_geom = new THREE.CylinderGeometry(0.43, 0.3, 0.6, 20);
-    var circulo_geom = new THREE.CircleGeometry(0.4, 20);
+    var circulo_geom = new THREE.CircleGeometry(0.43, 20);
     var torus_geom = new THREE.TorusGeometry(0.49, 0.036, 20, 20);
 
     var piedra = new THREE.MeshLambertMaterial({color: 0xF1ECDA, map: textura_piedra});
@@ -621,8 +621,10 @@ class Decoracion extends THREE.Object3D {
     anillo_CSG.position.y = 0.4;
 
     var liquido = new THREE.Mesh(circulo_geom, agua);
+    //liquido.scale.set(0.92,1,0.92);
     liquido.rotateX(-Math.PI/2);
     liquido.position.y = 0.6;
+    liquido.name = "liquido_pensadero";
 
     // Creamos el objeto CSG y oepramos con él:
     var cuerpo_base = new THREE.Mesh(cuerpo_geom, piedra);
@@ -636,6 +638,7 @@ class Decoracion extends THREE.Object3D {
     cuerpo.add(cuerpo_base, liquido);
 
     cuerpo.position.y = 0.6;
+    cuerpo.name = "cuerpo_pensadero";
 
     // ---------- BASE ----------
     var shape = new THREE.Shape();
@@ -653,6 +656,7 @@ class Decoracion extends THREE.Object3D {
     // ------------------
     this.pensadero = new THREE.Object3D();
     this.pensadero.add(cuerpo, base);
+    this.pensadero.name = "pensadero";
 
     return this.pensadero;
   }
@@ -821,6 +825,34 @@ class Decoracion extends THREE.Object3D {
     objeto_raro.name = "cono_raro";
 
     return objeto_raro;
+  }
+
+  createLlave(){
+    var llave = new THREE.Object3D();
+    var objLoader = this.objetoLoader;
+
+    this.materialLoader.load('../modelos/llave/Key_01.mtl', function(materials) {
+      materials.preload();
+  
+      objLoader.setMaterials(materials);
+      objLoader.load('../modelos/llave/Key_01.obj', function(key) {
+        llave.add(key);
+  
+        // Recorremos los materiales y les aplicamos la textura manualmente
+        key.traverse(function(child) {
+          if (child instanceof THREE.Mesh) {
+            child.material.map = materials.materials.Key_Material;
+          }
+        });
+      });
+    });
+  
+    llave.rotation.x = Math.PI / 2;
+    llave.position.y = 0.009;
+
+    llave.name = 'Key_01_polySurface1';
+  
+    return llave;
   }
 }
 
