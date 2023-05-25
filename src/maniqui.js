@@ -14,7 +14,7 @@ class Maniqui extends THREE.Object3D {
         // --------------------------------------------------------
 
         // ----------- RUEDAS -----------
-        var material_esferas = new THREE.MeshLambertMaterial({color: 0x3C3C3C, map: textura_cuerpo});
+        var material_esferas = new THREE.MeshLambertMaterial({color: /*0x3C3C3C*/0xffffff, map: textura_cuerpo});
         var esfera_geom = new THREE.SphereGeometry(0.1);
         var ruedaIZQ = new THREE.Mesh(esfera_geom, material_esferas);
 
@@ -26,7 +26,7 @@ class Maniqui extends THREE.Object3D {
         // ----------- PIERNAS -----------
         var piernas_geom = new THREE.CylinderGeometry(0.2, 0.4, 0.8);
 
-        var material_cilindros = new THREE.MeshLambertMaterial({color: 0x595959, map: textura_cuerpo});
+        var material_cilindros = new THREE.MeshLambertMaterial({color: /*0x595959*/0xffffff, map: textura_cuerpo});
         var piernas = new THREE.Mesh(piernas_geom, material_cilindros);
 
         piernas.position.y = 0.4;
@@ -46,7 +46,7 @@ class Maniqui extends THREE.Object3D {
         hombroDER.position.y = 0.6;
 
         // ----------- BRAZOS BASE ----------- 
-        var material_brazos = new THREE.MeshLambertMaterial({color: 0x595959, map: textura_cuerpo});
+        var material_brazos = new THREE.MeshLambertMaterial({color: /*0x595959*/0xffffff, map: textura_cuerpo});
 
         var brazos_geom = new THREE.CylinderGeometry(0.05, 0.05, 0.5);
         var brazo_baseIZQ = new THREE.Mesh(brazos_geom, material_brazos);
@@ -89,7 +89,7 @@ class Maniqui extends THREE.Object3D {
         torso.position.y = 0.25;
 
         // ----------- CABEZA BASE + CUELLO----------- 
-        var material_cabeza = new THREE.MeshLambertMaterial({color: 0x595959, map: textura_cabeza});
+        var material_cabeza = new THREE.MeshLambertMaterial({color: /*0x595959*/0xffffff, map: textura_cabeza});
         var cabeza_base = new THREE.Mesh(esfera_geom, material_cabeza);
         cabeza_base.scale.x = 2;    // 0.20
         cabeza_base.scale.y = 2.5;  // 0.25
