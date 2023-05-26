@@ -8,31 +8,32 @@ class Maniqui extends THREE.Object3D {
         super();
         
         this.texturaLoader = new THREE.TextureLoader();
-        var textura_cuerpo = this.texturaLoader.load("../imgs/textura_madera1.jpg");
-        var textura_cabeza = this.texturaLoader.load("../imgs/textura_cabeza.jpg")
+        var textura_cuerpo = this.texturaLoader.load("../imgs/maniqui/textura_cuerpo_2.jpg");
+        var textura_esferas = this.texturaLoader.load("../imgs/maniqui/textura_cuerpo.jpg");
+        var textura_cabeza = this.texturaLoader.load("../imgs/maniqui/textura_cuerpo.jpg")
 
         // --------------------------------------------------------
 
         // ----------- RUEDAS -----------
-        var material_esferas = new THREE.MeshLambertMaterial({color: /*0x3C3C3C*/0xffffff, map: textura_cuerpo});
+        var material_esferas = new THREE.MeshLambertMaterial({color: /*0x3C3C3C*/0xffffff, map: textura_esferas});
         var esfera_geom = new THREE.SphereGeometry(0.1);
-        var ruedaIZQ = new THREE.Mesh(esfera_geom, material_esferas);
+        this.ruedaIZQ = new THREE.Mesh(esfera_geom, material_esferas);
 
-        var ruedaDER = ruedaIZQ.clone();
+        this.ruedaDER = this.ruedaIZQ.clone();
 
-        ruedaIZQ.position.x = -0.2;
-        ruedaDER.position.x = 0.2;
+        this.ruedaIZQ.position.x = -0.2;
+        this.ruedaDER.position.x = 0.2;
 
         // ----------- PIERNAS -----------
-        var piernas_geom = new THREE.CylinderGeometry(0.2, 0.4, 0.8);
+        var piernas_geom = new THREE.CylinderGeometry(0.2, 0.4, 0.8, 20);
 
-        var material_cilindros = new THREE.MeshLambertMaterial({color: /*0x595959*/0xffffff, map: textura_cuerpo});
+        var material_cilindros = new THREE.MeshLambertMaterial({color: /*0x595959*/0xEAEAEA, map: textura_cuerpo});
         var piernas = new THREE.Mesh(piernas_geom, material_cilindros);
 
         piernas.position.y = 0.4;
         
         // ----------- PARTE INFERIOR ----------- 
-        var parteInferior = new THREE.Object3D().add(piernas, ruedaIZQ, ruedaDER)
+        var parteInferior = new THREE.Object3D().add(piernas, this.ruedaIZQ, this.ruedaDER)
         parteInferior.position.y = 0.1;
         parteInferior.name = 'parteInferior';
 
@@ -46,7 +47,7 @@ class Maniqui extends THREE.Object3D {
         hombroDER.position.y = 0.6;
 
         // ----------- BRAZOS BASE ----------- 
-        var material_brazos = new THREE.MeshLambertMaterial({color: /*0x595959*/0xffffff, map: textura_cuerpo});
+        var material_brazos = new THREE.MeshLambertMaterial({color: /*0x595959*/0xEAEAEA, map: textura_cuerpo});
 
         var brazos_geom = new THREE.CylinderGeometry(0.05, 0.05, 0.5);
         var brazo_baseIZQ = new THREE.Mesh(brazos_geom, material_brazos);
@@ -65,10 +66,17 @@ class Maniqui extends THREE.Object3D {
 
         // ----------- VARITA ----------- 
         var varita = this.createVarita();
+        varita.scale.set(0.08, 0.08, 0.08);
+        varita.rotation.y = Math.PI - Math.PI/4;
+        varita.rotation.x = -(20*Math.PI) / 180;
+
+        varita.position.x = 0.1;
+        varita.position.y = 0.25;
+        varita.position.z = -0.2;
 
         // ----------- BRAZOS -----------
         var brazoIZQ = new THREE.Object3D().add(hombroIZQ, brazo_baseIZQ, manoIZQ);
-        var brazoDER = new THREE.Object3D().add(hombroDER, brazo_baseDER, manoDER);
+        var brazoDER = new THREE.Object3D().add(hombroDER, brazo_baseDER, manoDER, varita);
 
         brazoIZQ.rotation.z = -(20*Math.PI) / 180;
         brazoDER.rotation.z = (20*Math.PI) / 180;
@@ -83,7 +91,7 @@ class Maniqui extends THREE.Object3D {
         brazoDER.name = 'brazoDER';
 
         // ----------- TORSO_BASE ----------- 
-        var torso_geom = new THREE.CylinderGeometry(0.4, 0.2, 0.5);
+        var torso_geom = new THREE.CylinderGeometry(0.4, 0.2, 0.5, 20);
         var torso = new THREE.Mesh(torso_geom, material_cilindros);
 
         torso.position.y = 0.25;
@@ -144,7 +152,9 @@ class Maniqui extends THREE.Object3D {
     }
 
     update(){
-
+        // Creamos un movimiento continuo de las ruedas del maniqui.
+        this.ruedaIZQ.rotation.x += 0.05;
+        this.ruedaDER.rotation.x += 0.05;
     }
 }
 
