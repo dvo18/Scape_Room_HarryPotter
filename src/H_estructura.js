@@ -204,6 +204,9 @@ class H_estructura extends THREE.Object3D {
             }
         }
 
+        this.estr.S.receiveShadow = true;
+        this.estr.MO.receiveShadow = true;
+
         this.reloj = new THREE.Clock();
         this.velocidad_puerta = 0.5;
     }
@@ -524,13 +527,6 @@ class H_estructura extends THREE.Object3D {
         columna.position.y = r*this.PILAR_PROP_ALTO;
 
         columnaCompleta.add(base1,base2,columna);
-
-        /*columnaCompleta.traverseVisible((unNodo) => {
-            unNodo.castShadow = true;
-            unNodo.receiveShadow = true;
-        });*/
-        //columnaCompleta.castShadow = true;
-        //columnaCompleta.receiveShadow = true;
 
         columnaCompleta.rotation.y = PI;
 
