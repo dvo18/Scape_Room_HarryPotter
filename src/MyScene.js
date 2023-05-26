@@ -24,6 +24,7 @@ class MyScene extends THREE.Scene {
     super();
 
     this.colisiones = false;
+    this.sombras = false;
 
   
     // ------------------ BOOLEANOS CONDICIONALES ------------------
@@ -150,6 +151,12 @@ class MyScene extends THREE.Scene {
 
 
     var antorcha_azul = this.decoracion.createAntorcha(false,'#3360B4','#AED6F1', 1, 6, 2);
+    antorcha_azul.getObjectByName('antorcha').getObjectByName('antorcha_OBJ').getObjectByName('luzFuego').castShadow = true;
+    antorcha_azul.getObjectByName('antorcha').getObjectByName('antorcha_OBJ').getObjectByName('luzFuego').shadow.mapSize.width = 512;
+    antorcha_azul.getObjectByName('antorcha').getObjectByName('antorcha_OBJ').getObjectByName('luzFuego').shadow.mapSize.height = 512;
+    antorcha_azul.getObjectByName('antorcha').getObjectByName('antorcha_OBJ').getObjectByName('luzFuego').shadow.camera.near = 0.5;
+    antorcha_azul.getObjectByName('antorcha').getObjectByName('antorcha_OBJ').getObjectByName('luzFuego').shadow.camera.far = 500;
+
     var t = antorcha_azul.clone();
     t.rotation.y = PI/2;
     t.position.x = -this.dim.largo/2;
@@ -417,6 +424,11 @@ class MyScene extends THREE.Scene {
     cuadro10.position.z = -4.5;
 
     this.add(cuadro7, cuadro8, cuadro9, cuadro10);
+
+
+    // ------------------- SOMBRAS -------------------
+    this.renderer.shadowMap.enabled = this.sombras;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   }
   
   createCamera () {
@@ -444,17 +456,6 @@ class MyScene extends THREE.Scene {
   createLights () {
     var luzAmbiente = new THREE.AmbientLight(/*'#828282'*/'#646464', 0.4);
     this.add(luzAmbiente);
-
-    /*var luzPrueba = new THREE.PointLight('#FFFFFF', 1, 10, 1);
-    luzPrueba.position.set(0,2,0);
-    this.add(luzPrueba);*/
-
-    /*luzPrueba.castShadow = true;
-    luzPrueba.shadow.mapSize.width = 512;
-    luzPrueba.shadow.mapSize.height = 512;
-    luzPrueba.shadow.camera.near = 0.5;
-    luzPrueba.shadow.camera.far = 500;*/
-
   }
   
   setLightIntensity (valor) {

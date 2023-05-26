@@ -626,6 +626,8 @@ class Decoracion extends THREE.Object3D {
     liquido.position.y = 0.6;
     liquido.name = "liquido_pensadero";
 
+    liquido.receiveShadow = true;
+
     // Creamos el objeto CSG y oepramos con él:
     var cuerpo_base = new THREE.Mesh(cuerpo_geom, piedra);
     cuerpo_base = new CSG().subtract([cuerpo_base, cubo_CSG]).toMesh();
@@ -633,6 +635,9 @@ class Decoracion extends THREE.Object3D {
 
     cuerpo_base = new CSG().subtract([cuerpo_base, cilindro_CSG]).toMesh();
     cuerpo_base = new CSG().union([cuerpo_base, anillo_CSG]).toMesh();
+
+    cuerpo_base.castShadow = true;
+    cuerpo_base.receiveShadow = true;
 
     var cuerpo = new THREE.Object3D();
     cuerpo.add(cuerpo_base, liquido);
@@ -652,6 +657,9 @@ class Decoracion extends THREE.Object3D {
     // Para crear la figura por revolución.
     var base_geom = new THREE.LatheGeometry(puntos, 7, 0, Math.PI*2);
     var base = new THREE.Mesh(base_geom, piedra);
+
+    base.castShadow = true;
+    base.receiveShadow = true;
 
     // ------------------
     this.pensadero = new THREE.Object3D();
@@ -752,14 +760,17 @@ class Decoracion extends THREE.Object3D {
 
     var luzFuego = new THREE.PointLight(color_luz, intensity, distance, decay);
     luzFuego.position.set(0,0.7,0);
+    luzFuego.name = "luzFuego";
 
     antorcha_OBJ.add(antorcha,metal,llama,cilindro,luzFuego);
 
-    antorcha_OBJ.position.y -= 0.425
+    antorcha_OBJ.position.y -= 0.425;
+    antorcha_OBJ.name = "antorcha_OBJ";
 
 
     var obj_aux = new THREE.Object3D();
     obj_aux.add(antorcha_OBJ);
+    obj_aux.name = "antorcha";
 
     obj_aux.rotation.z = -20 * Math.PI/180;
     obj_aux.position.x = 0.02;
