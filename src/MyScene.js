@@ -23,10 +23,10 @@ class MyScene extends THREE.Scene {
   constructor (myCanvas) {
     super();
 
+    // Con esta variable controlamos si están las colisiones activadas o desactivadas.
     this.colisiones = false;
     this.sombras = false;
 
-  
     // ------------------ BOOLEANOS CONDICIONALES ------------------
 
     this.papel_obtenido = false;
@@ -265,12 +265,12 @@ class MyScene extends THREE.Scene {
     // this.add(pedestal);
 
     // ------------------- MANIQUI -------------------
-    var maniqui = new Maniqui();
-    maniqui.position.x = this.dim.posV2xz_centro_HabCircular_Lateral.x;
-    maniqui.position.y = 0.8;
-    maniqui.position.z = this.dim.posV2xz_centro_HabCircular_Lateral.y;
+    this.maniqui = new Maniqui();
+    this.maniqui.position.x = this.dim.posV2xz_centro_HabCircular_Lateral.x;
+    this.maniqui.position.y = 0.8;
+    this.maniqui.position.z = this.dim.posV2xz_centro_HabCircular_Lateral.y;
 
-    this.add(maniqui);
+    this.add(this.maniqui);
 
     // ------------------- PENSADERO -------------------
     var pensadero = this.decoracion.createPensadero();
@@ -518,12 +518,13 @@ class MyScene extends THREE.Scene {
       window.alert('La puerta se ha abierto!\n¡Has escapado!');
     }
 
+    // --------------------------------------------
+    // Realizamos un update del maniquí:
+    this.maniqui.update();
+
     TWEEN.update();
 
-    //this.getObjectByName('cono_raro').children[0].update(this.renderer, this);
-    //this.getObjectByName('camara_esferica').update(this.renderer,this);
-
-
+    // --------------------------------------------
     if (!this.movimiento_bloqueado) {
       var alto_cam, velocidad_cam;
 
@@ -538,15 +539,12 @@ class MyScene extends THREE.Scene {
 
       this.camera.position.y = alto_cam;
     }
-
       
-      // Se actualiza el resto del modelo
-      // this.model.update();
-      
-      // Le decimos al renderizador "visualiza la escena que te indico usando la cámara que te estoy pasando"
-      this.renderer.render (this, this.getCamera());
+    // --------------------------------------------
+    // Le decimos al renderizador "visualiza la escena que te indico usando la cámara que te estoy pasando"
+    this.renderer.render (this, this.getCamera());
 
-
+    // --------------------------------------------
     if (!this.movimiento_bloqueado) {
       // ------------------ MOVIMIENTO ------------------
 
@@ -810,6 +808,7 @@ $(function () {
   // Se instancia la escena pasándole el  div  que se ha creado en el html para visualizar
   var scene = new MyScene("#WebGL-output");
 
+  // --------------------------------------------
   // Se añaden los listener de la aplicación. En este caso, el que va a comprobar cuándo se modifica el tamaño de la ventana de la aplicación.
   window.addEventListener ("resize", () => scene.onWindowResize());
 
