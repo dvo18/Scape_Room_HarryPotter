@@ -446,11 +446,19 @@ class MyScene extends THREE.Scene {
     
     
     this.cameraControl = new PointerLockControls(this.camera, this.renderer.domElement);
-    /*this.cameraControl = new TrackballControls (this.camera, this.renderer.domElement);
-    this.cameraControl.rotateSpeed = 5;
-    this.cameraControl.zoomSpeed = -2;
-    this.cameraControl.panSpeed = 0.5;
-    this.cameraControl.target = new THREE.Vector3 (0,0,0);*/
+
+    var listener = new THREE.AudioListener();
+    this.camera.add(listener);
+
+    var sound = new THREE.Audio(listener);
+
+    var audioLoader = new THREE.AudioLoader();
+    audioLoader.load('../sonidos/Ambiente.mp3', function(buffer) {
+      sound.setBuffer(buffer);
+      sound.setLoop(true);
+      sound.setVolume(0.2);
+      sound.play();
+    });
   }
   
   createLights () {
@@ -732,6 +740,7 @@ class MyScene extends THREE.Scene {
         case 'Key_01_polySurface1':
           selecionado.visible = false;
           this.llave_obtenida = true;
+          this.getObjectByName('pensadero').getObjectByName('sonido').play();
           break;
       }
     }

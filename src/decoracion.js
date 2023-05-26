@@ -666,6 +666,23 @@ class Decoracion extends THREE.Object3D {
     this.pensadero.add(cuerpo, base);
     this.pensadero.name = "pensadero";
 
+
+
+    var listener = new THREE.AudioListener();
+    this.pensadero.add(listener);
+
+    var sound = new THREE.Audio(listener);
+
+    new THREE.AudioLoader().load('../sonidos/HP_movida_comedor.mp3', function(buffer) {
+      sound.setBuffer(buffer);
+      sound.setLoop(false);
+      sound.setVolume(0.5);
+    });
+
+    sound.name = "sonido";
+    this.pensadero.add(sound);
+
+
     return this.pensadero;
   }
 
