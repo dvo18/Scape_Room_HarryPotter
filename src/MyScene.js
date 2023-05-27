@@ -156,8 +156,11 @@ class MyScene extends THREE.Scene {
 
     // ------------------- OBJECTO RARO CONO (1) -------------------
 
-    //var cono_raro = this.decoracion.createObjetoRaro1(0.2,0.5,this,this.window);
-    //this.add(cono_raro);
+    var cono_raro = this.decoracion.createObjetoRaro1(0.2,0.5,this,this.window);
+
+    cono_raro.position.x = -this.dim.largo/2 + this.dim.radio_lateral;
+
+    this.add(cono_raro);
 
 
     // ------------------- ANTORCHAS -------------------

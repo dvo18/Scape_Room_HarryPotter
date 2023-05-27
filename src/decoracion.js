@@ -861,22 +861,39 @@ class Decoracion extends THREE.Object3D {
     // return pedestal;
   }
 
-  createObjetoRaro1(radio, altura, escena, window) {
-    var objeto_raro = new THREE.Object3D();
+  createObjetoRaro1(radio, altura) {
+    ///////////////////////////// VIDEO /////////////////////////////
 
-    var renderTarget = new THREE.WebGLCubeRenderTarget( 128, { generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter } );
 
-    var cubeCamera = new THREE.CubeCamera( 1, 100000, renderTarget );
-    cubeCamera.position.set(0,altura+radio+radio*0.2,0);
-    cubeCamera.name = 'camara_esferica';
-    escena.add(cubeCamera);
+    var videoElement = document.getElementById('video');
+
+    videoElement.src = '../videos/video2.mp4';
+
+    videoElement.loop = true;
+    videoElement.autoplay = true;
+    
+    /*videoElement.addEventListener('canplaythrough', () => {
+      // Do any additional setup or actions here
+    });*/
+
+    var videoTexture = new THREE.VideoTexture(videoElement);
+
+    videoTexture.wrapS = THREE.MirroredRepeatWrapping;
+    videoTexture.wrapT = THREE.MirroredRepeatWrapping;
+
+    videoTexture.repeat.set( 2, 2 );
+
+
+    /////////////////////////////  /////////////////////////////
+
 
     var material_alpha = new THREE.MeshPhongMaterial({color: '#D3BF52', shininess: 100});
     material_alpha.alphaMap = this.texturaLoader.load('../imgs/alphas/textura_alpha1.jpg');
     material_alpha.transparent = true;
     material_alpha.side = THREE.DoubleSide;
 
-    var cono = new THREE.Mesh( new THREE.ConeGeometry(1.5*radio, 2*altura, 96), material_alpha );
+    var cono = new THREE.Mesh( new THREE.ConeGeometry(1.25*radio, 1.25*altura, 96), material_alpha );
+    cono.position.y = altura*1.25/2;
 
 
     var material_alpha2 = new THREE.MeshToonMaterial({color: '#D3BF52'/*, shininess: 100*/});
@@ -884,24 +901,75 @@ class Decoracion extends THREE.Object3D {
     material_alpha2.transparent = true;
     material_alpha2.side = THREE.DoubleSide;
 
-    var toro = new THREE.Mesh( new THREE.TorusGeometry(radio, radio*0.05/0.3, 32, 32), material_alpha2 );
+    var toro = new THREE.Mesh( new THREE.TorusGeometry(radio+radio/2, radio*0.05/0.3, 32, 32), material_alpha2 );
     toro.rotation.x = Math.PI/2;
-    toro.position.y = altura;
+
+    toro = new THREE.Object3D().add(toro);
+
+    var origen = {a: 0};
+    var destino = {a: Math.PI*2};
+
+    new TWEEN.Tween(origen).to(destino,8000)
+    .onUpdate(() => {
+      toro.rotation.y = origen.a;
+    })
+    .onComplete(() => {
+      origen.a = 0;
+    })
+    .repeat(Infinity)
+    .start();
+
+
+    var origen2 = {a: -Math.PI/8};
+    var destino2 = {a: Math.PI/8};
+
+    new TWEEN.Tween(origen2).to(destino2,2000)
+    .easing(TWEEN.Easing.Quadratic.InOut)
+    .onUpdate(() => {
+      toro.rotation.z = origen2.a;
+    })
+    .onComplete(() => {
+      origen2.a = -Math.PI/6;
+    })
+    .yoyo(true)
+    .repeat(Infinity)
+    .start();
+
+    toro.position.y = 1.25*altura;
+
 
     var material_reflexion = new THREE.MeshStandardMaterial({
       color: 0xffffff,
-      needsUpdate: true,
-      envMap: cubeCamera.renderTarget.texture
+      map: videoTexture
+      //mapping: THREE.EquirectangularReflectionMapping
     });
 
-    var esfera = new THREE.Mesh( new THREE.SphereGeometry(radio+radio*0.1, 32, 32), material_reflexion );
-    esfera.position.y = altura + radio + radio*0.2;
+    var esfera = new THREE.Mesh( new THREE.SphereGeometry(2*(radio+radio*0.1), 32, 32), material_reflexion );
+    esfera.scale.y = 0.75;
+    esfera.position.y = 1.25*altura + (2*(radio+radio*0.1)) * 0.75 + radio;
 
-    objeto_raro.add(cono, toro, esfera);
+    var objeto_raro = new THREE.Object3D().add(cono, toro, esfera);
+    var objeto_raro_final = new THREE.Object3D();
 
-    objeto_raro.name = "cono_raro";
+    this.materialLoader.load('../modelos/pedestal/pedestal.mtl', (materials) => {
+      materials.preload();
+      
+      this.objetoLoader.setMaterials(materials);
+      this.objetoLoader.load('../modelos/pedestal/pedestal.obj', (object) => {
+        object.scale.set(0.03,0.03,1.124/new THREE.Box3().setFromObject(object.children[0]).getSize(new THREE.Vector3()).z);
+        object.rotation.x = -Math.PI/2;
+        object.children[0].material = new THREE.MeshPhongMaterial({map: this.texturaLoader.load('../imgs/textura_marmol_negro.jpg'), shininess: 100});
+        objeto_raro_final.add(object);
+      });
+    });
 
-    return objeto_raro;
+    objeto_raro.position.y = 1.125;
+
+    objeto_raro_final.add(objeto_raro);
+
+    objeto_raro_final.name = "cono_raro";
+
+    return objeto_raro_final;
   }
 
   createLlave(){
