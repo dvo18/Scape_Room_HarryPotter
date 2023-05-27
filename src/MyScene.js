@@ -24,8 +24,8 @@ class MyScene extends THREE.Scene {
     super();
 
     // Con esta variable controlamos si están las colisiones activadas o desactivadas.
-    this.colisiones = false;
-    this.sombras = false;
+    this.colisiones = true;
+    this.sombras = true;
 
     // ------------------ BOOLEANOS CONDICIONALES ------------------
 
@@ -39,12 +39,17 @@ class MyScene extends THREE.Scene {
     
     // ------------------ SELECCIONES ------------------
 
-    this.mouse = new THREE.Vector2();
+    //this.mouse = new THREE.Vector2();
     this.rayo_mouse = new THREE.Raycaster();
 
     this.objetosSeleccionables = [];
 
     this.objetoSeleccionado = null;
+
+    this.rayo_siluetas = new THREE.Raycaster();
+    this.objetos_apuntados_siluetas = [];
+    this.todos_objetos = [];
+    this.anterior_apuntado_siluetas = null;
 
 
     // ------------------ COLISIONES ------------------
@@ -106,9 +111,15 @@ class MyScene extends THREE.Scene {
     var material_papel_antiguo = new THREE.MeshLambertMaterial({color: '#FFFFFF', map: new THREE.TextureLoader().load('../imgs/textura_papel_antiguo.jpg')});
     material_papel_antiguo.alphaMap = new THREE.TextureLoader().load('../imgs/alphas/textura_alpha_papel.jpg');
     material_papel_antiguo.transparent = true;
-    material_papel_antiguo.side = THREE.DoubleSide;
-    var papel = new THREE.Mesh( new THREE.PlaneGeometry(1,1), material_papel_antiguo );
-    papel.scale.set(0.75,0.5,1);
+    var papel = new THREE.Mesh( new THREE.PlaneGeometry(0.75,0.5), material_papel_antiguo );
+
+    var silueta_papel = papel.clone();
+    silueta_papel.material = new THREE.MeshBasicMaterial({color: '#505050'});
+    silueta_papel.material.alphaMap = new THREE.TextureLoader().load('../imgs/alphas/textura_alpha_papel.jpg');
+    silueta_papel.material.transparent = true;
+    silueta_papel.scale.set(1.1,1.1);
+    silueta_papel.visible = false;
+
     papel.position.y = 0.25 + 3.5;
 
     var num_cuadro = Math.floor(Math.random() * 6);
@@ -119,6 +130,20 @@ class MyScene extends THREE.Scene {
     }
     else papel.position.z = -this.dim.profundidad/2 + this.dim.rad_base_pilarPrisma + 0.01;
 
+    silueta_papel.position.copy(papel.position);
+    if (num_cuadro > 2) silueta_papel.position.z += 0.001;
+    else silueta_papel.position.z -= 0.001;
+    silueta_papel.rotation.copy(papel.rotation);
+    silueta_papel.name = 'silueta_papel';
+
+    this.add(silueta_papel);
+
+    function setSilueta(booleano) {
+      //this.getObjectByName('silueta_papel').visible = booleano;
+      silueta_papel.visible = booleano;
+    }
+
+    papel.setSilueta = setSilueta;
     papel.name = 'papel';
 
     this.objetosSeleccionables.push(papel);
@@ -512,6 +537,53 @@ class MyScene extends THREE.Scene {
   }
 
   update () {
+    this.rayo_siluetas.setFromCamera(new THREE.Vector2(0,0), this.getCamera());
+    this.objetos_apuntados_siluetas = this.rayo_siluetas.intersectObjects(this.objetosSeleccionables, true);
+
+    if (this.objetos_apuntados_siluetas.length > 0) {
+      this.todos_objetos = this.rayo_siluetas.intersectObjects(this.children, true);
+
+      if (this.todos_objetos[0].distance >= this.objetos_apuntados_siluetas[0].distance) {
+        var seleccionado = null;
+
+        if (this.objetos_apuntados_siluetas[0].object.userData instanceof THREE.Object3D)
+          seleccionado = this.objetos_apuntados_siluetas[0].object.userData;
+
+        else if (this.objetos_apuntados_siluetas[0] instanceof THREE.Mesh)
+          seleccionado = this.objetos_apuntados_siluetas[0];
+
+        else
+          seleccionado = this.objetos_apuntados_siluetas[0].object;
+
+        var continuar = true;
+        
+        switch (seleccionado.name) {
+          case 'cuadro':
+            // añadir restricion anterior a cuadros
+            break;
+
+          case 'pensadero':
+            if (!this.papel_obtenido) continuar = false;
+            break;
+        }
+
+        if (seleccionado.setSilueta && continuar)
+          if (this.anterior_apuntado_siluetas == null) {
+            seleccionado.setSilueta(true);
+            this.anterior_apuntado_siluetas = seleccionado;
+          }
+      }
+      else if (this.anterior_apuntado_siluetas != null) {
+        this.anterior_apuntado_siluetas.setSilueta(false);
+        this.anterior_apuntado_siluetas = null;
+      }
+    }
+    else if (this.anterior_apuntado_siluetas != null) {
+      this.anterior_apuntado_siluetas.setSilueta(false);
+      this.anterior_apuntado_siluetas = null;
+    }
+
+    
 
     if (this.puerta_abierta && !this.juego_ganado && !this.animacionPuerta.isPlaying()) {
       this.juego_ganado = true;
@@ -690,56 +762,56 @@ class MyScene extends THREE.Scene {
   }
 
 
-  onMouseDown(event) {
-    this.mouse.x = 0;//(event.clientX / window.innerWidth) * 2 - 1;
-    this.mouse.y = 0;//1 - 2 * (event.clientY / window.innerHeight);
-
-    this.rayo_mouse.setFromCamera(this.mouse, this.getCamera());
+  onMouseDown() {
+    this.rayo_mouse.setFromCamera(new THREE.Vector2(0,0), this.getCamera());
 
     var pickedObjects = this.rayo_mouse.intersectObjects(this.objetosSeleccionables, true);
 
-    var selecionado = null;
+    var seleccionado = null;
 
     if (pickedObjects.length > 0) {
+
+      this.todos_objetos = this.rayo_mouse.intersectObjects(this.children, true);
+
+      if (this.todos_objetos[0].distance >= pickedObjects[0].distance) {
       
-      if (pickedObjects[0].object.userData instanceof THREE.Object3D)
-        selecionado = pickedObjects[0].object.userData;
-      
-      else if (pickedObjects[0] instanceof THREE.Mesh)
-      selecionado = pickedObjects[0];
-    
-      else
-      selecionado = pickedObjects[0].object;
+        if (pickedObjects[0].object.userData instanceof THREE.Object3D)
+          seleccionado = pickedObjects[0].object.userData;
+        else if (pickedObjects[0] instanceof THREE.Mesh)
+          seleccionado = pickedObjects[0];
+        else
+          seleccionado = pickedObjects[0].object;
 
 
-      switch (selecionado.name) {
-        case 'pomo':
-          if (this.llave_obtenida) {
-            this.animacionPuerta = this.h_estructura.updatePuerta();
-            this.puerta_abierta = true;
-          }
-          else window.alert('La puerta está cerrada!\nNecesitas una llave para abrirla.');
-          break;
-        
-        case 'cuadro':
-          this.abrirCuadro(selecionado.id);
-          break;
+        switch (seleccionado.name) {
+          case 'pomo':
+            if (this.llave_obtenida) {
+              this.animacionPuerta = this.h_estructura.updatePuerta();
+              this.puerta_abierta = true;
+            }
+            else window.alert('La puerta está cerrada!\nNecesitas una llave para abrirla.');
+            break;
+          
+          case 'cuadro':
+            this.abrirCuadro(seleccionado.id);
+            break;
 
-        case 'papel':
-          if (!this.movimiento_bloqueado) this.cogerPapel(selecionado);
-          else this.soltarPapel(selecionado);
-          break;
+          case 'papel':
+            if (!this.movimiento_bloqueado) this.cogerPapel(seleccionado);
+            else this.soltarPapel(seleccionado);
+            break;
 
-        case 'liquido_pensadero':
-          if (this.papel_obtenido)
-            this.beberAgua();
-          break;
+          case 'pensadero':
+            if (this.papel_obtenido)
+              this.beberAgua();
+            break;
 
-        case 'Key_01_polySurface1':
-          selecionado.visible = false;
-          this.llave_obtenida = true;
-          this.getObjectByName('pensadero').getObjectByName('sonido').play();
-          break;
+          case 'Key_01_polySurface1':
+            seleccionado.visible = false;
+            this.llave_obtenida = true;
+            this.getObjectByName('pensadero').getObjectByName('sonido').play();
+            break;
+        }
       }
     }
 
@@ -815,7 +887,7 @@ $(function () {
   window.addEventListener ("keydown", (event) => scene.onKeyDown(event));
   window.addEventListener ("keyup", (event) => scene.onKeyUp(event));
 
-  window.addEventListener ("mousedown", (event) => scene.onMouseDown(event));
+  window.addEventListener ("mousedown", () => scene.onMouseDown());
   
   // Que no se nos olvide, la primera visualización.
   scene.update();

@@ -717,6 +717,11 @@ class H_estructura extends THREE.Object3D {
 
         pomo = new CSG().union([pomo, toro]).toMesh();
 
+        var silueta_pomo = pomo.clone();
+        silueta_pomo.material = new THREE.MeshBasicMaterial({color: '#505050', side: THREE.BackSide});
+        silueta_pomo.scale.set(1.05,1.05,1.05);
+        silueta_pomo.visible = false;
+
         pomo.position.y = alto_puerta/2 + 0.05;
         pomo.position.x = -ancho_puerta/2 + ancho_puerta*0.25;
 
@@ -727,15 +732,23 @@ class H_estructura extends THREE.Object3D {
         pomo.position.z = this.conf.grosor/2 + 0.05;
         p2.position.z = -this.conf.grosor/2 - 0.05;
 
+        silueta_pomo.position.copy(pomo.position);
+
         pomo = new CSG().union([ pomo, p2]).toMesh();
 
         puerta.position.x = -ancho_puerta/2;
         pomo.position.x = -ancho_puerta/2;
+        silueta_pomo.position.x += -ancho_puerta/2;
 
         pomo.name = 'pomo';
 
-        puerta_OBJ.add(puerta.clone());
-        puerta_OBJ.add(pomo);
+        function setSilueta(booleano) {
+            silueta_pomo.visible = booleano;
+        }
+
+        pomo.setSilueta = setSilueta;
+
+        puerta_OBJ.add(puerta.clone(), pomo, silueta_pomo);
 
         puerta_OBJ.position.x = ancho_puerta/2;// + this.conf.grosor/2;
 

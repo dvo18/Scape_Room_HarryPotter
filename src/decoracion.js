@@ -7,6 +7,8 @@ import { CSG } from '../libs/CSG-v2.js'
 class Decoracion extends THREE.Object3D {
   constructor() {
     super();
+
+    this.materialSilueta = new THREE.MeshBasicMaterial({color: '#505050', side: THREE.BackSide});
     
     // Creamos las variables para cargar los materiales y objetos:
     this.materialLoader = new MTLLoader();
@@ -479,11 +481,19 @@ class Decoracion extends THREE.Object3D {
     
     // --------------------------------------
     var cuadro_aux = new THREE.Object3D();
-    cuadro_aux.add(marco, imagen_cuadro);
+
+    var silueta = marco.clone();
+    silueta.material = this.materialSilueta;
+    silueta.scale.set(1.025, 1.025, 1.025);
+    silueta.name = 'silueta';
+    silueta.visible = false;
+
+    cuadro_aux.add(marco, imagen_cuadro, silueta);
     cuadro_aux.position.y = marcho_alto / 2;
     cuadro_aux.position.z = 0.025;
 
     cuadro_aux.position.x = -ancho/2;
+    
 
     var cuadro_aux2 = new THREE.Object3D().add(cuadro_aux);
     // esto se hace para poder aplicar la rotación sin que los valores de posición cambien
@@ -503,6 +513,13 @@ class Decoracion extends THREE.Object3D {
 
     marco.userData = cuadro;
     imagen_cuadro.userData = cuadro;
+    silueta.userData = cuadro;
+
+    function setSilueta(booleano) {
+      silueta.visible = booleano;
+    }
+
+    cuadro.setSilueta = setSilueta;
     
     cuadro.name = 'cuadro';
   
@@ -637,10 +654,14 @@ class Decoracion extends THREE.Object3D {
     cuerpo_base = new CSG().union([cuerpo_base, anillo_CSG]).toMesh();
 
     cuerpo_base.castShadow = true;
-    cuerpo_base.receiveShadow = true;
+
+    var silueta_cuerpo = cuerpo_base.clone();
+    silueta_cuerpo.material = this.materialSilueta;
+    silueta_cuerpo.scale.set(1.025, 1.025, 1.025);
+    silueta_cuerpo.visible = false;
 
     var cuerpo = new THREE.Object3D();
-    cuerpo.add(cuerpo_base, liquido);
+    cuerpo.add(cuerpo_base, liquido, silueta_cuerpo);
 
     cuerpo.position.y = 0.6;
     cuerpo.name = "cuerpo_pensadero";
@@ -659,11 +680,15 @@ class Decoracion extends THREE.Object3D {
     var base = new THREE.Mesh(base_geom, piedra);
 
     base.castShadow = true;
-    base.receiveShadow = true;
+
+    var silueta_base = base.clone();
+    silueta_base.material = this.materialSilueta;
+    silueta_base.scale.set(1.025, 1.025, 1.025);
+    silueta_base.visible = false;
 
     // ------------------
     this.pensadero = new THREE.Object3D();
-    this.pensadero.add(cuerpo, base);
+    this.pensadero.add(cuerpo, base, silueta_base);
     this.pensadero.name = "pensadero";
 
 
@@ -682,6 +707,14 @@ class Decoracion extends THREE.Object3D {
     sound.name = "sonido";
     this.pensadero.add(sound);
 
+    function setSilueta(booleano) {
+      silueta_base.visible = booleano;
+      silueta_cuerpo.visible = booleano;
+    }
+
+    this.pensadero.setSilueta = setSilueta;
+
+    liquido.userData = this.pensadero;
 
     return this.pensadero;
   }
