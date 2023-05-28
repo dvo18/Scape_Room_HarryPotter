@@ -25,7 +25,7 @@ class MyScene extends THREE.Scene {
 
     // Con esta variable controlamos si están las colisiones activadas o desactivadas.
     this.colisiones = true;
-    this.sombras = true;
+    this.sombras = false;
 
     // ------------------ BOOLEANOS CONDICIONALES ------------------
 
@@ -69,8 +69,8 @@ class MyScene extends THREE.Scene {
 
     // ------------------ LUZ ------------------
 
-    //this.colorFondo = new THREE.Color(0xEEEEEE);
-    this.colorFondo = new THREE.Color(0x000000);
+    this.colorFondo = new THREE.Color(0xEEEEEE);
+    //this.colorFondo = new THREE.Color(0x000000);
 
     // Lo primero, crear el visualizador, pasándole el lienzo sobre el que realizar los renderizados.
     this.renderer = this.createRenderer(myCanvas);
@@ -299,6 +299,11 @@ class MyScene extends THREE.Scene {
     this.maniqui.position.z = this.dim.posV2xz_centro_HabCircular_Lateral.y;
 
     this.add(this.maniqui);
+
+    this.maniqui.movimientoManiqui(this.dim.radio_lateral);
+    this.maniqui.rotacionManiqui();
+    this.maniqui.movimientoBrazos();
+
 
     // ------------------- PENSADERO -------------------
     var pensadero = this.decoracion.createPensadero();
@@ -595,7 +600,7 @@ class MyScene extends THREE.Scene {
 
     // --------------------------------------------
     // Realizamos un update del maniquí:
-    this.maniqui.update();
+    //this.maniqui.update();
 
     TWEEN.update();
 
@@ -705,6 +710,7 @@ class MyScene extends THREE.Scene {
 
 
   abrirCuadro(id) {
+    this.maniqui.stopMovimientoManiqui();
     var cuadro_origen = this.getObjectById(id);
     cuadro_origen.children[1].visible = true;
 
