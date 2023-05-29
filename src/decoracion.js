@@ -865,18 +865,18 @@ class Decoracion extends THREE.Object3D {
     ///////////////////////////// VIDEO /////////////////////////////
 
 
-    var videoElement = document.getElementById('video');
+    this.videoElement = document.getElementById('video');
 
-    videoElement.src = '../videos/video2.mp4';
+    this.videoElement.src = '../videos/video2.mp4';
 
-    videoElement.loop = true;
-    videoElement.autoplay = true;
+    this.videoElement.loop = true;
+    //videoElement.autoplay = true;
     
     /*videoElement.addEventListener('canplaythrough', () => {
       // Do any additional setup or actions here
     });*/
 
-    var videoTexture = new THREE.VideoTexture(videoElement);
+    var videoTexture = new THREE.VideoTexture(this.videoElement);
 
     videoTexture.wrapS = THREE.MirroredRepeatWrapping;
     videoTexture.wrapT = THREE.MirroredRepeatWrapping;
@@ -947,8 +947,10 @@ class Decoracion extends THREE.Object3D {
     var esfera = new THREE.Mesh( new THREE.SphereGeometry(2*(radio+radio*0.1), 32, 32), material_reflexion );
     esfera.scale.y = 0.75;
     esfera.position.y = 1.25*altura + (2*(radio+radio*0.1)) * 0.75 + radio;
+    esfera.name = 'esfera';
 
     var objeto_raro = new THREE.Object3D().add(cono, toro, esfera);
+    objeto_raro.name = 'objeto_raro';
     var objeto_raro_final = new THREE.Object3D();
 
     this.materialLoader.load('../modelos/pedestal/pedestal.mtl', (materials) => {

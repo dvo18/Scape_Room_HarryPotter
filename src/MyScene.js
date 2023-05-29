@@ -25,10 +25,11 @@ class MyScene extends THREE.Scene {
 
     // Con esta variable controlamos si están las colisiones activadas o desactivadas.
     this.colisiones = true;
-    this.sombras = false;
+    this.sombras = true;
 
     // ------------------ BOOLEANOS CONDICIONALES ------------------
 
+    this.hechizo_lanzado = false;
     this.papel_obtenido = false;
     this.llave_obtenida = false;
     this.puerta_abierta = false;
@@ -69,8 +70,8 @@ class MyScene extends THREE.Scene {
 
     // ------------------ LUZ ------------------
 
-    this.colorFondo = new THREE.Color(0xEEEEEE);
-    //this.colorFondo = new THREE.Color(0x000000);
+    //this.colorFondo = new THREE.Color(0xEEEEEE);
+    this.colorFondo = new THREE.Color(0x000000);
 
     // Lo primero, crear el visualizador, pasándole el lienzo sobre el que realizar los renderizados.
     this.renderer = this.createRenderer(myCanvas);
@@ -103,6 +104,7 @@ class MyScene extends THREE.Scene {
 
 
     this.decoracion = new Decoracion();
+    this.decoracion.name = 'decoracion';
 
 
 
@@ -156,11 +158,11 @@ class MyScene extends THREE.Scene {
 
     // ------------------- OBJECTO RARO CONO (1) -------------------
 
-    var cono_raro = this.decoracion.createObjetoRaro1(0.2,0.5,this,this.window);
+    this.cono_raro = this.decoracion.createObjetoRaro1(0.2,0.5);
 
-    cono_raro.position.x = -this.dim.largo/2 + this.dim.radio_lateral;
+    this.cono_raro.position.x = -this.dim.largo/2 + this.dim.radio_lateral;
 
-    this.add(cono_raro);
+    this.add(this.cono_raro);
 
 
     // ------------------- ANTORCHAS -------------------
@@ -293,16 +295,14 @@ class MyScene extends THREE.Scene {
     // this.add(pedestal);
 
     // ------------------- MANIQUI -------------------
-    this.maniqui = new Maniqui();
+    this.maniqui = new Maniqui(this.dim.radio_lateral);
     this.maniqui.position.x = this.dim.posV2xz_centro_HabCircular_Lateral.x;
     this.maniqui.position.y = 0.8;
     this.maniqui.position.z = this.dim.posV2xz_centro_HabCircular_Lateral.y;
 
-    this.add(this.maniqui);
+    this.objetosSeleccionables.push(this.maniqui);
 
-    this.maniqui.movimientoManiqui(this.dim.radio_lateral);
-    this.maniqui.rotacionManiqui();
-    this.maniqui.movimientoBrazos();
+    this.add(this.maniqui);
 
 
     // ------------------- PENSADERO -------------------
@@ -567,7 +567,7 @@ class MyScene extends THREE.Scene {
         
         switch (seleccionado.name) {
           case 'cuadro':
-            // añadir restricion anterior a cuadros
+            if (!this.hechizo_lanzado) continuar = false;
             break;
 
           case 'pensadero':
@@ -710,7 +710,7 @@ class MyScene extends THREE.Scene {
 
 
   abrirCuadro(id) {
-    this.maniqui.stopMovimientoManiqui();
+    //this.maniqui.lanzarHechizo(/*this.maniqui*/);
     var cuadro_origen = this.getObjectById(id);
     cuadro_origen.children[1].visible = true;
 
@@ -793,6 +793,11 @@ class MyScene extends THREE.Scene {
 
 
         switch (seleccionado.name) {
+          case 'maniqui':
+            this.maniqui.lanzarHechizo(this);
+            this.hechizo_lanzado = true;
+            break;
+
           case 'pomo':
             if (this.llave_obtenida) {
               this.animacionPuerta = this.h_estructura.updatePuerta();
@@ -802,7 +807,7 @@ class MyScene extends THREE.Scene {
             break;
           
           case 'cuadro':
-            this.abrirCuadro(seleccionado.id);
+            if (this.hechizo_lanzado) this.abrirCuadro(seleccionado.id);
             break;
 
           case 'papel':
@@ -811,8 +816,7 @@ class MyScene extends THREE.Scene {
             break;
 
           case 'pensadero':
-            if (this.papel_obtenido)
-              this.beberAgua();
+            if (this.papel_obtenido) this.beberAgua();
             break;
 
           case 'Key_01_polySurface1':
