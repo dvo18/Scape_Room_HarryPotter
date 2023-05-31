@@ -3,7 +3,7 @@ import { MTLLoader } from '../libs/MTLLoader.js'
 import * as THREE from '../libs/three.module.js'
 import * as TWEEN from '../libs/tween.esm.js'
 
-
+// Esta función se encarga de cambiar el material del objeto pasado por parámetro.
 function cambiarMaterial(obj, nuevoMaterial) {
     if (obj instanceof THREE.Mesh) {
         obj.material = nuevoMaterial;
@@ -14,9 +14,9 @@ function cambiarMaterial(obj, nuevoMaterial) {
         });
     }
 }
-  
 
-
+// ----------------------------------------------------------------------------
+// Esta clase es la encargada de crear el modelo jerárquico : un maniquí.
 class Maniqui extends THREE.Object3D {
     constructor(radio) {
         super();
@@ -36,7 +36,7 @@ class Maniqui extends THREE.Object3D {
         // ----------- RUEDAS -----------
         this.radioRuedas = 0.1;
 
-        var material_esferas = new THREE.MeshLambertMaterial({color: /*0x3C3C3C*/0xffffff, map: textura_esferas});
+        var material_esferas = new THREE.MeshLambertMaterial({color: 0xffffff, map: textura_esferas});
         var esfera_geom = new THREE.SphereGeometry(this.radioRuedas);
         this.ruedaIZQ = new THREE.Mesh(esfera_geom, material_esferas);
 
@@ -48,7 +48,7 @@ class Maniqui extends THREE.Object3D {
         // ----------- PIERNAS -----------
         var piernas_geom = new THREE.CylinderGeometry(0.2, 0.4, 0.8, 20);
 
-        var material_cilindros = new THREE.MeshLambertMaterial({color: /*0x595959*/0xEAEAEA, map: textura_cuerpo});
+        var material_cilindros = new THREE.MeshLambertMaterial({color: 0xEAEAEA, map: textura_cuerpo});
         var piernas = new THREE.Mesh(piernas_geom, material_cilindros);
         piernas.userData = this.maniqui;
 
@@ -63,21 +63,20 @@ class Maniqui extends THREE.Object3D {
         // ----------- HOMBROS ----------- 
         var hombroIZQ = new THREE.Mesh(esfera_geom, material_esferas);
         hombroIZQ.userData = this.maniqui;
-        //hombroIZQ.position.y = 0.6;
+
         var hombroDER = hombroIZQ.clone();
         hombroDER.userData = this.maniqui;
 
-        /*hombroIZQ.position.y = 0.6;
-        hombroDER.position.y = 0.6;*/
 
         // ----------- BRAZOS BASE ----------- 
-        var material_brazos = new THREE.MeshLambertMaterial({color: /*0x595959*/0xEAEAEA, map: textura_cuerpo});
+        var material_brazos = new THREE.MeshLambertMaterial({color: 0xEAEAEA, map: textura_cuerpo});
 
         var brazos_geom = new THREE.CylinderGeometry(0.05, 0.05, 0.5);
         var brazo_baseIZQ = new THREE.Mesh(brazos_geom, material_brazos);
         brazo_baseIZQ.userData = this.maniqui;
-        //brazo_baseIZQ.position.y = 0.35;
+    
         brazo_baseIZQ.position.y = -0.3;
+    
         var brazo_baseDER = brazo_baseIZQ.clone();
         brazo_baseDER.userData = this.maniqui;
 
@@ -89,22 +88,9 @@ class Maniqui extends THREE.Object3D {
         var manoDER = manoIZQ.clone();
         manoDER.userData = this.maniqui;
 
-        //manoIZQ.scale.set(0.8, 0.8, 0.8);
-        //manoDER.scale.set(0.8, 0.8, 0.8);
-
-        /*manoIZQ.position.y = 0.05;
-        manoDER.position.y = 0.05;*/
-
         // ----------- VARITA ----------- 
         var varita = this.createVarita();
-        //varita.scale.set(0.08, 0.08, 0.08);
-        //varita.rotation.y = Math.PI - Math.PI/4;
-        //varita.rotation.x = -(20*Math.PI) / 180;
         varita.rotation.x = Math.PI + Math.PI/8;
-
-        /*varita.position.x = 0.1;
-        varita.position.y = -0.425;//0.25;
-        varita.position.z = -0.2;*/
 
         this.varita = new THREE.Object3D().add(varita);
         this.varita.position.y = -0.6;
@@ -138,8 +124,8 @@ class Maniqui extends THREE.Object3D {
         this.brazoIZQ.position.x = -0.4;
         this.brazoDER.position.x = 0.4;
 
-        this.brazoIZQ.position.y = 0.4;//-0.15;
-        this.brazoDER.position.y = 0.4;//-0.15;
+        this.brazoIZQ.position.y = 0.4;
+        this.brazoDER.position.y = 0.4;
 
         this.brazoIZQ.name = 'brazoIZQ';
         this.brazoDER.name = 'brazoDER';
@@ -157,8 +143,8 @@ class Maniqui extends THREE.Object3D {
 
         silueta_torso.visible = false;
 
-        // ----------- CABEZA BASE + CUELLO----------- 
-        var material_cabeza = new THREE.MeshLambertMaterial({color: /*0x595959*/0xffffff, map: textura_cabeza});
+        // ----------- CABEZA BASE + CUELLO ----------- 
+        var material_cabeza = new THREE.MeshLambertMaterial({color: 0xffffff, map: textura_cabeza});
         var cabeza_base = new THREE.Mesh(esfera_geom, material_cabeza);
         cabeza_base.userData = this.maniqui;
         cabeza_base.scale.x = 2;    // 0.20
@@ -216,12 +202,9 @@ class Maniqui extends THREE.Object3D {
         }
 
         this.maniqui.setSilueta = setSilueta;
-
         this.add(this.maniqui);
 
-
         this.hechizoLanzado = false;
-
 
         this.movManiqui = new TWEEN.Tween();
         this.rotManiqui = new TWEEN.Tween();
@@ -233,6 +216,8 @@ class Maniqui extends THREE.Object3D {
         this.movimientoBrazos();
     }
 
+    // -----------------------------------------------
+    // Función para crear la varita del maniquí.
     createVarita(){
         // Creamos las variables para cargar el material y el objeto:
         var materialLoader = new MTLLoader();
@@ -278,6 +263,8 @@ class Maniqui extends THREE.Object3D {
         return varita;
     }
 
+    // -------------------------------------------------
+    // Función para crear el rayo que lanza el maniquí.
     createRayo(){
         var rayo = new THREE.Shape();
         rayo.moveTo(0, 0);
@@ -304,8 +291,9 @@ class Maniqui extends THREE.Object3D {
         return rayo;
     }
 
-    movimientoManiqui(distancia){
+    // -------------------- FUNCIONES DE MOVIMIENTO --------------------
 
+    movimientoManiqui(distancia){
         var origen = {p: 0.625*distancia};
         var destino = {p: -0.625*distancia};
 
@@ -532,7 +520,5 @@ class Maniqui extends THREE.Object3D {
         }
     }
 }
-
-
 
 export { Maniqui };
