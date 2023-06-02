@@ -44,12 +44,12 @@ class Decoracion extends THREE.Object3D {
     tabla2.position.y = 0.25;
     tabla3.position.y = 0.55;
 
-    this.estanteria = new THREE.Object3D();
-    this.estanteria.add(tablaDER, tablaIZQ, tabla1, tabla2, tabla3);
+    var estanteria = new THREE.Object3D();
+    estanteria.add(tablaDER, tablaIZQ, tabla1, tabla2, tabla3);
 
-    this.estanteria.scale.y = 1.5;
+    estanteria.scale.y = 1.5;
 
-    return this.estanteria;
+    return estanteria;
   }
 
   // ---------------------------------------------------------------
@@ -57,6 +57,41 @@ class Decoracion extends THREE.Object3D {
   // createLibro(){
     
   // }
+
+  // ---------------------------------------------------------------
+
+  createLibroEspecial(){
+    var t = this.texturaLoader.load('../imgs/libro/textura_costado_aa.jpg');
+    var t2 = t.clone();
+    t.center.set(0.5, 0.5);
+    t.rotation = Math.PI;
+
+    var materials = [
+      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_delantera.jpg') }), // Cara frontal
+      new THREE.MeshLambertMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_trasera.jpg') }), // Cara trasera
+      new THREE.MeshLambertMaterial({ map: t }), // Cara superior
+      new THREE.MeshLambertMaterial({ map: t2 }), // Cara inferior
+      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_canto.jpg') }), // Cara izquierda
+      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_costado_l.jpg') })  // Cara derecha
+      /*new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_canto.jpg') }), // Cara frontal
+      new THREE.MeshLambertMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_costado_l.jpg') }), // Cara trasera
+      new THREE.MeshLambertMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_costado_aa.jpg') }), // Cara superior
+      new THREE.MeshLambertMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_costado_aa.jpg') }), // Cara inferior
+      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_trasera.jpg') }), // Cara izquierda
+      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_delantera.jpg') })  // Cara derecha*/
+    ];
+
+    var geometriaLibro = new THREE.BoxGeometry(0.15, 1, 0.75);
+    geometriaLibro.materials = materials;
+
+    var libro = new THREE.Mesh( geometriaLibro, materials);
+
+    libro.rotation.y = -Math.PI/2;
+
+    libro = new THREE.Object3D().add(libro);
+
+    return libro;
+  }
 
   // ---------------------------------------------------------------
   
