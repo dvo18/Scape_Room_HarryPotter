@@ -275,9 +275,12 @@ class MyScene extends THREE.Scene {
 
 
     // ------------------- MESAS Y TABURETES -------------------
-    //var mesa = this.decoracion.createMesa();
-    //mesa.position.y = 0.2;
-    //this.add(mesa);
+    var ancho = 2;
+    var largo = 2.5;
+    var altura = 1;
+
+    var mesa = this.decoracion.createMesa(ancho, largo, altura);
+    this.add(mesa);
 
 
     // ------------------- CALDERO -------------------
@@ -337,9 +340,7 @@ class MyScene extends THREE.Scene {
     // ------------------- LLAVE -------------------
 
     var llave = this.decoracion.createLlave();
-
     llave.position.set(this.getObjectByName('pensadero').position.x,0.8,this.getObjectByName('pensadero').position.z);
-
     this.objetosSeleccionables.push(llave);
 
     this.add(llave);
@@ -471,6 +472,9 @@ class MyScene extends THREE.Scene {
     // ------------------- SOMBRAS -------------------
     this.renderer.shadowMap.enabled = this.sombras;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // ------------------- LIBRO -------------------
+    
   }
   
   createCamera () {

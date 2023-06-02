@@ -18,7 +18,7 @@ class Decoracion extends THREE.Object3D {
 
   // ---------------------------------------------------------------
 
-  createEstanteria(largo, tipo){
+  createEstanteria(largo){
     // --------- TEXTURAS ---------
     var textura_madera = this.texturaLoader.load ('../imgs/textura_madera1.jpg');
 
@@ -49,34 +49,14 @@ class Decoracion extends THREE.Object3D {
 
     estanteria.scale.y = 1.5;
 
-    if(tipo == 1){
-
-    }
-
     return estanteria;
   }
 
   // ---------------------------------------------------------------
 
-  createLibro(){
-    // Creamos un objeto 3D para el taburete.
-    var libro = new THREE.Object3D();
-
-    this.materialLoader.load('../modelos/libro/book.mtl',
-    (materiales) => {
-      this.objetoLoader.setMaterials(materiales);
-      this.objetoLoader.load('../modelos/libro/book.obj',
-        (lib) => {
-            libro.add(lib); // Finalmente añadimos la mesa como hijo de Object3D.
-        }, null, null);
-    });
-
-    // libro.scale.x = 0.01;
-    // libro.scale.y = 0.01;
-    // libro.scale.z = 0.01;
-
-    return this.libro; 
-  }
+  // createLibro(){
+    
+  // }
 
   // ---------------------------------------------------------------
 
@@ -115,74 +95,89 @@ class Decoracion extends THREE.Object3D {
 
   // ---------------------------------------------------------------
   
-  createMesa(){
-    // --------- TEXTURAS ---------
-    //var textura_madera = this.texturaLoader.load ('../imgs/textura_madera.jpg');
+  createMesa(ancho, largo, altura){
+    // ------------- TEXTURAS -------------
+    var textura_madera = this.texturaLoader.load("../imgs/textura_madera1.jpg");
+    var material = new THREE.MeshLambertMaterial({color: 0x745E45, map: textura_madera});
 
-    // Creamos un objeto 3D para el mesa.
-    var mesa = new THREE.Object3D();
+    // ------------- TABLA -------------
+    var tabla_geom = new THREE.BoxGeometry(ancho, 0.08, largo);
+    var tabla = new THREE.Mesh(tabla_geom, material);
 
-    // Cargamos la figura OBJ:
-    this.materialLoader.load('../modelos/mesa2/Desk_OBJ.mtl',
-    (materiales) => {
-      this.objetoLoader.setMaterials(materiales);
-      this.objetoLoader.load('../modelos/mesa2/Desk_OBJ.obj',
-        (mes) => {
-            mesa.add(mes); // Finalmente añadimos la mesa como hijo de Object3D.
-        }, null, null);
-    });
+    tabla.position.y = 0.04;
 
-    // Creamos un objeto 3D para el mesa.
-    var mesa_final = new THREE.Object3D().add(mesa);
+    // ------------- PATAS -------------
+    var pata_geom = new THREE.BoxGeometry(0.08, altura, 0.08);
+    var pata = new THREE.Mesh(pata_geom, material);
 
-    mesa_final.scale.x = 1;
-    mesa_final.scale.y = 1;
-    mesa_final.scale.z = 1;
+    pata.position.y = -altura/2;
 
-    return mesa_final;
+    var pata2 = pata.clone();
+    var pata3 = pata.clone();
+    var pata4 = pata.clone();
+
+    pata.position.x = -ancho/2.5;
+    pata.position.z = largo/2.5;
+
+    pata2.position.x = ancho/2.5;
+    pata2.position.z = largo/2.5;
+
+    pata3.position.x = -ancho/2.5;
+    pata3.position.z = -largo/2.5;
+
+    pata4.position.x = ancho/2.5;
+    pata4.position.z = -largo/2.5;
+
+    var mesa = new THREE.Object3D().add(tabla, pata, pata2, pata3, pata4);
+    mesa.position.y = altura;
+
+    // ----------------------------------
+
+    var taburete = this.createTaburete();
+    var taburete2 = taburete.clone();
+    var taburete3 = taburete.clone();
+    var taburete4 = taburete.clone();
+
+    taburete.position.x = ancho/1.5;
+    taburete.position.z = largo/4;
+
+    taburete2.position.x = ancho/1.5;
+    taburete2.position.z = -largo/4;
+
+    taburete3.position.x = -ancho/1.5;
+    taburete3.position.z = largo/4;
+
+    taburete4.position.x = -ancho/1.5;
+    taburete4.position.z = -largo/4;
+
+    var mesasysillas = new THREE.Object3D().add(mesa, taburete, taburete2, taburete3, taburete4);
+
+    return mesasysillas;
   }
 
   // ---------------------------------------------------------------
 
   createTaburete(){
     // Creamos un objeto 3D para el taburete.
-    this.taburete = new THREE.Object3D();
+    var taburete = new THREE.Object3D();
+    var textura_madera = this.texturaLoader.load("../imgs/textura_madera1.jpg");
+    var material = new THREE.MeshLambertMaterial({color: 0x745E45, map: textura_madera});
 
     // Cargamos la figura OBJ:
     this.objetoLoader.load('../modelos/taburete/tab.obj',
     (tab) => {
-        this.taburete.add(tab); // Lo añadimos al taburete.
+        tab.children.forEach((child) => {
+          child.material = material;
+        });
+        
+        taburete.add(tab); // Lo añadimos al taburete.
     }, null, null);
 
-    this.taburete.scale.x = 0.0008;
-    this.taburete.scale.y = 0.0008;
-    this.taburete.scale.z = 0.0008;
+    taburete.scale.x = 0.0013;
+    taburete.scale.y = 0.0013;
+    taburete.scale.z = 0.0013;
 
-    return this.taburete;
-  }
-
-  // ------------que se encienda al clicar un interruptor---------------------------------------------------
-
-  createGato(){
-    // Creamos un objeto 3D para el taburete.
-    this.gato = new THREE.Object3D();
-
-    this.materialLoader.load('../modelos/Gato2/12222_Cat_v1_l3.mtl',
-    (materiales) => {
-      this.objetoLoader.setMaterials(materiales);
-      this.objetoLoader.load('../modelos/Gato2/12222_Cat_v1_l3.obj',
-        (gato) => {
-            this.gato.add(gato); // Finalmente añadimos la mesa como hijo de Object3D.
-        }, null, null);
-    });
-
-    this.gato.scale.x = 0.01;
-    this.gato.scale.y = 0.01;
-    this.gato.scale.z = 0.01;
-
-    this.gato.rotateX(-Math.PI/2)
-
-    return this.gato; 
+    return taburete;
   }
 
   // ---------------------------------------------------------------
@@ -490,7 +485,6 @@ class Decoracion extends THREE.Object3D {
 
   createCuadro(imagen, ancho, largo) {
     
-  
     // Dimensiones del marco
     var marco_ancho = ancho + 0.1; // Ancho del marco (mayor que la imagen)
     var marcho_alto = largo + 0.1; // Alto del marco (mayor que la imagen)
@@ -560,94 +554,8 @@ class Decoracion extends THREE.Object3D {
   
     return cuadro;
   }
-  
 
-  // ---------------------------------------------------------------
-
-  createSnitch(){
-    // --------------- EL CUERPO ---------------
-    // Primero creo la forma que quiero con un objeto Shape para después crear la extrusión.
-    var shape1 = new THREE.Shape();
-
-    // Definimos el cuerpo de la snitch mediante barrido de una forma:
-    const radio = 0.05;
-    const segmentos = 10;
-
-    // Crear un círculo con el shape.
-    for (let i = 0; i <= 12; i++) {
-        const angulo = (i / segmentos) * Math.PI*2;
-        shape1.lineTo(Math.cos(angulo)*radio, Math.sin(angulo)*radio);
-    }
-
-    // Crear la trayectoria del barrido del contorno para hacer una esfera:
-    const circulo = new THREE.CatmullRomCurve3();
-
-    for (let i = 0; i <= segmentos; i++) {
-      const angulo = (Math.PI / segmentos-1);
-      const x = Math.cos(angulo*i - (Math.PI/2)) * radio;
-      const y = Math.sin(angulo*i - (Math.PI/2)) * radio;
-
-      circulo.points.push(new THREE.Vector3(x, y, 0));
-    }
-    
-    var opciones = {steps: 25, bevelEnabled: false, extrudePath: circulo};
-
-    // Creamos la geometría con el shape y las opciones. Después creamos el material.
-    var geometria1 = new THREE.ExtrudeGeometry(shape1, opciones);
-    var material1 = new THREE.MeshLambertMaterial({color: 0xD6C359});
-    
-    // Finalmente construimos el shape y lo añadimos como hijo de Object3D.
-    var cuerpo = new THREE.Mesh(geometria1, material1);
-    
-    // --------------- LAS ALAS ---------------
-
-    // Primero creo la forma que quiero con un objeto Shape para después crear la extrusión.
-    var shape = new THREE.Shape();
-
-    // Definimos el cuerpo de la ala.
-    shape.moveTo(0, 0);
-    shape.lineTo(2, 1.2);
-    shape.lineTo(4, 1.5);
-    shape.lineTo(6, 1.5);
-    shape.lineTo(6.5, 1.7);
-    shape.lineTo(6.7, 2);
-    shape.lineTo(7, 2.3);
-    shape.lineTo(7.3, 2.6);
-    shape.lineTo(8, 6);
-    shape.lineTo(7, 5);
-    shape.lineTo(6, 4);
-    shape.lineTo(5, 4);
-    shape.lineTo(3.5, 3.5);
-    shape.lineTo(0, 0);
-
-    var opciones = {depth: 0.5, steps: 1, curveSegments: 2, bevelThickness: 1, bevelSize: 1, bevelSegments: 4};
-
-    //Creamos la geometría con el shape y las opciones. Después creamos el material.
-    var geometria2 = new THREE.ExtrudeGeometry(shape, opciones);
-    var material2 = new THREE.MeshLambertMaterial({color: 0xFFFFFF});
-    
-    // Finalmente construimos el shape y lo añadimos como hijo de Object3D.
-    var ala1 = new THREE.Mesh(geometria2, material2);
-    
-    ala1.scale.x = 0.03;
-    ala1.scale.y = 0.03;
-    ala1.scale.z = 0.03;
-
-    var ala2 = ala1.clone();
-    ala2.rotateY(Math.PI);
-
-    ala1.position.x = 0.09;
-    ala1.position.y = 0.05;
-    ala2.position.x = -0.09;
-    ala2.position.y = 0.05;
-
-    this.snitch = new THREE.Object3D();
-    this.snitch.add(ala1, ala2, cuerpo);
-
-    return this.snitch;
-  }
-
-  createPensadero(texturaLoader){
+  createPensadero(){
     // --------- TEXTURAS ---------
     var textura_piedra = this.texturaLoader.load ('../imgs/textura_caliza.jpg');
     var textura_liquido = this.texturaLoader.load('../imgs/textura_liquido.jpg')
@@ -726,8 +634,6 @@ class Decoracion extends THREE.Object3D {
     this.pensadero.add(cuerpo, base, silueta_base);
     this.pensadero.name = "pensadero";
 
-
-
     var listener = new THREE.AudioListener();
     this.pensadero.add(listener);
 
@@ -762,7 +668,7 @@ class Decoracion extends THREE.Object3D {
 
     var antorcha = new THREE.Shape();
     antorcha.moveTo(0, 0);
-    antorcha.quadraticCurveTo( 0.025, 0, /**/ 0.025, 0.05 );
+    antorcha.quadraticCurveTo( 0.025, 0, 0.025, 0.05 );
     antorcha.lineTo(0.04, 0.6);
     antorcha.lineTo(0, 0.6);
 
@@ -880,36 +786,16 @@ class Decoracion extends THREE.Object3D {
     return antorcha_final;
   }
 
-  createPedestal(){
-    // // Creamos un objeto3D para el pedestal
-    // var pedestal = new THREE.Object3D();
-
-    // this.materialLoader.load('../modelos/Ancient_podium/obj/objPodium.mtl',
-    // (materiales) => {
-    //   this.objetoLoader.setMaterials(materiales);
-    //   this.objetoLoader.load('../modelos/Ancient_podium/obj/objPodium.obj',
-    //     (aux) => {
-    //         pedestal.add(aux); // Añadimos el pedestal.
-    //     }, null, null);
-    // });
-
-    // return pedestal;
-  }
+  // createPedestal(){
+  //   // 
+    
+  // }
 
   createObjetoRaro1(radio, altura) {
-    ///////////////////////////// VIDEO /////////////////////////////
-
-
+    // ------------------- VIDEO -------------------
     this.videoElement = document.getElementById('video');
-
     this.videoElement.src = '../videos/video2.mp4';
-
     this.videoElement.loop = true;
-    //videoElement.autoplay = true;
-    
-    /*videoElement.addEventListener('canplaythrough', () => {
-      // Do any additional setup or actions here
-    });*/
 
     var videoTexture = new THREE.VideoTexture(this.videoElement);
 
