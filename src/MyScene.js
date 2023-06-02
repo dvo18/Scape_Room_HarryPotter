@@ -308,11 +308,21 @@ class MyScene extends THREE.Scene {
     caldero.scale.set(4.5, 4.5, 4.5);
     this.add(caldero);
 
-    // ------------------- ATRIL -------------------
+    // ------------------- ATRIL y LIBRO-------------------
     var atril = this.decoracion.createAtril();
     atril.position.x = this.dim.largo/2 - 0.8;
     atril.position.z = -5;
     this.add(atril);
+
+    var libro = this.decoracion.createLibroEspecial();
+    libro.rotateY(-Math.PI/2);
+    libro.rotateX((-45*Math.PI)/180);
+
+    libro.position.x = this.dim.largo/2 - 0.65;
+    libro.position.y = 1.8;
+    libro.position.z = -5;
+
+    this.add(libro);
 
     // ------------------- MANIQUI -------------------
     this.maniqui = new Maniqui(this.dim.radio_lateral);
@@ -476,19 +486,9 @@ class MyScene extends THREE.Scene {
 
     this.add(cuadro7, cuadro8, cuadro9, cuadro10);
 
-
-    // ------------------- LIBRO ESPECIAL -------------------
-    this.libro = this.decoracion.createLibroEspecial();
-    this.libro.scale.set(0.75,0.75,0.75);
-    this.libro.position.y = 1.5;
-    this.add(this.libro);
-
-
     // ------------------- SOMBRAS -------------------
     this.renderer.shadowMap.enabled = this.sombras;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    // ------------------- LIBRO -------------------
     
   }
   

@@ -89,6 +89,20 @@ class Decoracion extends THREE.Object3D {
     libro.rotation.y = -Math.PI/2;
 
     libro = new THREE.Object3D().add(libro);
+    
+    // ---------------------------------- ANIMACIÓN ----------------------------------
+    // Hemos hecho una animación para simular que el libro está flotando mágicamente.
+    var inicio = 1.8;
+    var alturaMax = inicio + 0.3; // Altura máxima a la que queremos que el libro flote.
+
+    var animacionFlotante = new TWEEN.Tween({ p : inicio }).to({ p : alturaMax }, 3000) 
+    .easing(TWEEN.Easing.Sinusoidal.InOut) 
+    .onUpdate(() => {
+      libro.position.y = animacionFlotante._object.p;
+    })
+    .repeat(Infinity) // Repetimos la animación infinitamente.
+    .yoyo(true) // Invertimos la animación al llegar al final.
+    .start();
 
     return libro;
   }
