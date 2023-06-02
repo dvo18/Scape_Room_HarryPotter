@@ -278,8 +278,25 @@ class MyScene extends THREE.Scene {
     var altura = 1;
 
     var mesa = this.decoracion.createMesa(ancho, largo, altura);
-    this.add(mesa);
+    mesa.position.x = this.dim.posX_centroArcos_array[0];
+    mesa.position.z = this.dim.posV2xz_columnas_array[0].y;
 
+    var mesa2 = this.decoracion.createMesa(ancho, largo, altura);
+    mesa2.position.x = this.dim.posX_centroArcos_array[0];
+    mesa2.position.z = -this.dim.posV2xz_columnas_array[0].y;
+
+    var mesa3 = this.decoracion.createMesa(ancho, largo, altura);
+    mesa3.position.x = this.dim.posX_centroArcos_array[1];
+    mesa3.position.z = this.dim.posV2xz_columnas_array[1].y;
+
+    var mesa4 = this.decoracion.createMesa(ancho, largo, altura);
+    mesa4.position.x = this.dim.posX_centroArcos_array[1];
+    mesa4.position.z = -this.dim.posV2xz_columnas_array[1].y;
+
+    this.add(mesa, mesa2, mesa3, mesa4);
+
+    var vela = this.decoracion.createVela();
+    this.add(vela);
 
     // ------------------- CALDERO -------------------
     var caldero = this.decoracion.createCaldero();
@@ -289,13 +306,11 @@ class MyScene extends THREE.Scene {
     caldero.scale.set(4.5, 4.5, 4.5);
     this.add(caldero);
 
-    // ------------------- PEDESTAL -------------------
-    // var pedestal = this.decoracion.createPedestal();
-    // pedestal.position.x = this.dim.posV2xz_centro_HabCircular_Lateral.x;
-    // pedestal.position.z = this.dim.posV2xz_centro_HabCircular_Lateral.y;
-
-    // pedestal.scale.set(0.3, 0.3, 0.3);
-    // this.add(pedestal);
+    // ------------------- ATRIL -------------------
+    var atril = this.decoracion.createAtril();
+    atril.position.x = this.dim.largo/2 - 0.8;
+    atril.position.z = -5;
+    this.add(atril);
 
     // ------------------- MANIQUI -------------------
     this.maniqui = new Maniqui(this.dim.radio_lateral);

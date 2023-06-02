@@ -96,26 +96,47 @@ class Decoracion extends THREE.Object3D {
     var mesa = new THREE.Object3D().add(tabla, pata, pata2, pata3, pata4);
     mesa.position.y = altura;
 
-    // ----------------------------------
+    // ----------------- TABURETES -----------------
 
     var taburete = this.createTaburete();
     var taburete2 = taburete.clone();
-    var taburete3 = taburete.clone();
-    var taburete4 = taburete.clone();
 
-    taburete.position.x = ancho/1.5;
-    taburete.position.z = largo/4;
+    taburete.position.z = largo/2;
+    taburete2.position.z = -largo/2;
 
-    taburete2.position.x = ancho/1.5;
-    taburete2.position.z = -largo/4;
+    var taburetes = new THREE.Object3D().add(taburete, taburete2);
 
-    taburete3.position.x = -ancho/1.5;
-    taburete3.position.z = largo/4;
+    // ----------------- DECORACION -----------------
 
-    taburete4.position.x = -ancho/1.5;
-    taburete4.position.z = -largo/4;
+    // ----- CALDERO -----
+    var caldero = this.createCaldero();
+    caldero.rotateY(Math.PI/2);
+    caldero.position.y = altura + 0.08;
 
-    var mesasysillas = new THREE.Object3D().add(mesa, taburete, taburete2, taburete3, taburete4);
+    // ----- POCIONES -----
+    var pocion = this.createPocion(0xD6DCDE, 0xCD8125, 0.2);
+    pocion.position.x = 0.5;
+    pocion.position.y = altura + 0.08;
+    pocion.position.z = 0.3;
+
+    // ----- CARTEL -----
+    var cartel_geom = new THREE.PlaneGeometry(0.3, 0.5);
+    var textura_cartel = this.texturaLoader.load("../imgs/cuadros/textura_papel_1.jpg");
+    var material2 = new THREE.MeshLambertMaterial({color: 0xFFFFFF, map: textura_cartel});
+    var cartel = new THREE.Mesh(cartel_geom, material2);
+
+   cartel.rotateX(-Math.PI/2);
+   cartel.rotateZ((120*Math.PI)/180);
+
+    cartel.position.x = 0.5;
+    cartel.position.y = altura + 0.08 + 0.0001;
+    cartel.position.z = -0.5;
+
+    var decoracion = new THREE.Object3D().add(caldero, pocion, cartel);
+
+    // ----------------- RESULTADO -----------------
+
+    var mesasysillas = new THREE.Object3D().add(mesa, taburetes, decoracion);
 
     return mesasysillas;
   }
@@ -143,6 +164,58 @@ class Decoracion extends THREE.Object3D {
     taburete.scale.z = 0.0013;
 
     return taburete;
+  }
+
+  // ---------------------------------------------------------------
+
+  createAtril(){
+    // Creamos un objeto 3D para el atril.
+    var atril = new THREE.Object3D();
+    var textura_madera = this.texturaLoader.load("../imgs/textura_madera.jpg");
+    var material = new THREE.MeshLambertMaterial({color: 0x745E45, map: textura_madera});
+
+    // Cargamos la figura OBJ:
+    this.objetoLoader.load('../modelos/atril/Podium.obj',
+    (a) => {
+        a.children.forEach((child) => {
+          child.material = material;
+        });
+        
+        atril.add(a); // Lo añadimos al taburete.
+    }, null, null);
+
+    atril.scale.x = 0.02;
+    atril.scale.y = 0.02;
+    atril.scale.z = 0.02;
+
+    atril.rotateY(Math.PI/2);
+
+    return atril;
+  }
+
+  // ---------------------------------------------------------------
+
+  createVela(){
+    // Creamos un objeto 3D para la vela.
+    var vela = new THREE.Object3D();
+    var textura_madera = this.texturaLoader.load("../imgs/textura_madera.jpg");
+    var material = new THREE.MeshLambertMaterial({color: 0x745E45, map: textura_madera});
+
+    // Cargamos la figura OBJ:
+    this.objetoLoader.load('../modelos/vela_1/lantern2.obj',
+    (v) => {
+        // a.children.forEach((child) => {
+        //   child.material = material;
+        // });
+        
+        vela.add(v); // Lo añadimos al taburete.
+    }, null, null);
+
+    // vela.scale.x = 0.02;
+    // vela.scale.y = 0.02;
+    // vela.scale.z = 0.02;
+
+    return vela;
   }
 
   // ---------------------------------------------------------------
