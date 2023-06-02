@@ -26,6 +26,8 @@ class MyScene extends THREE.Scene {
     // Con esta variable controlamos si están las colisiones activadas o desactivadas.
     this.colisiones = true;
     this.sombras = true;
+    
+    this.distancia_seleccion = 5;
 
     // ------------------ BOOLEANOS CONDICIONALES ------------------
 
@@ -459,6 +461,13 @@ class MyScene extends THREE.Scene {
     this.add(cuadro7, cuadro8, cuadro9, cuadro10);
 
 
+    // ------------------- LIBRO ESPECIAL -------------------
+    this.libro = this.decoracion.createLibroEspecial();
+    this.libro.scale.set(0.75,0.75,0.75);
+    this.libro.position.y = 1.5;
+    this.add(this.libro);
+
+
     // ------------------- SOMBRAS -------------------
     this.renderer.shadowMap.enabled = this.sombras;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -551,7 +560,7 @@ class MyScene extends THREE.Scene {
     if (this.objetos_apuntados_siluetas.length > 0) {
       this.todos_objetos = this.rayo_siluetas.intersectObjects(this.children, true);
 
-      if (this.todos_objetos[0].distance >= this.objetos_apuntados_siluetas[0].distance) {
+      if (this.todos_objetos[0].distance >= this.objetos_apuntados_siluetas[0].distance && this.objetos_apuntados_siluetas[0].distance <= this.distancia_seleccion) {
         var seleccionado = null;
 
         if (this.objetos_apuntados_siluetas[0].object.userData instanceof THREE.Object3D)
@@ -782,7 +791,7 @@ class MyScene extends THREE.Scene {
 
       this.todos_objetos = this.rayo_mouse.intersectObjects(this.children, true);
 
-      if (this.todos_objetos[0].distance >= pickedObjects[0].distance) {
+      if (this.todos_objetos[0].distance >= pickedObjects[0].distance && pickedObjects[0].distance <= this.distancia_seleccion) {
       
         if (pickedObjects[0].object.userData instanceof THREE.Object3D)
           seleccionado = pickedObjects[0].object.userData;
