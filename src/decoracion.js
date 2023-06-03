@@ -49,14 +49,61 @@ class Decoracion extends THREE.Object3D {
 
     estanteria.scale.y = 1.5;
 
-    return estanteria;
+    // --------------------- DECORACION DE LA ESTANTERÍA ---------------------
+    var estanteria_final = new THREE.Object3D().add(estanteria);
+
+    // -------------------------------------------------------------------------
+    // Creamos y posicionamos las pociones en la primera balda de la estantería.
+    var cantidadPociones = 8; // Número de pociones.
+    var espacioEntrePociones = (largo - 0.05) / cantidadPociones; // Espacio entre cada poción.
+
+    for (var i = 0; i < cantidadPociones; i++) {
+      var colorLiquido = Math.random() * 0xFFFFFF; // Genera un número aleatorio entre 0 y 0xffffff para que las pociones tengan diferentes colores.
+      var pocion = this.createPocion(0xD6DCDE, colorLiquido, 0.3);
+      pocion.position.x = (i - cantidadPociones / 2 + 0.5) * espacioEntrePociones; // Posiciona las pociones en toda la estantería.
+      pocion.position.y = 0.55 + 0.3; 
+
+      estanteria_final.add(pocion);
+    }
+
+    // -------------------------------------------------------------------------
+    // Creamos y posicionamos los libros en la segunda balda de la estantería.
+
+    var cantidadLibros = 27; // Número de libros.
+    var espacioEntreLibros = (largo - 0.05) / cantidadLibros; // Espacio entre cada libro.
+
+    for (var i = 0; i < cantidadLibros; i++) {
+      var libro = this.createLibroEspecial();
+      
+      libro.scale.set(0.35, 0.35, 0.35);
+      libro.rotateY(-Math.PI/2);
+
+      libro.position.x = (i - cantidadLibros / 2 + 0.5) * espacioEntreLibros; // Posiciona las pociones en toda la estantería.
+      libro.position.y = 0.55; 
+
+      estanteria_final.add(libro);
+    }
+
+    // -------------------------------------------------------------------------
+    // Creamos y posicionamos los frascos en la última balda de la estantería.
+    var cantidadFrascos = 8; // Número de pociones.
+    var espacioEntreFrascos = (largo - 0.05) / cantidadFrascos; // Espacio entre cada poción.
+
+    for (var i = 0; i < cantidadPociones; i++) {
+      var colorLiquido = Math.random() * 0xFFFFFF; // Genera un número aleatorio entre 0 y 0xffffff para que las pociones tengan diferentes colores.
+      var frasco = this.createFrasco(0xD6DCDE, colorLiquido);
+
+      frasco.scale.set(0.6, 0.6, 0.6);
+      frasco.position.x = (i - cantidadFrascos / 2 + 0.5) * espacioEntreFrascos; // Posiciona las pociones en toda la estantería.
+      frasco.position.y = 0.05;; 
+
+      estanteria_final.add(frasco);
+    }
+
+    // ----------------------------
+  
+    return estanteria_final;
   }
-
-  // ---------------------------------------------------------------
-
-  // createLibro(){
-    
-  // }
 
   // ---------------------------------------------------------------
 
@@ -73,12 +120,6 @@ class Decoracion extends THREE.Object3D {
       new THREE.MeshLambertMaterial({ map: t2 }), // Cara inferior
       new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_canto.jpg') }), // Cara izquierda
       new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_costado_l.jpg') })  // Cara derecha
-      /*new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_canto.jpg') }), // Cara frontal
-      new THREE.MeshLambertMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_costado_l.jpg') }), // Cara trasera
-      new THREE.MeshLambertMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_costado_aa.jpg') }), // Cara superior
-      new THREE.MeshLambertMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_costado_aa.jpg') }), // Cara inferior
-      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_trasera.jpg') }), // Cara izquierda
-      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_delantera.jpg') })  // Cara derecha*/
     ];
 
     var geometriaLibro = new THREE.BoxGeometry(0.15, 1, 0.75);
@@ -89,20 +130,6 @@ class Decoracion extends THREE.Object3D {
     libro.rotation.y = -Math.PI/2;
 
     libro = new THREE.Object3D().add(libro);
-    
-    // ---------------------------------- ANIMACIÓN ----------------------------------
-    // Hemos hecho una animación para simular que el libro está flotando mágicamente.
-    var inicio = 1.8;
-    var alturaMax = inicio + 0.3; // Altura máxima a la que queremos que el libro flote.
-
-    var animacionFlotante = new TWEEN.Tween({ p : inicio }).to({ p : alturaMax }, 3000) 
-    .easing(TWEEN.Easing.Sinusoidal.InOut) 
-    .onUpdate(() => {
-      libro.position.y = animacionFlotante._object.p;
-    })
-    .repeat(Infinity) // Repetimos la animación infinitamente.
-    .yoyo(true) // Invertimos la animación al llegar al final.
-    .start();
 
     return libro;
   }
@@ -163,31 +190,72 @@ class Decoracion extends THREE.Object3D {
     caldero.position.y = altura + 0.08;
 
     // ----- POCIONES -----
-    var pocion = this.createPocion(0xD6DCDE, 0xCD8125, 0.2);
+    var pocion = this.createPocion(0xD6DCDE, 0xCD8125, 0.3);
     pocion.position.x = 0.5;
     pocion.position.y = altura + 0.08;
     pocion.position.z = 0.3;
 
     // ----- CARTEL -----
-    var cartel_geom = new THREE.PlaneGeometry(0.3, 0.5);
+    var cartel_geom = new THREE.PlaneGeometry(0.4, 0.5);
     var textura_cartel = this.texturaLoader.load("../imgs/cuadros/textura_papel_1.jpg");
     var material2 = new THREE.MeshLambertMaterial({color: 0xFFFFFF, map: textura_cartel});
     var cartel = new THREE.Mesh(cartel_geom, material2);
 
-   cartel.rotateX(-Math.PI/2);
-   cartel.rotateZ((120*Math.PI)/180);
+    cartel.rotateX(-Math.PI/2);
+    cartel.rotateZ((120*Math.PI)/180);
 
     cartel.position.x = 0.5;
     cartel.position.y = altura + 0.08 + 0.0001;
     cartel.position.z = -0.5;
 
-    var decoracion = new THREE.Object3D().add(caldero, pocion, cartel);
+    // ----- VELAS -----
+    var velas = this.createVela();
+
+    velas.position.x = -0.5;
+    velas.position.y = altura + 0.08 + 0.0001;
+    velas.position.z = -0.6;
+
+    // ----- FIGURA -----
+    var figura = this.createFigura();
+
+    figura.position.x = -0.5;
+    figura.position.y = altura + 0.08 + 0.23 + 0.0001;
+    figura.position.z = 0.8;
+
+    // -------------------------------
+
+    var decoracion = new THREE.Object3D().add(caldero, pocion, cartel, velas, figura);
 
     // ----------------- RESULTADO -----------------
 
     var mesasysillas = new THREE.Object3D().add(mesa, taburetes, decoracion);
 
     return mesasysillas;
+  }
+
+  // ---------------------------------------------------------------
+
+  createAlfombra(ancho, largo){
+    // Vamos a crear una alfombra para situarla en mitad de la sala.
+    var alfombra_geom = new THREE.PlaneGeometry(ancho, largo);
+    var textura_alfombra = this.texturaLoader.load("../imgs/textura_alfombra.png");
+
+    textura_alfombra.wrapS = THREE.RepeatWrapping; // Repetir en dirección U.
+    textura_alfombra.wrapT = THREE.RepeatWrapping; // Repetir en dirección V.
+    textura_alfombra.repeat.set(2, 2);
+
+    var material = new THREE.MeshLambertMaterial({color: 0x8290D5, map: textura_alfombra});
+    var alfombra = new THREE.Mesh(alfombra_geom, material);
+
+    // Posicionamos correctamente la alfombra:
+    alfombra.rotateX(-Math.PI/2);
+    alfombra.rotateZ((90*Math.PI)/180);
+    alfombra.position.y = 0.001;
+
+    // -----------------------------
+    var alfombra_final = new THREE.Object3D().add(alfombra);
+
+    return alfombra_final;
   }
 
   // ---------------------------------------------------------------
@@ -212,7 +280,50 @@ class Decoracion extends THREE.Object3D {
     taburete.scale.y = 0.0013;
     taburete.scale.z = 0.0013;
 
-    return taburete;
+    var taburete_final = new THREE.Object3D().add(taburete);
+
+    return taburete_final;
+  }
+
+  // ---------------------------------------------------------------
+
+  createFigura(){
+    var figura = new THREE.Object3D();
+    var textura_figura = this.texturaLoader.load("../imgs/textura_marmol.jpg");
+    var material = new THREE.MeshLambertMaterial({color: 0xFFFFFF, map: textura_figura});
+
+    // ------------------ BASE ------------------
+    this.objetoLoader.load('../modelos/figura/base.obj',
+    (base) => {
+        base.children.forEach((child) => {
+          child.material = material;
+        });
+
+        figura.add(base); // Lo añadimos a la figura.
+    }, null, null);
+
+    // ------------------ CUERPO ------------------
+    this.objetoLoader.load('../modelos/figura/bust_solo.obj',
+    (cuerpo) => {
+        cuerpo.children.forEach((child) => {
+          child.material = material;
+        });
+
+        cuerpo.position.y = 2;
+        figura.add(cuerpo); // Lo añadimos a la figura.
+    }, null, null);
+
+    figura.scale.x = 0.01;
+    figura.scale.y = 0.01;
+    figura.scale.z = 0.01;
+
+    figura.rotateY(Math.PI/2);
+
+    // ------------------------
+
+    var figura_final = new THREE.Object3D().add(figura);
+
+    return figura_final;
   }
 
   // ---------------------------------------------------------------
@@ -251,20 +362,24 @@ class Decoracion extends THREE.Object3D {
     var material = new THREE.MeshLambertMaterial({color: 0x745E45, map: textura_madera});
 
     // Cargamos la figura OBJ:
-    this.objetoLoader.load('../modelos/vela_1/lantern2.obj',
-    (v) => {
-        // a.children.forEach((child) => {
-        //   child.material = material;
-        // });
-        
-        vela.add(v); // Lo añadimos al taburete.
-    }, null, null);
+    this.materialLoader.load('../modelos/vela/Candles.mtl',
+    (materiales) => {
+      this.objetoLoader.setMaterials(materiales);
+      this.objetoLoader.load('../modelos/vela/Candles.obj',
+        (aux) => {
+          vela.add(aux); // Añadimos la base del caldero.
+        }, null, null);
+    });
 
-    // vela.scale.x = 0.02;
-    // vela.scale.y = 0.02;
-    // vela.scale.z = 0.02;
+    vela.scale.x = 0.09;
+    vela.scale.y = 0.09;
+    vela.scale.z = 0.09;
 
-    return vela;
+    vela.rotateY(Math.PI/2);
+
+    var vela_final = new THREE.Object3D().add(vela);
+
+    return vela_final;
   }
 
   // ---------------------------------------------------------------
@@ -549,7 +664,7 @@ class Decoracion extends THREE.Object3D {
     var pocion_base = new THREE.Mesh(geometria, material);
 
     // ------------ CONTENIDO ------------
-    var liquido_geom = new THREE.CylinderGeometry(0.09, 0.09, 0.2, 20);
+    var liquido_geom = new THREE.CylinderGeometry(0.09, 0.09, altura/2 + 0.1, 20);
     var material2 = new THREE.MeshLambertMaterial({color: colorLiquido});
 
     var liquido = new THREE.Mesh(liquido_geom, material2);

@@ -87,12 +87,6 @@ class MyScene extends THREE.Scene {
     // Tras crear cada elemento se añadirá a la escena con   this.add(variable)
     this.createLights ();
 
-    // Y unos ejes. Imprescindibles para orientarnos sobre dónde están las cosas
-    /*this.axis = new THREE.AxesHelper (5);
-    this.add (this.axis);*/
-
-    //this.axis.visible.value = false;
-
     this.h_estructura = new H_estructura( {grosor: 0.1, alto: 3, largo: 20, profundidad: 16, techo_visible: true, radio_mayor: 3, radio_menor: 3.5, porcentaje_pared: 3.5/20});
     this.add(this.h_estructura);
 
@@ -283,22 +277,40 @@ class MyScene extends THREE.Scene {
     mesa.position.x = this.dim.posX_centroArcos_array[0];
     mesa.position.z = this.dim.posV2xz_columnas_array[0].y;
 
+    var taburete = this.decoracion.createTaburete();
+    taburete.position.x = this.dim.posX_centroArcos_array[0];
+    taburete.position.z = this.dim.posV2xz_columnas_array[0].y + largo/2;
+
+    // -----------------
+
     var mesa2 = this.decoracion.createMesa(ancho, largo, altura);
     mesa2.position.x = this.dim.posX_centroArcos_array[0];
     mesa2.position.z = -this.dim.posV2xz_columnas_array[0].y;
+
+    var taburete2 = this.decoracion.createTaburete();
+    taburete2.position.x = this.dim.posX_centroArcos_array[0];
+    taburete2.position.z = -this.dim.posV2xz_columnas_array[0].y - largo/2;
+
+    // -----------------
 
     var mesa3 = this.decoracion.createMesa(ancho, largo, altura);
     mesa3.position.x = this.dim.posX_centroArcos_array[1];
     mesa3.position.z = this.dim.posV2xz_columnas_array[1].y;
 
+    // -----------------
+
     var mesa4 = this.decoracion.createMesa(ancho, largo, altura);
     mesa4.position.x = this.dim.posX_centroArcos_array[1];
     mesa4.position.z = -this.dim.posV2xz_columnas_array[1].y;
 
+    // -----------------
+
+    this.add(taburete, taburete2);
     this.add(mesa, mesa2, mesa3, mesa4);
 
-    var vela = this.decoracion.createVela();
-    this.add(vela);
+    // ------------------- ALFOMBRA -------------------
+    var alfombra = this.decoracion.createAlfombra(3, 15);
+    this.add(alfombra);
 
     // ------------------- CALDERO -------------------
     var caldero = this.decoracion.createCaldero();
@@ -308,7 +320,8 @@ class MyScene extends THREE.Scene {
     caldero.scale.set(4.5, 4.5, 4.5);
     this.add(caldero);
 
-    // ------------------- ATRIL y LIBRO-------------------
+    // ------------------- ATRILES y LIBROS-------------------
+    // Para el atril de la parte izquierda, con el libro mostrando la portada:
     var atril = this.decoracion.createAtril();
     atril.position.x = this.dim.largo/2 - 0.8;
     atril.position.z = -5;
@@ -322,7 +335,46 @@ class MyScene extends THREE.Scene {
     libro.position.y = 1.8;
     libro.position.z = -5;
 
-    this.add(libro);
+    // ---------------------------------- ANIMACIÓN ----------------------------------
+    // Hemos hecho una animación para simular que el libro está flotando mágicamente.
+    var inicio = 1.8;
+    var alturaMax = inicio + 0.3; // Altura máxima a la que queremos que el libro flote.
+
+    var animacionFlotante = new TWEEN.Tween({ p : inicio }).to({ p : alturaMax }, 3000) 
+    .easing(TWEEN.Easing.Sinusoidal.InOut) 
+    .onUpdate(() => {
+      libro.position.y = animacionFlotante._object.p;
+    })
+    .repeat(Infinity) // Repetimos la animación infinitamente.
+    .yoyo(true) // Invertimos la animación al llegar al final.
+    .start();
+
+    // Para el atril de la parte derecha, con el libro mostrando la contraportada:
+    var atril2 = this.decoracion.createAtril();
+    atril2.position.x = this.dim.largo/2 - 0.8;
+    atril2.position.z = 5;
+    this.add(atril2);
+
+    var libro2 = this.decoracion.createLibroEspecial();
+    libro2.rotateY(Math.PI/2);
+    libro2.rotateX((45*Math.PI)/180);
+
+    libro2.position.x = this.dim.largo/2 - 0.65;
+    libro2.position.y = 1.8;
+    libro2.position.z = 5;
+
+    // ---------------------------------- ANIMACIÓN ----------------------------------
+
+    var animacionFlotante = new TWEEN.Tween({ p : inicio }).to({ p : alturaMax }, 3000) 
+    .easing(TWEEN.Easing.Sinusoidal.InOut) 
+    .onUpdate(() => {
+      libro2.position.y = animacionFlotante._object.p;
+    })
+    .repeat(Infinity) // Repetimos la animación infinitamente.
+    .yoyo(true) // Invertimos la animación al llegar al final.
+    .start();
+
+    this.add(libro, libro2);
 
     // ------------------- MANIQUI -------------------
     this.maniqui = new Maniqui(this.dim.radio_lateral);
@@ -492,6 +544,8 @@ class MyScene extends THREE.Scene {
     
   }
   
+  // ---------------------------------------------------------------------
+
   createCamera () {
     // Para crear una cámara le indicamos
     //   El ángulo del campo de visión en grados sexagesimales
