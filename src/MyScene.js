@@ -15,6 +15,7 @@ import { Maniqui } from './maniqui.js'
 
 import { OBJLoader } from '../libs/OBJLoader.js'
 import { MTLLoader } from '../libs/MTLLoader.js'
+import { CSG } from '../libs/CSG-v2.js'
 
 
 const PI = Math.PI;
@@ -24,7 +25,7 @@ class MyScene extends THREE.Scene {
     super();
 
     // Con esta variable controlamos si están las colisiones activadas o desactivadas.
-    this.colisiones = true;
+    this.colisiones = false; //true;
     this.sombras = true;
     
     this.distancia_seleccion = 5;
@@ -224,11 +225,11 @@ class MyScene extends THREE.Scene {
 
     // ------------------- ESTANTERÍAS -------------------
 
-    var estanteria = this.decoracion.createEstanteria(this.dim.dist_anchoArcos_estanteria/2);
+    //var estanteria = this.decoracion.createEstanteria(this.dim.dist_anchoArcos_estanteria/2);
 
     for (let i in this.dim.posX_centroArcos_array) {
-      var estanteriaIzq = estanteria.clone();
-      var estanteriaDer = estanteria.clone();
+      var estanteriaIzq = this.decoracion.createEstanteria(this.dim.dist_anchoArcos_estanteria/2);//estanteria.clone();
+      var estanteriaDer = this.decoracion.createEstanteria(this.dim.dist_anchoArcos_estanteria/2);//estanteria.clone();
       estanteriaIzq.position.x = this.dim.posX_centroArcos_array[i] + this.dim.dist_anchoArcos_estanteria/4;
       estanteriaDer.position.x = this.dim.posX_centroArcos_array[i] - this.dim.dist_anchoArcos_estanteria/4;
 
@@ -239,8 +240,12 @@ class MyScene extends THREE.Scene {
     }
 
     for (let i in this.dim.posX_centroArcos_array) {
-      var estanteriaIzq = estanteria.clone();
-      var estanteriaDer = estanteria.clone();
+      var estanteriaIzq = this.decoracion.createEstanteria(this.dim.dist_anchoArcos_estanteria/2);//estanteria.clone();
+      var estanteriaDer = this.decoracion.createEstanteria(this.dim.dist_anchoArcos_estanteria/2);//estanteria.clone();
+
+      estanteriaIzq.rotation.y = PI;
+      estanteriaDer.rotation.y = PI;
+
       estanteriaIzq.position.x = this.dim.posX_centroArcos_array[i] + this.dim.dist_anchoArcos_estanteria/4;
       estanteriaDer.position.x = this.dim.posX_centroArcos_array[i] - this.dim.dist_anchoArcos_estanteria/4;
 
@@ -277,19 +282,11 @@ class MyScene extends THREE.Scene {
     mesa.position.x = this.dim.posX_centroArcos_array[0];
     mesa.position.z = this.dim.posV2xz_columnas_array[0].y;
 
-    var taburete = this.decoracion.createTaburete();
-    taburete.position.x = this.dim.posX_centroArcos_array[0];
-    taburete.position.z = this.dim.posV2xz_columnas_array[0].y + largo/2;
-
     // -----------------
 
     var mesa2 = this.decoracion.createMesa(ancho, largo, altura);
     mesa2.position.x = this.dim.posX_centroArcos_array[0];
     mesa2.position.z = -this.dim.posV2xz_columnas_array[0].y;
-
-    var taburete2 = this.decoracion.createTaburete();
-    taburete2.position.x = this.dim.posX_centroArcos_array[0];
-    taburete2.position.z = -this.dim.posV2xz_columnas_array[0].y - largo/2;
 
     // -----------------
 
@@ -305,11 +302,16 @@ class MyScene extends THREE.Scene {
 
     // -----------------
 
-    this.add(taburete, taburete2);
     this.add(mesa, mesa2, mesa3, mesa4);
+    
+    // ------------------- SNITCH -------------------
+    /*var snitch = this.decoracion.createSnitch(this.dim);
+    this.add(snitch);*/
+
 
     // ------------------- ALFOMBRA -------------------
-    var alfombra = this.decoracion.createAlfombra(3, 15);
+    var alfombra = this.decoracion.createAlfombra(3, 10);
+    alfombra.position.x = 1.5;
     this.add(alfombra);
 
     // ------------------- CALDERO -------------------
@@ -329,15 +331,15 @@ class MyScene extends THREE.Scene {
 
     var libro = this.decoracion.createLibroEspecial();
     libro.rotateY(-Math.PI/2);
-    libro.rotateX((-45*Math.PI)/180);
+    libro.rotateX((-30*Math.PI)/180);
 
-    libro.position.x = this.dim.largo/2 - 0.65;
-    libro.position.y = 1.8;
+    libro.position.x = this.dim.largo/2 - 0.75;
+    libro.position.y = 1.4;
     libro.position.z = -5;
 
     // ---------------------------------- ANIMACIÓN ----------------------------------
     // Hemos hecho una animación para simular que el libro está flotando mágicamente.
-    var inicio = 1.8;
+    var inicio = 1.4;
     var alturaMax = inicio + 0.3; // Altura máxima a la que queremos que el libro flote.
 
     var animacionFlotante = new TWEEN.Tween({ p : inicio }).to({ p : alturaMax }, 3000) 
@@ -357,10 +359,10 @@ class MyScene extends THREE.Scene {
 
     var libro2 = this.decoracion.createLibroEspecial();
     libro2.rotateY(Math.PI/2);
-    libro2.rotateX((45*Math.PI)/180);
+    libro2.rotateX((30*Math.PI)/180);
 
-    libro2.position.x = this.dim.largo/2 - 0.65;
-    libro2.position.y = 1.8;
+    libro2.position.x = this.dim.largo/2 - 0.75;
+    libro2.position.y = 1.4;
     libro2.position.z = 5;
 
     // ---------------------------------- ANIMACIÓN ----------------------------------
@@ -386,6 +388,21 @@ class MyScene extends THREE.Scene {
 
     this.add(this.maniqui);
 
+    var cubo = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshLambertMaterial({color: '#FFFFFF'}));
+    var cubo2 = cubo.clone();
+
+    cubo.scale.set(this.dim.radio_lateral*2,0.8,this.dim.radio_lateral);
+
+    cubo2.scale.set(1.5,0.8,this.dim.radio_lateral*0.625*2);
+    cubo2.position.z = -this.dim.radio_lateral*0.625;
+
+    cubo = new CSG().union([cubo,cubo2]).toMesh();
+
+    cubo.position.x = this.dim.posV2xz_centro_HabCircular_Lateral.x;
+    cubo.position.z = this.dim.posV2xz_centro_HabCircular_Lateral.y + this.dim.radio_lateral/2;
+    cubo.position.y = 0.4;
+
+    this.add(cubo);
 
     // ------------------- PENSADERO -------------------
     var pensadero = this.decoracion.createPensadero();

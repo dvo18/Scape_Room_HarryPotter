@@ -72,16 +72,22 @@ class Decoracion extends THREE.Object3D {
     var cantidadLibros = 27; // Número de libros.
     var espacioEntreLibros = (largo - 0.05) / cantidadLibros; // Espacio entre cada libro.
 
+    var libro = this.createLibroEspecial();
+    libro.scale.set(0.35, 1, 0.35);
+    libro.rotateY(Math.PI/2);
+
     for (var i = 0; i < cantidadLibros; i++) {
-      var libro = this.createLibroEspecial();
+      var l = libro.clone();
+      var alt = Math.random() * (0.35 - 0.25) + 0.25; // Genera un número aleatorio entre 0.25 y 0.35 para que los libros tengan diferentes alturas.
       
-      libro.scale.set(0.35, 0.35, 0.35);
-      libro.rotateY(-Math.PI/2);
+      l.scale.y = alt;
 
-      libro.position.x = (i - cantidadLibros / 2 + 0.5) * espacioEntreLibros; // Posiciona las pociones en toda la estantería.
-      libro.position.y = 0.55; 
+      //l.rotateY(PI);
 
-      estanteria_final.add(libro);
+      l.position.x = (i - cantidadLibros / 2 + 0.5) * espacioEntreLibros; // Posiciona las pociones en toda la estantería.
+      l.position.y = 0.4;
+
+      estanteria_final.add(l); 
     }
 
     // -------------------------------------------------------------------------
@@ -94,8 +100,9 @@ class Decoracion extends THREE.Object3D {
       var frasco = this.createFrasco(0xD6DCDE, colorLiquido);
 
       frasco.scale.set(0.6, 0.6, 0.6);
+      frasco.rotateY(Math.PI);
       frasco.position.x = (i - cantidadFrascos / 2 + 0.5) * espacioEntreFrascos; // Posiciona las pociones en toda la estantería.
-      frasco.position.y = 0.05;; 
+      frasco.position.y = 0.05;
 
       estanteria_final.add(frasco);
     }
@@ -128,6 +135,7 @@ class Decoracion extends THREE.Object3D {
     var libro = new THREE.Mesh( geometriaLibro, materials);
 
     libro.rotation.y = -Math.PI/2;
+    libro.position.y = 0.5;
 
     libro = new THREE.Object3D().add(libro);
 
@@ -175,7 +183,7 @@ class Decoracion extends THREE.Object3D {
     // ----------------- TABURETES -----------------
 
     var taburete = this.createTaburete();
-    var taburete2 = taburete.clone();
+    var taburete2 = this.createTaburete();
 
     taburete.position.z = largo/2;
     taburete2.position.z = -largo/2;
@@ -185,7 +193,7 @@ class Decoracion extends THREE.Object3D {
     // ----------------- DECORACION -----------------
 
     // ----- CALDERO -----
-    var caldero = this.createCaldero();
+    var caldero = this.createCaldero(false);
     caldero.rotateY(Math.PI/2);
     caldero.position.y = altura + 0.08;
 
@@ -222,9 +230,16 @@ class Decoracion extends THREE.Object3D {
     figura.position.y = altura + 0.08 + 0.23 + 0.0001;
     figura.position.z = 0.8;
 
+
+    // ----- TAZA -----
+    var taza = this.createCalderoMesa();
+    taza.rotateY(Math.random() * 2*Math.PI);
+    taza.position.y = altura + 0.08 + 0.0001;
+    taza.position.z = -0.8;
+
     // -------------------------------
 
-    var decoracion = new THREE.Object3D().add(caldero, pocion, cartel, velas, figura);
+    var decoracion = new THREE.Object3D().add(caldero, pocion, cartel, velas, figura, taza);
 
     // ----------------- RESULTADO -----------------
 
@@ -267,7 +282,7 @@ class Decoracion extends THREE.Object3D {
     var material = new THREE.MeshLambertMaterial({color: 0x745E45, map: textura_madera});
 
     // Cargamos la figura OBJ:
-    this.objetoLoader.load('../modelos/taburete/tab.obj',
+    new OBJLoader().load('../modelos/taburete/tab.obj',
     (tab) => {
         tab.children.forEach((child) => {
           child.material = material;
@@ -290,27 +305,21 @@ class Decoracion extends THREE.Object3D {
   createFigura(){
     var figura = new THREE.Object3D();
     var textura_figura = this.texturaLoader.load("../imgs/textura_marmol.jpg");
-    var material = new THREE.MeshLambertMaterial({color: 0xFFFFFF, map: textura_figura});
+    var material = new THREE.MeshPhongMaterial({color: 0xFFFFFF, map: textura_figura});
 
     // ------------------ BASE ------------------
     this.objetoLoader.load('../modelos/figura/base.obj',
     (base) => {
-        base.children.forEach((child) => {
-          child.material = material;
-        });
-
-        figura.add(base); // Lo añadimos a la figura.
+      base.children[0].material = material;
+      figura.add(base); // Lo añadimos a la figura.
     }, null, null);
 
     // ------------------ CUERPO ------------------
     this.objetoLoader.load('../modelos/figura/bust_solo.obj',
     (cuerpo) => {
-        cuerpo.children.forEach((child) => {
-          child.material = material;
-        });
-
-        cuerpo.position.y = 2;
-        figura.add(cuerpo); // Lo añadimos a la figura.
+      cuerpo.children[0].material = material;
+      cuerpo.position.y = 2;
+      figura.add(cuerpo); // Lo añadimos a la figura.
     }, null, null);
 
     figura.scale.x = 0.01;
@@ -384,7 +393,7 @@ class Decoracion extends THREE.Object3D {
 
   // ---------------------------------------------------------------
 
-  createCaldero(){
+  createCaldero(booleano = true){
     // --------- TEXTURAS ---------
     var textura_caldero = this.texturaLoader.load ('../imgs/textura_caldero_2.jpg');
     var textura_liquido = this.texturaLoader.load('../imgs/textura_liquido.jpg');
@@ -407,133 +416,135 @@ class Decoracion extends THREE.Object3D {
     var cuerpo = new THREE.Mesh(geometria1, material1);
 
     // ------------ CONTENIDO  ------------
-    var liquido_geom = new THREE.CircleGeometry(0.12, 20);
-    var burbujas_geom = new THREE.SphereGeometry(0.01, 20, 20);
-    var material2 = new THREE.MeshPhongMaterial({color: 0x8FC269, map: textura_liquido});
 
-    var liquido = new THREE.Mesh(liquido_geom, material2);
-    liquido.rotateX(-Math.PI/2);
-    liquido.position.y = 0.25;
+      var liquido_geom = new THREE.CircleGeometry(0.12, 20);
+      var burbujas_geom = new THREE.SphereGeometry(0.01, 20, 20);
+      var material2 = new THREE.MeshPhongMaterial({color: 0x8FC269, map: textura_liquido});
 
-    var burbuja = new THREE.Mesh(burbujas_geom, material2);
-    burbuja.position.y = 0.25;
+      var liquido = new THREE.Mesh(liquido_geom, material2);
+      liquido.rotateX(-Math.PI/2);
+      liquido.position.y = 0.25;
 
-    var burbuja2 = burbuja.clone();
-    var burbuja3 = burbuja.clone();
-    var burbuja4 = burbuja.clone();
+    if (booleano) {
+      var burbuja = new THREE.Mesh(burbujas_geom, material2);
+      burbuja.position.y = 0.25;
 
-    // Posiciones de las burbujas.
+      var burbuja2 = burbuja.clone();
+      var burbuja3 = burbuja.clone();
+      var burbuja4 = burbuja.clone();
 
-    burbuja.position.x = 0.08;
-    burbuja.position.z = 0.02;
+      // Posiciones de las burbujas.
 
-    burbuja2.scale.set(1.4, 1.4, 1.4);
-    burbuja2.position.x = -0.02;
-    burbuja2.position.z = -0.05;
+      burbuja.position.x = 0.08;
+      burbuja.position.z = 0.02;
 
-    burbuja3.position.x = -0.06;
+      burbuja2.scale.set(1.4, 1.4, 1.4);
+      burbuja2.position.x = -0.02;
+      burbuja2.position.z = -0.05;
 
-    burbuja4.scale.set(1.4, 1.4, 1.4);
-    burbuja4.position.x = 0.03;
-    burbuja4.position.z = 0.05;
+      burbuja3.position.x = -0.06;
 
-    // ------------------------------------
-    // Vamos a animar las burbujas para que suban y bajen, para simular que el líquido está hirviendo.
-    var splineBurbuja1 = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0.08, 0.256, 0.02),
-      new THREE.Vector3(0.08, 0.22, 0.02),
-      new THREE.Vector3(0.08, 0.19, 0.02),
-      new THREE.Vector3(0.08, 0.15, 0.02)
-    ]);
+      burbuja4.scale.set(1.4, 1.4, 1.4);
+      burbuja4.position.x = 0.03;
+      burbuja4.position.z = 0.05;
 
-    var splineBurbuja2 = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-0.02, 0.256, -0.05),
-      new THREE.Vector3(-0.02, 0.22, -0.05),
-      new THREE.Vector3(-0.02, 0.19, -0.05),
-      new THREE.Vector3(-0.02, 0.15, -0.05)
-    ]);
+      // ------------------------------------
+      // Vamos a animar las burbujas para que suban y bajen, para simular que el líquido está hirviendo.
+      var splineBurbuja1 = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0.08, 0.256, 0.02),
+        new THREE.Vector3(0.08, 0.22, 0.02),
+        new THREE.Vector3(0.08, 0.19, 0.02),
+        new THREE.Vector3(0.08, 0.15, 0.02)
+      ]);
 
-    var splineBurbuja3 = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-0.06, 0.256, 0.0),
-      new THREE.Vector3(-0.06, 0.22, 0.0),
-      new THREE.Vector3(-0.06, 0.19, 0.0),
-      new THREE.Vector3(-0.06, 0.15, 0.0)
-    ]);
+      var splineBurbuja2 = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.02, 0.256, -0.05),
+        new THREE.Vector3(-0.02, 0.22, -0.05),
+        new THREE.Vector3(-0.02, 0.19, -0.05),
+        new THREE.Vector3(-0.02, 0.15, -0.05)
+      ]);
 
-    var splineBurbuja4 = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0.03, 0.265, 0.05),
-      new THREE.Vector3(0.03, 0.22, 0.05),
-      new THREE.Vector3(0.03, 0.19, 0.05),
-      new THREE.Vector3(0.03, 0.15, 0.05)
-    ]);
+      var splineBurbuja3 = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.06, 0.256, 0.0),
+        new THREE.Vector3(-0.06, 0.22, 0.0),
+        new THREE.Vector3(-0.06, 0.19, 0.0),
+        new THREE.Vector3(-0.06, 0.15, 0.0)
+      ]);
 
-    
-    var origen = { p : 0 } ; // 0 representa el principio.
-    var destino = { p : 1 } ; // representa el final.
-    var duracion = 2500;
+      var splineBurbuja4 = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0.03, 0.265, 0.05),
+        new THREE.Vector3(0.03, 0.22, 0.05),
+        new THREE.Vector3(0.03, 0.19, 0.05),
+        new THREE.Vector3(0.03, 0.15, 0.05)
+      ]);
 
-    var animacion1 = new TWEEN.Tween(origen).to(destino, duracion)
-    .easing(TWEEN.Easing.Sinusoidal.InOut)
-    .onUpdate(() => {
-      burbuja.position.copy(splineBurbuja1.getPoint(animacion1._object.p));
-    })
-    .repeat(Infinity)
-    .onComplete(function(){
-      origen.p = 0;
-    })
-    .delay(Math.random() * duracion)
-    .start();
+      
+      var origen = { p : 0 } ; // 0 representa el principio.
+      var destino = { p : 1 } ; // representa el final.
+      var duracion = 2500;
 
-    // -----------
+      var animacion1 = new TWEEN.Tween(origen).to(destino, duracion)
+      .easing(TWEEN.Easing.Sinusoidal.InOut)
+      .onUpdate(() => {
+        burbuja.position.copy(splineBurbuja1.getPoint(animacion1._object.p));
+      })
+      .repeat(Infinity)
+      .onComplete(function(){
+        origen.p = 0;
+      })
+      .delay(Math.random() * duracion)
+      .start();
 
-    var animacion2 = new TWEEN.Tween(origen).to(destino, duracion)
-    .easing(TWEEN.Easing.Sinusoidal.InOut)
-    .onUpdate(() => {
-      burbuja2.position.copy(splineBurbuja2.getPoint(animacion2._object.p));
-    })
-    .repeat(Infinity)
-    .onComplete(function(){
-      origen.p = 0; 
-    })
-    .delay(Math.random() * duracion)
-    .start();
+      // -----------
 
-    // -----------
+      var animacion2 = new TWEEN.Tween(origen).to(destino, duracion)
+      .easing(TWEEN.Easing.Sinusoidal.InOut)
+      .onUpdate(() => {
+        burbuja2.position.copy(splineBurbuja2.getPoint(animacion2._object.p));
+      })
+      .repeat(Infinity)
+      .onComplete(function(){
+        origen.p = 0; 
+      })
+      .delay(Math.random() * duracion)
+      .start();
 
-    var animacion3 = new TWEEN.Tween(origen).to(destino, duracion)
-    .easing(TWEEN.Easing.Sinusoidal.InOut)
-    .onUpdate(() => {
-      burbuja3.position.copy(splineBurbuja3.getPoint(animacion3._object.p));
-    })
-    .repeat(Infinity)
-    .onComplete(function(){
-      origen.p = 0; 
-    })
-    .delay(Math.random() * duracion)
-    .start();
+      // -----------
 
-    // -----------
+      var animacion3 = new TWEEN.Tween(origen).to(destino, duracion)
+      .easing(TWEEN.Easing.Sinusoidal.InOut)
+      .onUpdate(() => {
+        burbuja3.position.copy(splineBurbuja3.getPoint(animacion3._object.p));
+      })
+      .repeat(Infinity)
+      .onComplete(function(){
+        origen.p = 0; 
+      })
+      .delay(Math.random() * duracion)
+      .start();
 
-    var animacion4 = new TWEEN.Tween(origen).to(destino, duracion)
-    .easing(TWEEN.Easing.Sinusoidal.InOut)
-    .onUpdate(() => {
-      burbuja4.position.copy(splineBurbuja4.getPoint(animacion4._object.p));
-    })
-    .repeat(Infinity)
-    .onComplete(function(){
-      origen.p = 0; 
-    })
-    .delay(Math.random() * duracion)
-    .start();
+      // -----------
 
-    // Agregamos un retardo aleatorio a cada animación para que las burbujas no suban y bajen al mismo tiempo.
+      var animacion4 = new TWEEN.Tween(origen).to(destino, duracion)
+      .easing(TWEEN.Easing.Sinusoidal.InOut)
+      .onUpdate(() => {
+        burbuja4.position.copy(splineBurbuja4.getPoint(animacion4._object.p));
+      })
+      .repeat(Infinity)
+      .onComplete(function(){
+        origen.p = 0; 
+      })
+      .delay(Math.random() * duracion)
+      .start();
 
+      // Agregamos un retardo aleatorio a cada animación para que las burbujas no suban y bajen al mismo tiempo.
+    }
 
     // ----------------
 
     var contenido = new THREE.Object3D();
     contenido.add(liquido);
-    contenido.add(burbuja, burbuja2, burbuja3, burbuja4);
+    if (booleano) contenido.add(burbuja, burbuja2, burbuja3, burbuja4);
 
     // ------------ LAS ASAS ------------
     var asas_geom = new THREE.TorusGeometry(0.025, 0.007, 16, 100);
@@ -1124,6 +1135,49 @@ class Decoracion extends THREE.Object3D {
   
     return llave;
   }
+
+  createCalderoMesa(){
+    var caldero = new THREE.Object3D();
+
+    var t_color = this.texturaLoader.load('../modelos/caldero/textura/jug_Material_BaseColor.png');
+    var t_normal = this.texturaLoader.load('../modelos/caldero/textura/jug_Material_Normal.png');
+    var t_grises = this.texturaLoader.load('../modelos/caldero/textura/jug_Material_Height2.png');
+    var t_emmisive = this.texturaLoader.load('../modelos/caldero/textura/jug_Material_Emissive.png');
+
+    this.objetoLoader.load('../modelos/caldero/caldero.obj',
+    (c) => {
+        c.children[0].material = new THREE.MeshPhongMaterial({
+          map: t_color,
+          emissiveMap: t_emmisive,
+          emissiveIntensity: 3,
+          normalMap: t_normal,
+          normalScale: new THREE.Vector2(1.5,1.5)
+        });
+
+        c.scale.set(0.1,0.1,0.1);
+
+        caldero.add(c);
+    }, null, null);
+
+    return caldero;
+  }
+
+  /*createSnitch(conf){
+    var snitch = new THREE.Object3D();
+
+    this.objetoLoader.load('../modelos/snitch/snitchLow.obj',
+    (s) => {
+        s.children[0].material = new THREE.MeshPhongMaterial({emissive: '#D3BF52', emissiveIntensity: 0.25, shininess: 100});
+
+        s.scale.set(0.1,0.1,0.1);
+
+        snitch.add(s);
+    }, null, null);
+
+    snitch.name = 'snitch';
+  
+    return snitch;
+  }*/
 }
 
 export { Decoracion };

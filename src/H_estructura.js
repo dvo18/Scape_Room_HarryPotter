@@ -800,6 +800,8 @@ class H_estructura extends THREE.Object3D {
         puerta_eliminar_pared.scale.x = 1.1;
         puerta_eliminar_pared.scale.y = 1.1;
 
+        this.anchoPuerta = new THREE.Box3().setFromObject(puerta_eliminar_pared).getSize(new THREE.Vector3()).x;
+
         estructura_puerta.name = 'estructura_puerta_OBJ';
 
         return {
@@ -875,6 +877,7 @@ class H_estructura extends THREE.Object3D {
             profundidad: op.profundidad,
             alto: op.alto,
             grosor: op.grosor,
+            ancho_puerta: this.anchoPuerta,
             radio_central: op.radio_mayor,
             radio_lateral: op.radio_menor,
             rad_pilar: this.radio_pilar,
