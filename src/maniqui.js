@@ -409,6 +409,8 @@ class Maniqui extends THREE.Object3D {
         if (!this.hechizoLanzado) {
             this.hechizoLanzado = true;
 
+            escena.getObjectByName('papel2').visible = true;
+
             this.movManiqui.stop();
             this.rotManiqui.stop();
             this.balanceoBrazos.stop();
@@ -440,6 +442,12 @@ class Maniqui extends THREE.Object3D {
             esfera.material.emissiveIntensity = 0;
 
 
+            var animacionPapel = new TWEEN.Tween({p: 0}).to({p : 1}, 7500)
+                .onUpdate(() => {
+                    escena.getObjectByName('papel2').material.opacity = animacionPapel._object.p;
+                });
+
+
             var animacionEsfera = new TWEEN.Tween({p: 0, p2: 0})
                 .to({p: 300, p2: 200}, 3000)
                 .onUpdate(() => {
@@ -447,6 +455,7 @@ class Maniqui extends THREE.Object3D {
                     luz.distance = animacionEsfera._object.p2;
                     esfera.material.emissiveIntensity = animacionEsfera._object.p;
                 })
+                .chain(animacionPapel)
                 .yoyo(true)
                 .repeat(1)
                 .onComplete(() => {

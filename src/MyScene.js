@@ -25,7 +25,7 @@ class MyScene extends THREE.Scene {
     super();
 
     // Con esta variable controlamos si están las colisiones activadas o desactivadas.
-    this.colisiones = false; //true;
+    this.colisiones = true;
     this.sombras = true;
     
     this.distancia_seleccion = 5;
@@ -99,14 +99,25 @@ class MyScene extends THREE.Scene {
     // Tendremos una cámara con un control de movimiento con el ratónVector2( arrayAux[i][0], arrayAux[i][1] );
     this.createCamera ();
 
+    // -----------------------------------------------------
 
     this.decoracion = new Decoracion();
     this.decoracion.name = 'decoracion';
 
+    // -----------------------------------------------------
 
+    var textura_cielo = new THREE.TextureLoader().load("../imgs/paisaje/textura_paisaje_2.jpg");
+    var material_cielo= new THREE.MeshBasicMaterial({map: textura_cielo});
 
-    // ------------------- PAPEL -------------------
+    var cielo_geom = new THREE.PlaneGeometry(25, 20);
+    var cielo = new THREE.Mesh(cielo_geom, material_cielo);
 
+    cielo.rotateY(-90*Math.PI / 180);
+    cielo.position.x = this.dim.largo + 3;
+
+    this.add(cielo);
+
+    // ------------------- PAPEL DETRÁS DEL CUADRO -------------------
     var material_papel_antiguo = new THREE.MeshLambertMaterial({color: '#FFFFFF', map: new THREE.TextureLoader().load('../imgs/textura_papel_antiguo.jpg')});
     material_papel_antiguo.alphaMap = new THREE.TextureLoader().load('../imgs/alphas/textura_alpha_papel.jpg');
     material_papel_antiguo.transparent = true;
@@ -138,7 +149,6 @@ class MyScene extends THREE.Scene {
     this.add(silueta_papel);
 
     function setSilueta(booleano) {
-      //this.getObjectByName('silueta_papel').visible = booleano;
       silueta_papel.visible = booleano;
     }
 
@@ -151,6 +161,21 @@ class MyScene extends THREE.Scene {
     this.posicion_original_papel = new THREE.Vector3().copy(papel.position);
 
     this.add(papel);
+
+    // ------------------- PAPEL CARTEL -------------------
+    var material_papel_antiguo2 = new THREE.MeshLambertMaterial({color: '#FFFFFF', map: new THREE.TextureLoader().load('../imgs/textura_papel_antiguo2.png'), transparent: true, opacity: 0});
+    material_papel_antiguo2.alphaMap = new THREE.TextureLoader().load('../imgs/alphas/textura_alpha_papel.jpg');
+    
+    this.papel2 = new THREE.Mesh( new THREE.PlaneGeometry(0.75,0.5), material_papel_antiguo2 );
+    this.papel2.name = 'papel2';
+
+    this.papel2.position.x = -this.dim.largo/2 + this.dim.radio_lateral + 0.7;
+    this.papel2.position.y = 1.8;
+
+    // Hacemos esto porque queremos que el papel SÓLO cuando se completa el primer puzzle. 
+    this.papel2.visible = false;
+
+    this.add(this.papel2);
 
 
     // ------------------- OBJECTO RARO CONO (1) -------------------
@@ -273,46 +298,60 @@ class MyScene extends THREE.Scene {
     this.add(estanteriaIzq1, estanteriaIzq2, estanteriaDer1, estanteriaDer2);*/
 
 
-    // ------------------- MESAS Y TABURETES -------------------
+    // ------------------- MESAS, TABURETES Y ALFOMRBAS -------------------
     var ancho = 2;
     var largo = 2.5;
     var altura = 1;
 
     var mesa = this.decoracion.createMesa(ancho, largo, altura);
+    var alfombra = this.decoracion.createAlfombra(4, 3);
+
     mesa.position.x = this.dim.posX_centroArcos_array[0];
     mesa.position.z = this.dim.posV2xz_columnas_array[0].y;
+    alfombra.position.x = this.dim.posX_centroArcos_array[0];
+    alfombra.position.z = this.dim.posV2xz_columnas_array[0].y;
 
     // -----------------
 
     var mesa2 = this.decoracion.createMesa(ancho, largo, altura);
+    var alfombra2 = this.decoracion.createAlfombra(4, 3);
+
     mesa2.position.x = this.dim.posX_centroArcos_array[0];
     mesa2.position.z = -this.dim.posV2xz_columnas_array[0].y;
+
+    alfombra2.position.x = this.dim.posX_centroArcos_array[0];
+    alfombra2.position.z = -this.dim.posV2xz_columnas_array[0].y;
 
     // -----------------
 
     var mesa3 = this.decoracion.createMesa(ancho, largo, altura);
+    var alfombra3 = this.decoracion.createAlfombra(4, 3);
+
     mesa3.position.x = this.dim.posX_centroArcos_array[1];
     mesa3.position.z = this.dim.posV2xz_columnas_array[1].y;
+
+    alfombra3.position.x = this.dim.posX_centroArcos_array[1];
+    alfombra3.position.z = this.dim.posV2xz_columnas_array[1].y;
 
     // -----------------
 
     var mesa4 = this.decoracion.createMesa(ancho, largo, altura);
+    var alfombra4 = this.decoracion.createAlfombra(4, 3);
+    
     mesa4.position.x = this.dim.posX_centroArcos_array[1];
     mesa4.position.z = -this.dim.posV2xz_columnas_array[1].y;
+
+    alfombra4.position.x = this.dim.posX_centroArcos_array[1];
+    alfombra4.position.z = -this.dim.posV2xz_columnas_array[1].y;
 
     // -----------------
 
     this.add(mesa, mesa2, mesa3, mesa4);
-    
+    this.add(alfombra, alfombra2, alfombra3, alfombra4);
+
     // ------------------- SNITCH -------------------
     /*var snitch = this.decoracion.createSnitch(this.dim);
     this.add(snitch);*/
-
-
-    // ------------------- ALFOMBRA -------------------
-    var alfombra = this.decoracion.createAlfombra(3, 10);
-    alfombra.position.x = 1.5;
-    this.add(alfombra);
 
     // ------------------- CALDERO -------------------
     var caldero = this.decoracion.createCaldero();
@@ -388,18 +427,22 @@ class MyScene extends THREE.Scene {
 
     this.add(this.maniqui);
 
-    var cubo = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshLambertMaterial({color: '#FFFFFF'}));
+    // ------------------- PEDESTAL MANIQUÍ -------------------
+
+    var textura_pedestal = new THREE.TextureLoader().load("../imgs/textura_pedestal.jpg")
+    var cubo = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshLambertMaterial({color: '#FFFFFF', map: textura_pedestal}));
     var cubo2 = cubo.clone();
 
     cubo.scale.set(this.dim.radio_lateral*2,0.8,this.dim.radio_lateral);
+    cubo.position.z = this.dim.radio_lateral/2;
 
-    cubo2.scale.set(1.5,0.8,this.dim.radio_lateral*0.625*2);
-    cubo2.position.z = -this.dim.radio_lateral*0.625;
+    cubo2.scale.set(1.5,0.8,this.dim.radio_lateral);
+    cubo2.position.z = -this.dim.radio_lateral/2;
 
     cubo = new CSG().union([cubo,cubo2]).toMesh();
 
     cubo.position.x = this.dim.posV2xz_centro_HabCircular_Lateral.x;
-    cubo.position.z = this.dim.posV2xz_centro_HabCircular_Lateral.y + this.dim.radio_lateral/2;
+    cubo.position.z = this.dim.posV2xz_centro_HabCircular_Lateral.y;
     cubo.position.y = 0.4;
 
     this.add(cubo);
@@ -644,6 +687,7 @@ class MyScene extends THREE.Scene {
   }
 
   update () {
+    // ------------------------- COLISIONES -------------------------
     this.rayo_siluetas.setFromCamera(new THREE.Vector2(0,0), this.getCamera());
     this.objetos_apuntados_siluetas = this.rayo_siluetas.intersectObjects(this.objetosSeleccionables, true);
 
@@ -690,16 +734,12 @@ class MyScene extends THREE.Scene {
       this.anterior_apuntado_siluetas = null;
     }
 
-    
+    // --------------------------- PUERTA ---------------------------
 
     if (this.puerta_abierta && !this.juego_ganado && !this.animacionPuerta.isPlaying()) {
       this.juego_ganado = true;
       window.alert('La puerta se ha abierto!\n¡Has escapado!');
     }
-
-    // --------------------------------------------
-    // Realizamos un update del maniquí:
-    //this.maniqui.update();
 
     TWEEN.update();
 
@@ -755,6 +795,10 @@ class MyScene extends THREE.Scene {
             this.cameraControl.moveRight(velocidad_cam);
       }
     }
+
+    // ----------------------------------- PAPEL -----------------------------------
+    // Hacemos esto para que el papel esté continuamente mirando al personaje (nosotros).
+    this.papel2.lookAt(this.camera.getWorldPosition(new THREE.Vector3()));
 
 
     // Este método debe ser llamado cada vez que queramos visualizar la escena de nuevo.

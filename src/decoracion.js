@@ -253,11 +253,11 @@ class Decoracion extends THREE.Object3D {
   createAlfombra(ancho, largo){
     // Vamos a crear una alfombra para situarla en mitad de la sala.
     var alfombra_geom = new THREE.PlaneGeometry(ancho, largo);
-    var textura_alfombra = this.texturaLoader.load("../imgs/textura_alfombra.png");
+    var textura_alfombra = this.texturaLoader.load("../imgs/textura_alfombra_2.png");
 
-    textura_alfombra.wrapS = THREE.RepeatWrapping; // Repetir en dirección U.
-    textura_alfombra.wrapT = THREE.RepeatWrapping; // Repetir en dirección V.
-    textura_alfombra.repeat.set(2, 2);
+    // textura_alfombra.wrapS = THREE.RepeatWrapping; // Repetir en dirección U.
+    // textura_alfombra.wrapT = THREE.RepeatWrapping; // Repetir en dirección V.
+    // textura_alfombra.repeat.set(2, 2);
 
     var material = new THREE.MeshLambertMaterial({color: 0x8290D5, map: textura_alfombra});
     var alfombra = new THREE.Mesh(alfombra_geom, material);
