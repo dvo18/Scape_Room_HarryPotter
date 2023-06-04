@@ -9,7 +9,7 @@ const RESOLUCION = 32;
 const MOSTRAR_TODO = true;
 
 
-// Obtención de puntos de una forma
+// Obtención de vector de puntos de una forma
 function shapeToVector3 ( shape , num_pts = 6 ) {
     var v2 = shape.extractPoints(num_pts).shape ;
     var v3 = [];
@@ -21,6 +21,7 @@ function shapeToVector3 ( shape , num_pts = 6 ) {
     return v3 ;
 }
 
+// Marcar una textura como repetible (con espejo o no) y con cantidad de repeticiones
 function repeatTexture(texture, repeatX, repeatY, espejo=false) {
     var t = texture.clone();
 
@@ -62,6 +63,7 @@ class H_estructura extends THREE.Object3D {
 
         var tipo = 0
 
+        // Comprobación de opciones correctas
         if (! (
             opciones.hasOwnProperty('grosor') &&
             opciones.hasOwnProperty('alto') &&
@@ -115,19 +117,22 @@ class H_estructura extends THREE.Object3D {
         }
 
 
+        // Grosor que tendrá el techo para poder eliminar partes y hacer bóvedas
         this.grosor_techo = 2 * opciones.alto/3;
 
+        // Proporciones para calcular radios respecto a alturas y grosores
         this.PILAR_PROP_ALTO = 1.6;
         this.PILAR_PROP_RADIO = 1.8;
 
         this.radio_pilar = 2 * opciones.grosor;
         this.radio_base_pilar = this.radio_pilar*this.PILAR_PROP_RADIO*Math.cos(PI/4);
 
+        // Número de bóvedas que tendrá la estructura y tamaños de las mismas respecto a la longitud total de la habitación
         this.num_bovedas_pilares = 3;
         this.largo_boveda_pilares = opciones.largo - opciones.radio_menor*2 - (opciones.largo*opciones.porcentaje_pared - opciones.radio_menor) - this.radio_base_pilar*2;
         this.profundidad_boveda_pilares = opciones.profundidad/2 - opciones.radio_mayor - this.radio_base_pilar*2;
 
-        
+        // ----------------------- TEXTURAS Y COLORES -----------------------
         this.colorCaliza = '#FDD7A4';
 
         this.texturaLoader = new THREE.TextureLoader();
@@ -162,6 +167,7 @@ class H_estructura extends THREE.Object3D {
         // Suelos ('S')
         // Techos ('T')
         // Puertas ('P')
+        // Columnas ('CL')
         this.estr = {};
         this.estr.CL = [];
 
@@ -184,8 +190,8 @@ class H_estructura extends THREE.Object3D {
                     break;
             }
 
-            //this.estr.T.position.y = this.conf.alto+this.grosor_techo;
-
+            // Se añaden todos los objetos del diccionario a la escena, con respectivas restricciones de visibilidad y posiciones
+            // Las restricciones de visibilidad se han usado para poder ver el interior de la habitación durante el modelado
             for(var clave in this.estr) {
                 if (clave == 'T' && !this.techo_visible) continue;
                 else if (clave == 'CL')
@@ -205,6 +211,7 @@ class H_estructura extends THREE.Object3D {
             }
         }
 
+        // Se marca el suelo y el muro oeste como receptores de sombras (ahí estará el pensadero)
         this.estr.S.receiveShadow = true;
         this.estr.MO.receiveShadow = true;
 
@@ -214,7 +221,7 @@ class H_estructura extends THREE.Object3D {
     
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //
+    // Se hace la animación para abrir la puerta
     ////////////////////////////////////////////////////////////////////////////////////////////////
     
 
@@ -227,6 +234,7 @@ class H_estructura extends THREE.Object3D {
             destino.p = 0;
         }
 
+        // La animación dura exactamente 2 segundos
         var animacion = new TWEEN.Tween(origen).to(destino, 2000).onUpdate(() => {
             this.estr.P.children[1].rotation.y = origen.p;
         }).onComplete(() => {
@@ -238,7 +246,7 @@ class H_estructura extends THREE.Object3D {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //
+    // Se crea una sala cuadrada simple con el suelo, los muros, el techo y los roda-piés
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createSquareRoom() {
@@ -274,7 +282,7 @@ class H_estructura extends THREE.Object3D {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //
+    // Se crea una sala partiendo de la sala cuadrada simple y se añade una habitación semi-circular
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createCircularRoom() {
@@ -286,6 +294,7 @@ class H_estructura extends THREE.Object3D {
             partes[parte].position.x += -this.conf.largo/2;
         }
 
+        // Se eliminan las partes que no se quieren de cada objeto (se especifican en partes que se usarán para eliminar otras en semi-circular-room)
         this.estr.R = new CSG().subtract([this.estr.R,partes.pared_eliminar]).toMesh();
         this.estr.R = new CSG().union([this.estr.R,partes.roda_pie]).toMesh();
 
@@ -293,6 +302,7 @@ class H_estructura extends THREE.Object3D {
 
         this.estr.T = new CSG().union([this.estr.T,partes.techo]).toMesh();
 
+        // Se crea un cilindro con el que se eliminará la parte del techo que sobra
         var techo_eliminar = new THREE.Mesh( new THREE.CylinderGeometry(this.conf.radio_mayor,this.conf.radio_mayor, this.conf.largo, RESOLUCION) );
         techo_eliminar.scale.x = this.grosor_techo/this.conf.radio_mayor;
         techo_eliminar.rotation.z = PI/2;
@@ -304,18 +314,21 @@ class H_estructura extends THREE.Object3D {
 
         this.estr.MO = new CSG().union([this.estr.MO,partes.pared]).toMesh();
     
+        // Se añaden las columnas de la habitación semi-circular
         this.estr.CL.push(partes.columnas);
     }
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //
+    // Se crea una sala partiendo de la sala circular simple y se añaden dos habitaciones semi-circulares laterales
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createDoubleCircularRoom( porcentaje_pared = 0.5 ) {
         var partes1 = this.createSemiCircularRoom(this.conf.radio_menor);
         var partes2 = this.createSemiCircularRoom(this.conf.radio_menor);
 
+        // Se crean las dos habitaciones semi-circulares laterales y se posicionan en la pared según el porcentaje indicado
+        // Esto definirá si las habitaciones se posicionan más en la parte izquierda o derecha de la pared
         for (var parte in partes1) {
 
             partes1[parte].rotation.y = PI/2;
@@ -348,6 +361,7 @@ class H_estructura extends THREE.Object3D {
 
         this.createCircularRoom();
 
+        // Se añaden y eliminan las partes de las habitaciones semi-circulares laterales a la habitación principal
         this.estr.R = new CSG().subtract([this.estr.R,partes1.pared_eliminar,partes2.pared_eliminar]).toMesh();
         this.estr.R = new CSG().union([this.estr.R,partes1.roda_pie,partes2.roda_pie]).toMesh();
 
@@ -370,10 +384,11 @@ class H_estructura extends THREE.Object3D {
         this.estr.MS = new CSG().subtract([this.estr.MS,partes1.pared_eliminar]).toMesh();
         this.estr.MS = new CSG().union([this.estr.MS,partes1.pared]).toMesh();
 
-
+        // Esta será la sala final por lo que crearemos la estructura de columnas y bóvedas que se deben eliminar y añadir
         var estructura_columnas_der = this.createPillar_Vault();
         var estructura_columnas_izq = this.createPillar_Vault(1);
 
+        // Cada una de las partes que componen dicha estructura se posicionan en su lugar correspondiente
         for (var columna in estructura_columnas_der) {
             estructura_columnas_der[columna].position.z = -(this.conf.radio_mayor + this.profundidad_boveda_pilares/2 + this.radio_base_pilar);
             estructura_columnas_der[columna].position.x = this.conf.largo/2 - this.largo_boveda_pilares/2 - this.radio_base_pilar;
@@ -383,8 +398,7 @@ class H_estructura extends THREE.Object3D {
             estructura_columnas_izq[columna].position.x = this.conf.largo/2 - this.largo_boveda_pilares/2 - this.radio_base_pilar;
         }
 
-        /*this.estr.MN = new CSG().union([this.estr.MN,estructura_columnas_der.pared]).toMesh();
-        this.estr.MS = new CSG().union([this.estr.MS,estructura_columnas_izq.pared]).toMesh();*/
+        // Las paredes secundarias (o paredes falsas) se añaden, como excepción, directamente a la escena, sin pasar por el diccionario de objetos de la estructura
         this.add(estructura_columnas_der.pared);
         this.add(estructura_columnas_izq.pared);
 
@@ -400,6 +414,7 @@ class H_estructura extends THREE.Object3D {
         this.estr.CL.push(partes1.columnas);
         this.estr.CL.push(partes2.columnas);
 
+        // Se crea la puerta y se posiciona, eliminando el hueco que necesita la pared para poder pasar
         var p = this.createDoor( this.rotacion_puerta );
 
         p.puerta.rotation.y = -PI/2;
@@ -414,34 +429,40 @@ class H_estructura extends THREE.Object3D {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //
+    // Se crea una habitación con forma de semicírculo, con pared circular y techo esférico a partir de un radio
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createSemiCircularRoom( radio ) {
         var cil = new THREE.Mesh( new THREE.CylinderGeometry( radio, radio, this.conf.grosor, RESOLUCION ), new THREE.MeshMatcapMaterial() );
         cil.position.y = -this.conf.grosor/2;
 
+        // El techo es un cilindro al que se le eliminará la esfera. Ésste se escala para conseguir el grosor del techo especificado en el constructor
         var techo = cil.clone();
         techo.scale.y = this.grosor_techo/this.conf.grosor + 1; // (x+y)/y = x/y + y/y = x/y + 1
         techo.position.y = this.conf.alto + this.grosor_techo/2 + this.conf.grosor/2;
 
+        // La pared será un cilindro al que se le elimina uno menor
         var pared = new THREE.Mesh( new THREE.CylinderGeometry( radio+this.conf.grosor, radio+this.conf.grosor, this.conf.alto, RESOLUCION ), new THREE.MeshMatcapMaterial() );
         var cil_int = new THREE.Mesh( new THREE.CylinderGeometry( radio, radio, this.conf.alto, RESOLUCION ) );
         
         var p = new CSG().subtract([pared,cil_int]).toMesh();
         p.position.y = this.conf.alto/2
 
+        // Hasta ahora hemos generado formas circulares completas, para que sean semicirculares es necesario crear un cubo que ocupe la mita del mismo y eliminarlo a cada parte
         var cub = new THREE.Mesh( new THREE.BoxGeometry( radio+this.conf.grosor, this.conf.alto+2*this.conf.grosor, 2*radio+2*this.conf.grosor ) );  
         cub.position.x = (radio+this.conf.grosor)/2;
         cub.position.y = this.conf.alto/2;
 
+        // Esta pared interior se usará sólo para poder eliminar la pared y rodapie de la sala en la que se incluya
         var pared_interior = new THREE.Mesh( new THREE.BoxGeometry( 2*this.conf.grosor, this.conf.alto, 2*radio) );
         pared_interior.position.y = this.conf.alto/2;
 
+        // Esfera para formar la bóveda
         var esf_techo = new THREE.Mesh( new THREE.SphereGeometry( radio, RESOLUCION, RESOLUCION/2 ) );
         esf_techo.scale.y = this.grosor_techo/radio;
         esf_techo.position.y = this.conf.alto;
 
+        // Dos pilares en cada extremo
         var c1 = this.createPillar();
         var c2 = c1.clone();
 
@@ -452,7 +473,7 @@ class H_estructura extends THREE.Object3D {
 
         var columnas = new THREE.Object3D().add(c1,c2);
 
-
+        // El rodapie de la propia sala semi-circular
         var roda_pie = cil.clone();
         roda_pie.position.y += this.conf.grosor;
 
@@ -462,6 +483,7 @@ class H_estructura extends THREE.Object3D {
 
         roda_pie = new CSG().subtract([roda_pie,roda_pie_eliminar]).toMesh();
 
+        // Diccionario con todos los objetos a colocar y eliminar
         return {
             roda_pie: new CSG().subtract([roda_pie,cub]).toMesh(),
             suelo: new CSG().subtract([cil,cub]).toMesh(),
@@ -474,7 +496,7 @@ class H_estructura extends THREE.Object3D {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //
+    // Se crea una columna cuya base y techo son prismas
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createPillar() {
@@ -484,6 +506,7 @@ class H_estructura extends THREE.Object3D {
 
         var alto = this.conf.alto-r*this.PILAR_PROP_ALTO*2;
 
+        // Dos primas de distintas formas y radios que su unirán para formar la base y el techo
         var prisma1 = new THREE.Mesh( new THREE.CylinderGeometry(r,r*this.PILAR_PROP_RADIO,r*this.PILAR_PROP_ALTO,4), new THREE.MeshLambertMaterial({color: this.colorPared, map: this.T_columna/*repeatTexture(this.T_columna,1,3,true)*/}) );
         var prisma2 = new THREE.Mesh( new THREE.CylinderGeometry(r,this.radio_base_pilar,r*this.PILAR_PROP_ALTO,8), new THREE.MeshLambertMaterial({color: this.colorTecho, map: this.T_columna/*repeatTexture(this.T_columna,1,3,true)*/}) );
 
@@ -498,6 +521,7 @@ class H_estructura extends THREE.Object3D {
         base2.rotation.x = PI;
         base2.position.y += this.conf.alto-r*this.PILAR_PROP_ALTO;
 
+        // Forma deseada de la columna
         var colum = new THREE.Shape();
         colum.moveTo(0.1,0);
         colum.lineTo(r,0);
@@ -520,6 +544,7 @@ class H_estructura extends THREE.Object3D {
 
         var columna = new THREE.Mesh( new THREE.LatheGeometry(points, RESOLUCION, 0, Math.PI*2), new THREE.MeshMatcapMaterial() );
 
+        // Se creará un cilindro auxiliar un poco más grande para poder asignarle la textura y que se vea de forma correcta, después se une con el shape
         var cil = new THREE.Mesh( new THREE.CylinderGeometry(r+0.001,r+0.001,alto,RESOLUCION), new THREE.MeshLambertMaterial({color: '#AAAAAA', map: repeatTexture(this.T_columna,1,3,true)}) );
         cil.position.y = alto/2;
 
@@ -536,7 +561,7 @@ class H_estructura extends THREE.Object3D {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //
+    // Se crea la estructura de pilares, arcos y bóvedas
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createPillar_Vault( Izq = 0) {
@@ -547,6 +572,7 @@ class H_estructura extends THREE.Object3D {
 
         var l = this.largo_boveda_pilares / this.num_bovedas_pilares;
 
+        // Se crean los pilares y se colocan en su posición respecto al número de bóvedas que debe haber
         for (let i = 0; i<2*(this.num_bovedas_pilares+1); i++) {
             let p = pilar.clone();
 
@@ -564,6 +590,7 @@ class H_estructura extends THREE.Object3D {
 
         ////////////////////////////////////////////////
 
+        // Se crea la shape para la pared falsa o secundaria para extruirla (tiene forma parecida a M, o U invertida)
         var altura = this.radio_pilar * this.PILAR_PROP_ALTO + 2*(this.conf.alto-this.radio_pilar*this.PILAR_PROP_ALTO*2)/3 + this.radio_pilar*0.075 + this.radio_pilar/2;
 
         var pared = new THREE.Shape();
@@ -578,19 +605,20 @@ class H_estructura extends THREE.Object3D {
         pared.lineTo( -l/2, 0 );
         pared.lineTo( -l/2+this.radio_pilar/2, 0 );
 
+        // Se hace que el muro tenga el grosor suficiente para que llegue al centro de la columna y no se vean huecos
         var muro = new THREE.Mesh( new THREE.ExtrudeGeometry( pared, {
             depth: this.radio_base_pilar,
             steps: 1,
             bevelEnabled: false,
         } ), new THREE.MeshLambertMaterial({color: this.colorLadrillo, map: repeatTexture(this.T_ladrillo,0.5,0.5,true)}));
 
-        muro.position.z = -this.radio_base_pilar;
-
+        muro.position.z = -this.radio_base_pilar ;
 
         muro.position.z += -this.profundidad_boveda_pilares/2;
 
         var csg = new CSG();
 
+        // Se clona cada muro y se posiciona, y después se unen todos para formar la pared
         for (let i=0; i<this.num_bovedas_pilares; i++) {
             let m = muro.clone();
 
@@ -604,11 +632,12 @@ class H_estructura extends THREE.Object3D {
 
         ////////////////////////////////////////////////
 
+        // Definimos el camino que seguirá el arco para su extrusión
         var curva = new THREE.Shape();
         curva.moveTo( -l/2, altura );
         curva.bezierCurveTo( -l/4, this.conf.alto, /**/ l/4, this.conf.alto, /**/ l/2, altura );
 
-
+        // Se define la forma circular que tendrá el arco, la que se barrerá
         var circulo = new THREE.Shape();
         circulo.absarc(0,0,this.radio_pilar,0,PI*2,false);
 
@@ -622,6 +651,7 @@ class H_estructura extends THREE.Object3D {
 
         arco.position.z = -this.profundidad_boveda_pilares/2;
 
+        // Se clona cada arco y se posiciona
         for (let i=0; i<this.num_bovedas_pilares; i++) {
             let a = arco.clone();
 
@@ -632,6 +662,7 @@ class H_estructura extends THREE.Object3D {
         
         ////////////////////////////////////////////////
 
+        // Se crea la shape para la boveda con forma de pico y se extruye
         var ancho = l - 2*this.radio_base_pilar;
 
         var boveda = new THREE.Shape();
@@ -654,6 +685,7 @@ class H_estructura extends THREE.Object3D {
 
         var techo = new CSG();
 
+        // Se clona cada boveda y se posiciona, y después se unen todas para formar el techo que se va a eliminar
         for (let i=0; i<this.num_bovedas_pilares; i++) {
             let b = boveda_arco.clone();
 
@@ -663,6 +695,7 @@ class H_estructura extends THREE.Object3D {
             else techo.union([b]);
         }
 
+        // La bóveda con forma de pico principal, que recorre todo el largo se forma a partir de la anterior escalada y posicionada, y se une al techo
         boveda_arco.scale.z = (this.largo_boveda_pilares+this.conf.radio_menor+2*this.radio_base_pilar)/largo_boveda;
         boveda_arco.scale.x = (this.profundidad_boveda_pilares-2*this.radio_base_pilar)/ancho;
         boveda_arco.rotation.y = -PI/2;
@@ -675,6 +708,7 @@ class H_estructura extends THREE.Object3D {
 
         techo.position.y = this.conf.alto;
 
+        // Se devuelve el diccionario con las partes a añadir y eliminar
         return {
             pared: paredes,
             arcos: arcos,
@@ -685,7 +719,7 @@ class H_estructura extends THREE.Object3D {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //
+    // Se crea la puerta
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createDoor() {
@@ -695,6 +729,7 @@ class H_estructura extends THREE.Object3D {
         var ancho_puerta = 1.35;
         var alto_puerta = 2.8;
 
+        // Se parte de un cubo y con un cilindro se forma la puerta curva
         var puerta = this.createWall( ancho_puerta, alto_puerta, this.conf.grosor, new THREE.MeshLambertMaterial({color: '#AAAAAA', map: repeatTexture(this.T_puerta, 1, 1.2, true)}) );
         var cil = new THREE.Mesh( new THREE.CylinderGeometry( ancho_puerta/2, ancho_puerta/2, this.conf.grosor, RESOLUCION/2 ) );
 
@@ -709,6 +744,7 @@ class H_estructura extends THREE.Object3D {
 
         puerta = new CSG().subtract([puerta, cubo]).toMesh();
 
+        // El pomo se forma a partir de un cilindro pequeño y de un toro
         var pomo = new THREE.Mesh( new THREE.CylinderGeometry( 0.04, 0.04, 0.1, RESOLUCION/4 ), new THREE.MeshPhongMaterial({color: '#AAAAAA', map: this.T_pomo}) );
         var toro = new THREE.Mesh( new THREE.TorusGeometry( 0.1, 0.02, RESOLUCION/8, RESOLUCION/4 ), new THREE.MeshMatcapMaterial() );
 
@@ -718,6 +754,7 @@ class H_estructura extends THREE.Object3D {
 
         pomo = new CSG().union([pomo, toro]).toMesh();
 
+        // Se crea la silueta del pomo
         var silueta_pomo = pomo.clone();
         silueta_pomo.material = new THREE.MeshBasicMaterial({color: '#505050', side: THREE.BackSide});
         silueta_pomo.scale.set(1.05,1.05,1.05);
@@ -743,6 +780,7 @@ class H_estructura extends THREE.Object3D {
 
         pomo.name = 'pomo';
 
+        // Función que se asignará al objeto completo de la puerta como característica para mostrar/ocultar la silueta del pomo
         function setSilueta(booleano) {
             silueta_pomo.visible = booleano;
         }
@@ -755,7 +793,7 @@ class H_estructura extends THREE.Object3D {
 
         var ancho_marco = ancho_puerta/2+ancho_puerta/4;
 
-        // Marco de puerta
+        // Se crea la forma para el marco de puerta y se estruye
         var marco_SHAPE = new THREE.Shape();
         marco_SHAPE.moveTo( -ancho_marco, 0 ); 
         marco_SHAPE.lineTo( ancho_marco, 0 );
@@ -774,6 +812,7 @@ class H_estructura extends THREE.Object3D {
         var marco = new THREE.Mesh( new THREE.ExtrudeGeometry( marco_SHAPE, { depth: 2*this.conf.grosor, bevelThickness: 0.16, bevelSegments: 4 } ), new THREE.MeshLambertMaterial({color: '#AAAAAA', map: T_marco}) );
         marco.position.z = -this.conf.grosor;
 
+        // Se usa la puerta de forma auxiliar y escalda para eliminar la parte de la puerta que se encuentra en el marco y hacer el hueco
         puerta.position.x += ancho_puerta/2;
         var puerta_eliminar = puerta.clone();
         puerta_eliminar.scale.x = 1 + this.conf.grosor/ancho_puerta;
@@ -801,10 +840,12 @@ class H_estructura extends THREE.Object3D {
         puerta_eliminar_pared.scale.x = 1.1;
         puerta_eliminar_pared.scale.y = 1.1;
 
+        // Finalmente se crea una variable globar que toma el ancho de la puerta para poder devolverlo en el método getDimensiones()
         this.anchoPuerta = new THREE.Box3().setFromObject(puerta_eliminar_pared).getSize(new THREE.Vector3()).x;
 
         estructura_puerta.name = 'estructura_puerta_OBJ';
 
+        // Se devuelve el diciionario con la puerta y la puerta para eliminar de la pared
         return {
             puerta: estructura_puerta,
             puerta_eliminar: puerta_eliminar_pared
@@ -813,8 +854,8 @@ class H_estructura extends THREE.Object3D {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //
-
+    // Se crea el suelo de la habitación
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createFloor( largo, profundidad, grosor, material ) {
         var plano = new THREE.Mesh( new THREE.BoxGeometry(largo,grosor,profundidad), material );
@@ -826,7 +867,7 @@ class H_estructura extends THREE.Object3D {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //
+    // Se crea cada pared de la habitación
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     createWall( largo, alto, grosor, material ) {
@@ -839,14 +880,14 @@ class H_estructura extends THREE.Object3D {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //
+    // Método que devuelve las dimensiones de la habitación a modo de comunicador entre clases
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     getDimensiones() {
 
         var op = this.conf;
 
-        // TODOS estos cálculos están repetidos, pero no sería eficiente guardarlos en variables pues tendríamos muchas,
+        // TODOS estos cálculos están repetidos, pero no sería cómodo guardarlos en variables pues tendríamos muchas,
         // volvemos a calcular sólo aquellas distancias que son necesarias
 
         var anchoArcos = this.largo_boveda_pilares / this.num_bovedas_pilares;
