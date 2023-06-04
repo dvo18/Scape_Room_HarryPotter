@@ -995,11 +995,6 @@ class Decoracion extends THREE.Object3D {
     return antorcha_final;
   }
 
-  // createPedestal(){
-  //   // 
-    
-  // }
-
   createObjetoRaro1(radio, altura) {
     // ------------------- VIDEO -------------------
     this.videoElement = document.getElementById('video');
@@ -1157,23 +1152,6 @@ class Decoracion extends THREE.Object3D {
 
     return caldero;
   }
-
-  /*createSnitch(conf){
-    var snitch = new THREE.Object3D();
-
-    this.objetoLoader.load('../modelos/snitch/snitchLow.obj',
-    (s) => {
-        s.children[0].material = new THREE.MeshPhongMaterial({emissive: '#D3BF52', emissiveIntensity: 0.25, shininess: 100});
-
-        s.scale.set(0.1,0.1,0.1);
-
-        snitch.add(s);
-    }, null, null);
-
-    snitch.name = 'snitch';
-  
-    return snitch;
-  }*/
 }
 
 export { Decoracion };
