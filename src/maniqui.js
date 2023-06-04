@@ -184,6 +184,8 @@ class Maniqui extends THREE.Object3D {
         this.parteSuperior.name = 'parteSuperior'
 
         // ------------------------------------------------------
+
+        // ------------------------- SILUETA -------------------------
         var silueta_parteInferior = this.parteInferior.clone();
         silueta_parteInferior.scale.set(1.05, 1.05, 1.05);
         silueta_parteInferior.visible = false;
@@ -203,6 +205,8 @@ class Maniqui extends THREE.Object3D {
 
         this.maniqui.setSilueta = setSilueta;
         this.add(this.maniqui);
+
+        // ------------------------------------
 
         this.hechizoLanzado = false;
 
@@ -268,9 +272,9 @@ class Maniqui extends THREE.Object3D {
     createRayo(){
         var rayo = new THREE.Shape();
         rayo.moveTo(0, 0);
-        rayo.quadraticCurveTo(0.2, 0.15, /**/ 0.2, 0.35);
-        rayo.quadraticCurveTo(0.2, 0.5, /**/ 0.09, 0.85);
-        rayo.quadraticCurveTo(0.07, 0.9, /**/ 0, 1.5);
+        rayo.quadraticCurveTo(0.2, 0.15, 0.2, 0.35);
+        rayo.quadraticCurveTo(0.2, 0.5, 0.09, 0.85);
+        rayo.quadraticCurveTo(0.07, 0.9, 0, 1.5);
 
         var points = rayo.extractPoints(8).shape;
 
@@ -293,6 +297,9 @@ class Maniqui extends THREE.Object3D {
 
     // -------------------- FUNCIONES DE MOVIMIENTO --------------------
 
+    // -------------------------------------------------
+    // Funciones para crear el movimiento continuo que presenta el maniquí.
+
     movimientoManiqui(distancia){
         var origen = {p: 0.625*distancia};
         var destino = {p: -0.625*distancia};
@@ -311,6 +318,8 @@ class Maniqui extends THREE.Object3D {
             .start();
     }
 
+    // --------------------------------- 
+
     rotacionManiqui(){
         var origen = {p: -Math.PI/4};
         var destino = {p: Math.PI/4};
@@ -326,6 +335,8 @@ class Maniqui extends THREE.Object3D {
             .onComplete(() => { origen.p = -Math.PI/4; })
             .start();
     }
+
+    // -------------------------------
 
     movimientoBrazos(){
         var origen = {p: this.brazoDER.rotation.z};
@@ -360,8 +371,8 @@ class Maniqui extends THREE.Object3D {
             .start();
     }
 
-    // ---------------------------------------------------
-
+    // ------------------------------------------------------------------------
+    // Función para parar el movimiento del maniquí tras clicarle, reposicionandose correctamente:
     stopMovimientoManiqui(){
         var animacion3 = new TWEEN.Tween({p: this.brazoDER.rotation.z, p2: this.brazoDER.rotation.x})
             .to({p: 0, p2: Math.PI/4}, 1500)
@@ -369,6 +380,8 @@ class Maniqui extends THREE.Object3D {
                 this.brazoDER.rotation.z = animacion3._object.p;
                 this.brazoDER.rotation.x = animacion3._object.p2;
             });
+        
+        // ---------------------
 
         var animacion2 = new TWEEN.Tween({p: 0, p1: this.brazoDER.rotation.z, p2: /*this.brazoDER.rotation.x*/0, p2_2: this.brazoDER.rotation.x, p3: 0})
             .to({p: -Math.PI/4, p1: 0, p2: Math.PI/4, p2_2: Math.PI/4, p3: -Math.PI/6}, 1500)
@@ -380,6 +393,8 @@ class Maniqui extends THREE.Object3D {
                 this.brazoIZQ.rotation.x = animacion2._object.p2;
                 this.cabeza.rotation.x = animacion2._object.p3;
             })
+        
+        // ---------------------
 
         var animacion1_1 = new TWEEN.Tween({P: 2*Math.PI/6})
             .to({P: 0}, 75)
@@ -387,6 +402,8 @@ class Maniqui extends THREE.Object3D {
                 this.parteSuperior.rotation.y = animacion1_1._object.P;
             })
             .chain(animacion2);
+
+        // ---------------------
 
         var animacion1 = new TWEEN.Tween({p: -2*Math.PI/6})
             .to({p: 2*Math.PI/6}, 150)
@@ -396,6 +413,8 @@ class Maniqui extends THREE.Object3D {
             .yoyo(true)
             .repeat(20)
             .chain(animacion1_1);
+
+        // ---------------------
 
         var animacion = new TWEEN.Tween({p: 0})
             .to({p: -2*Math.PI/6}, 75)
@@ -407,7 +426,11 @@ class Maniqui extends THREE.Object3D {
         setTimeout(() => { animacion.start(); }, 1500);
     }
 
+    // ---------------------------------------------------------------
+    // Función para lanzar el hechizo del maniquí
+
     lanzarHechizo(escena){
+
         if (!this.hechizoLanzado) {
             this.hechizoLanzado = true;
 
@@ -422,11 +445,11 @@ class Maniqui extends THREE.Object3D {
 
             var pos = this.position;
 
+            // --------------------------------------------------
             var punto = new THREE.Vector3();
             esfera.getWorldPosition(punto);
 
             var p = new THREE.Vector3();
-            
             var rayo = this.createRayo();
 
             var luz = new THREE.PointLight('#095209', 0, 0);
@@ -434,6 +457,7 @@ class Maniqui extends THREE.Object3D {
             luz.visible = false;
             escena.add(luz);
 
+            // ----------------------------
             luz.castShadow = true;
             luz.shadow.mapSize.width = 512;
             luz.shadow.mapSize.height = 512;
@@ -443,12 +467,14 @@ class Maniqui extends THREE.Object3D {
             esfera.material.emissive = new THREE.Color('#095209');
             esfera.material.emissiveIntensity = 0;
 
+            // ---------------------
 
             var animacionPapel = new TWEEN.Tween({p: 0}).to({p : 1}, 7500)
                 .onUpdate(() => {
                     escena.getObjectByName('papel2').material.opacity = animacionPapel._object.p;
                 });
 
+            // ---------------------
 
             var animacionEsfera = new TWEEN.Tween({p: 0, p2: 0})
                 .to({p: 300, p2: 200}, 3000)
@@ -465,6 +491,7 @@ class Maniqui extends THREE.Object3D {
                     luz.visible = false;
                 });
 
+            // ---------------------
 
             var animacionHechizo = new TWEEN.Tween({var: p})
                 .to({var: punto}, 1250)
@@ -476,6 +503,8 @@ class Maniqui extends THREE.Object3D {
                     luz.visible = true;
                     rayo.visible = false;
                 });
+
+            // ---------------------
 
             var animacion3 = new TWEEN.Tween({p: 0.2, p2: 0})
                 .to({p: -(Math.PI/2-Math.atan2(pos.z,0.4)), p2: Math.PI/2 + Math.atan2(punto.y-(1.3+pos.y),pos.z)}, 1000)
@@ -501,6 +530,8 @@ class Maniqui extends THREE.Object3D {
                     setTimeout(() => { this.stopMovimientoManiqui(); }, 6000);
                 });
             
+            // ---------------------
+            
             var animacion2 = new TWEEN.Tween({p: 0})
                 .to({p: Math.PI/2+Math.PI/8}, 300)
                 .onUpdate(() => {
@@ -508,6 +539,8 @@ class Maniqui extends THREE.Object3D {
                 })
                 .delay(150)
                 .chain(animacion3);
+
+            // ---------------------    
 
             var animacion = new TWEEN.Tween({p: this.parteSuperior.rotation.y, p2: this.brazoDER.rotation.z, p3: this.brazoDER.rotation.x})
                 .to({p: 0, p2: 0.2, p3: 0}, 2000)

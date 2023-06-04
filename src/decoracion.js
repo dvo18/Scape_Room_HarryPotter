@@ -11,6 +11,7 @@ class Decoracion extends THREE.Object3D {
   constructor() {
     super();
 
+    // Creamos el material de las siluetas de los objetos.
     this.materialSilueta = new THREE.MeshBasicMaterial({color: '#505050', side: THREE.BackSide});
     
     // Creamos las variables para cargar los materiales y objetos:
@@ -96,7 +97,7 @@ class Decoracion extends THREE.Object3D {
     var espacioEntreFrascos = (largo - 0.05) / cantidadFrascos; // Espacio entre cada poción.
 
     for (var i = 0; i < cantidadPociones; i++) {
-      var colorLiquido = Math.random() * 0xFFFFFF; // Genera un número aleatorio entre 0 y 0xffffff para que las pociones tengan diferentes colores.
+      var colorLiquido = Math.random() * 0xFFFFFF; // Genera un número aleatorio entre 0 y 0xFFFFFF para que las pociones tengan diferentes colores.
       var frasco = this.createFrasco(0xD6DCDE, colorLiquido);
 
       frasco.scale.set(0.6, 0.6, 0.6);
@@ -120,20 +121,24 @@ class Decoracion extends THREE.Object3D {
     t.center.set(0.5, 0.5);
     t.rotation = Math.PI;
 
+    // -----------------------------
+    // Cargamos todos los materiales que vamos a necesitar : las texturas de cada parte del libro
     var materials = [
-      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_delantera.jpg') }), // Cara frontal
-      new THREE.MeshLambertMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_trasera.jpg') }), // Cara trasera
+      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_delantera.jpg') }),   // Cara frontal : portada
+      new THREE.MeshLambertMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_trasera.jpg') }),   // Cara trasera : contraportada
       new THREE.MeshLambertMaterial({ map: t }), // Cara superior
       new THREE.MeshLambertMaterial({ map: t2 }), // Cara inferior
-      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_canto.jpg') }), // Cara izquierda
-      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_costado_l.jpg') })  // Cara derecha
+      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_portada_canto.jpg') }),       // Cara izquierda : lomo
+      new THREE.MeshPhongMaterial({ map: this.texturaLoader.load('../imgs/libro/textura_costado_l.jpg') })            // Cara derecha : páginas
     ];
 
+    // Creamos la geometría del libro, así como su mesh final:
     var geometriaLibro = new THREE.BoxGeometry(0.15, 1, 0.75);
     geometriaLibro.materials = materials;
 
     var libro = new THREE.Mesh( geometriaLibro, materials);
 
+    // Posicionamos y añadimos al object3D final:
     libro.rotation.y = -Math.PI/2;
     libro.position.y = 0.5;
 
@@ -165,6 +170,7 @@ class Decoracion extends THREE.Object3D {
     var pata3 = pata.clone();
     var pata4 = pata.clone();
 
+    // Posicionamos cada una de las patas:
     pata.position.x = -ancho/2.5;
     pata.position.z = largo/2.5;
 
@@ -181,7 +187,7 @@ class Decoracion extends THREE.Object3D {
     mesa.position.y = altura;
 
     // ----------------- TABURETES -----------------
-
+    // Creamos los taburetes, uno a cada lado de la mesa.
     var taburete = this.createTaburete();
     var taburete2 = this.createTaburete();
 
@@ -230,7 +236,6 @@ class Decoracion extends THREE.Object3D {
     figura.position.y = altura + 0.08 + 0.23 + 0.0001;
     figura.position.z = 0.8;
 
-
     // ----- TAZA -----
     var taza = this.createCalderoMesa();
     taza.rotateY(Math.random() * 2*Math.PI);
@@ -251,7 +256,7 @@ class Decoracion extends THREE.Object3D {
   // ---------------------------------------------------------------
 
   createAlfombra(ancho, largo){
-    // Vamos a crear una alfombra para situarla en mitad de la sala.
+    // Vamos a crear una alfombra para situarla debajo de cada mesa:
     var alfombra_geom = new THREE.PlaneGeometry(ancho, largo);
     var textura_alfombra = this.texturaLoader.load("../imgs/textura_alfombra_2.png");
 
@@ -287,10 +292,12 @@ class Decoracion extends THREE.Object3D {
         taburete.add(tab); // Lo añadimos al taburete.
     }, null, null);
 
+    // Escalamos la figura para que se adecue a lo que queremos:
     taburete.scale.x = 0.0013;
     taburete.scale.y = 0.0013;
     taburete.scale.z = 0.0013;
 
+    // ------------------ RESULTADO ----------------
     var taburete_final = new THREE.Object3D().add(taburete);
 
     return taburete_final;
@@ -299,6 +306,7 @@ class Decoracion extends THREE.Object3D {
   // ---------------------------------------------------------------
 
   createFigura(){
+    // Creamos un object3D para la figura:
     var figura = new THREE.Object3D();
     var textura_figura = this.texturaLoader.load("../imgs/textura_marmol.jpg");
     var material = new THREE.MeshPhongMaterial({color: 0xFFFFFF, map: textura_figura});
@@ -318,6 +326,7 @@ class Decoracion extends THREE.Object3D {
       figura.add(cuerpo); // Lo añadimos a la figura.
     }, null, null);
 
+    // Escalamos y posicionamos la figura para que se adecue a lo que queremos:
     figura.scale.x = 0.01;
     figura.scale.y = 0.01;
     figura.scale.z = 0.01;
@@ -349,6 +358,7 @@ class Decoracion extends THREE.Object3D {
         atril.add(a); // Lo añadimos al taburete.
     }, null, null);
 
+    // Escalamos la figura para que se adecue a lo que queremos:
     atril.scale.x = 0.02;
     atril.scale.y = 0.02;
     atril.scale.z = 0.02;
@@ -376,11 +386,14 @@ class Decoracion extends THREE.Object3D {
         }, null, null);
     });
 
+    // Escalamos la figura para que se adecue a lo que queremos:
     vela.scale.x = 0.09;
     vela.scale.y = 0.09;
     vela.scale.z = 0.09;
 
     vela.rotateY(Math.PI/2);
+
+    // ------------------------------------
 
     var vela_final = new THREE.Object3D().add(vela);
 
@@ -474,6 +487,7 @@ class Decoracion extends THREE.Object3D {
         new THREE.Vector3(0.03, 0.15, 0.05)
       ]);
 
+      // --------------------
       
       var origen = { p : 0 } ; // 0 representa el principio.
       var destino = { p : 1 } ; // representa el final.
@@ -577,6 +591,7 @@ class Decoracion extends THREE.Object3D {
         }, null, null);
     });
 
+    // Escalamos la figura para que se adecue a lo que queremos:
     base.scale.x = 0.04;
     base.scale.y = 0.04;
     base.scale.z = 0.04;
@@ -682,7 +697,7 @@ class Decoracion extends THREE.Object3D {
     var tapon = new THREE.Mesh(new THREE.CylinderGeometry(0.096,0.096,0.03, 20), material3);
     tapon.position.y = altura;
 
-    // --------------
+    // ----------------------------------------
     var pocion = new THREE.Object3D();
     pocion.add(pocion_base, liquido, tapon);
     pocion.rotateY(Math.PI);
@@ -731,20 +746,21 @@ class Decoracion extends THREE.Object3D {
     cuadro_aux.position.z = 0.025;
 
     cuadro_aux.position.x = -ancho/2;
-    
 
     var cuadro_aux2 = new THREE.Object3D().add(cuadro_aux);
-    // esto se hace para poder aplicar la rotación sin que los valores de posición cambien
+    
+    // Esto se hace para poder aplicar la rotación sin que los valores de posición cambien.
     var cuadro_aux3 = new THREE.Object3D().add(cuadro_aux2);
     cuadro_aux3.position.x = ancho/2;
 
+    // ------------------------------------------
+    // Creamos la luz que queremos que enfoque al cuadro para ver qué hay detrás:
     var luz = new THREE.SpotLight(0xffffff, 1, 25, Math.PI/12, 0.325, 2);
     luz.position.set(0,largo+largo*0.5,3);
     var target = new THREE.Object3D();
     target.position.set(0,largo*0.625,0);
 
     luz.target = target;
-
     luz.visible = false;
 
     var cuadro = new THREE.Object3D().add(cuadro_aux3,luz,target);
@@ -753,16 +769,21 @@ class Decoracion extends THREE.Object3D {
     imagen_cuadro.userData = cuadro;
     silueta.userData = cuadro;
 
+    // -------------------------------------------
+    // Le colocamos una silueta a los cuadros:
     function setSilueta(booleano) {
       silueta.visible = booleano;
     }
 
     cuadro.setSilueta = setSilueta;
-    
     cuadro.name = 'cuadro';
   
+    // -----------------------
+
     return cuadro;
   }
+
+  // ---------------------------------------------------------------
 
   createPensadero(){
     // --------- TEXTURAS ---------
@@ -790,14 +811,14 @@ class Decoracion extends THREE.Object3D {
     anillo_CSG.position.y = 0.4;
 
     var liquido = new THREE.Mesh(circulo_geom, agua);
-    //liquido.scale.set(0.92,1,0.92);
     liquido.rotateX(-Math.PI/2);
     liquido.position.y = 0.6;
     liquido.name = "liquido_pensadero";
 
     liquido.receiveShadow = true;
 
-    // Creamos el objeto CSG y oepramos con él:
+    // ---------------------------------------------
+    // Creamos el objeto CSG y operamos con él:
     var cuerpo_base = new THREE.Mesh(cuerpo_geom, piedra);
     cuerpo_base = new CSG().subtract([cuerpo_base, cubo_CSG]).toMesh();
     cuerpo_base.position.y = 0.7;
@@ -807,6 +828,7 @@ class Decoracion extends THREE.Object3D {
 
     cuerpo_base.castShadow = true;
 
+    // Creamos la silueta del cuerpo del pensadero:
     var silueta_cuerpo = cuerpo_base.clone();
     silueta_cuerpo.material = this.materialSilueta;
     silueta_cuerpo.scale.set(1.025, 1.025, 1.025);
@@ -833,6 +855,7 @@ class Decoracion extends THREE.Object3D {
 
     base.castShadow = true;
 
+    // Creamos la silueta de la base del pensadero:
     var silueta_base = base.clone();
     silueta_base.material = this.materialSilueta;
     silueta_base.scale.set(1.025, 1.025, 1.025);
@@ -843,6 +866,7 @@ class Decoracion extends THREE.Object3D {
     this.pensadero.add(cuerpo, base, silueta_base);
     this.pensadero.name = "pensadero";
 
+    // Añadimos sonido al pensadero:
     var listener = new THREE.AudioListener();
     this.pensadero.add(listener);
 
@@ -857,24 +881,30 @@ class Decoracion extends THREE.Object3D {
     sound.name = "sonido";
     this.pensadero.add(sound);
 
+    // ---------------------------------------
     function setSilueta(booleano) {
       silueta_base.visible = booleano;
       silueta_cuerpo.visible = booleano;
     }
 
     this.pensadero.setSilueta = setSilueta;
-
     liquido.userData = this.pensadero;
 
+    // ---------------------------------
     return this.pensadero;
   }
 
+  // ---------------------------------------------------------------
+
   createAntorcha(especial,color_llama,color_luz,intensity,distance,decay){
+    // Creamos un object3D para la antorcha:
     var antorcha_OBJ = new THREE.Object3D();
 
     var T_metal = this.texturaLoader.load('../imgs/textura_pomo.png');
     var T_madera = this.texturaLoader.load('../imgs/textura_madera_vieja.jpg');
 
+    // ----------------------------------------------
+    // Creamos el shape que queremos que tenga nuestra antorcha:
     var antorcha = new THREE.Shape();
     antorcha.moveTo(0, 0);
     antorcha.quadraticCurveTo( 0.025, 0, 0.025, 0.05 );
@@ -884,7 +914,8 @@ class Decoracion extends THREE.Object3D {
     var points = antorcha.extractPoints(5).shape;
     antorcha = new THREE.Mesh( new THREE.LatheGeometry(points, 6), new THREE.MeshLambertMaterial({color: '#B5B5B5', map: T_madera}) );
 
-
+    // ----------------------------------------------
+    // Creamos el metal que sujeta la antorcha:
     var metal = new THREE.Mesh( new THREE.CylinderGeometry(0.08,0.08,0.1,8), new THREE.MeshLambertMaterial({color: '#FFFFFF', map: T_metal}) );
     metal.position.y = 0.65;
 
@@ -894,10 +925,12 @@ class Decoracion extends THREE.Object3D {
     cil_interno.scale.z = 1 - 0.005/0.08;
     cil_interno.position.y += 0.005;
 
+    // Creamos un CSG y operamos con él:
     var csg = new CSG();
-
     csg.subtract([metal, cil_interno]);
 
+    // ----------------------------------------------
+    // Creamos el palo que sujeta la antorcha:
     var cilindro = new THREE.Mesh( new THREE.CylinderGeometry(0.06, 0.05, 0.06, 6), new THREE.MeshLambertMaterial({color: '#FFFFFF', map: T_metal}) );
     var base = cilindro.clone();
     cilindro.position.y = 0.57;
@@ -915,6 +948,8 @@ class Decoracion extends THREE.Object3D {
 
     metal = csg.toMesh();
 
+    // ----------------------------------------------
+    // Creamos la llama de la antorcha:
     var llama = new THREE.Shape();
     llama.moveTo(0.001, 0);
     llama.bezierCurveTo( 0.07, 0, /**/ 0.07, 0.06, /**/ 0.055, 0.08 );
@@ -925,6 +960,7 @@ class Decoracion extends THREE.Object3D {
     var fuego = this.texturaLoader.load('../imgs/textura_fuego_gris.jpg');
     llama = new THREE.Mesh( new THREE.LatheGeometry(points, 16), new THREE.MeshLambertMaterial({emissive: color_llama, emissiveMap: fuego, emissiveIntensity: 2}) );
 
+    // Clonamos la llama grande para crear otras de menos tamaño y simular fuego:
     var llama1 = llama.clone();
     llama1.scale.x = 0.5;
     llama1.scale.z = 0.5;
@@ -943,6 +979,8 @@ class Decoracion extends THREE.Object3D {
     llama3.position.y += 0.005;
     llama3.position.x = 0.005;
 
+    // ------------------------
+
     llama = new CSG().union([llama,llama1,llama2,llama3]).toMesh();
 
     llama.rotation.y = Math.PI;
@@ -952,12 +990,12 @@ class Decoracion extends THREE.Object3D {
     cilindro.scale.z = 0.75;
 
     llama.rotation.z = -20 * Math.PI/180;
-
     llama.position.y = 0.6;
-
     llama.position.x = (20 * 0.025) / 20;
 
 
+    // ----------------------------------------------
+    // Creamos la luz de la antorcha:
     var luzFuego = new THREE.PointLight(color_luz, intensity, distance, decay);
     luzFuego.position.set(0,0.7,0);
     luzFuego.name = "luzFuego";
@@ -967,7 +1005,6 @@ class Decoracion extends THREE.Object3D {
     antorcha_OBJ.position.y -= 0.425;
     antorcha_OBJ.name = "antorcha_OBJ";
 
-
     var obj_aux = new THREE.Object3D();
     obj_aux.add(antorcha_OBJ);
     obj_aux.name = "antorcha";
@@ -976,6 +1013,7 @@ class Decoracion extends THREE.Object3D {
     obj_aux.position.x = 0.02;
     obj_aux.position.x += Math.sin(20*Math.PI/180)*0.425;
 
+    // --------------------------------------
 
     var cil = new THREE.Mesh( new THREE.CylinderGeometry(0.025, 0.025, Math.sin(20*Math.PI/180)*0.425, 8), new THREE.MeshLambertMaterial({color: '#FFFFFF', map: T_metal}) );
     cil.rotation.z = Math.PI/2;
@@ -995,6 +1033,10 @@ class Decoracion extends THREE.Object3D {
     return antorcha_final;
   }
 
+  // ---------------------------------------------------------------
+
+  // -------------------------- OBJETO MÁGICO --------------------------
+
   createObjetoRaro1(radio, altura) {
     // ------------------- VIDEO -------------------
     this.videoElement = document.getElementById('video');
@@ -1008,9 +1050,7 @@ class Decoracion extends THREE.Object3D {
 
     videoTexture.repeat.set( 2, 2 );
 
-
-    /////////////////////////////  /////////////////////////////
-
+    // ---------------------------------------------------------------
 
     var material_alpha = new THREE.MeshPhongMaterial({color: '#D3BF52', shininess: 100});
     material_alpha.alphaMap = this.texturaLoader.load('../imgs/alphas/textura_alpha1.jpg');
@@ -1019,7 +1059,6 @@ class Decoracion extends THREE.Object3D {
 
     var cono = new THREE.Mesh( new THREE.ConeGeometry(1.25*radio, 1.25*altura, 96), material_alpha );
     cono.position.y = altura*1.25/2;
-
 
     var material_alpha2 = new THREE.MeshToonMaterial({color: '#D3BF52'/*, shininess: 100*/});
     material_alpha2.alphaMap = this.texturaLoader.load('../imgs/alphas/textura_alpha2.jpg');
@@ -1030,6 +1069,9 @@ class Decoracion extends THREE.Object3D {
     toro.rotation.x = Math.PI/2;
 
     toro = new THREE.Object3D().add(toro);
+
+    // ----------------------------------------
+    // Creamos las diferentes animaciones que tiene el objeto mágico:
 
     var origen = {a: 0};
     var destino = {a: Math.PI*2};
@@ -1044,6 +1086,7 @@ class Decoracion extends THREE.Object3D {
     .repeat(Infinity)
     .start();
 
+    // ---------------------------
 
     var origen2 = {a: -Math.PI/8};
     var destino2 = {a: Math.PI/8};
@@ -1062,11 +1105,12 @@ class Decoracion extends THREE.Object3D {
 
     toro.position.y = 1.25*altura;
 
+    // ---------------------------------------------------------------------
+    // Creamos el material para la esfera que va a contener un video:
 
     var material_reflexion = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       map: videoTexture
-      //mapping: THREE.EquirectangularReflectionMapping
     });
 
     var esfera = new THREE.Mesh( new THREE.SphereGeometry(2*(radio+radio*0.1), 32, 32), material_reflexion );
@@ -1076,6 +1120,8 @@ class Decoracion extends THREE.Object3D {
 
     var objeto_raro = new THREE.Object3D().add(cono, toro, esfera);
     objeto_raro.name = 'objeto_raro';
+
+    // ----------------------------------------------------------
     var objeto_raro_final = new THREE.Object3D();
 
     this.materialLoader.load('../modelos/pedestal/pedestal.mtl', (materials) => {
@@ -1093,16 +1139,22 @@ class Decoracion extends THREE.Object3D {
     objeto_raro.position.y = 1.125;
 
     objeto_raro_final.add(objeto_raro);
-
     objeto_raro_final.name = "cono_raro";
+
+    // ---------------------------------------
 
     return objeto_raro_final;
   }
 
+  // ---------------------------------------------------------------
+
   createLlave(){
+    // Creamos un object3D para la llave:
     var llave = new THREE.Object3D();
     var objLoader = this.objetoLoader;
 
+    // -------------------------------
+    // Cargamos el OBJ junto con sus texturas MTL
     this.materialLoader.load('../modelos/llave/Key_01.mtl', function(materials) {
       materials.preload();
   
@@ -1118,23 +1170,30 @@ class Decoracion extends THREE.Object3D {
         });
       });
     });
-  
+    
+    // Rotamos y posicionamos correctamente la llave:
     llave.rotation.x = Math.PI / 2;
     llave.position.y = 0.009;
-
     llave.name = 'Key_01_polySurface1';
   
+    // --------------------------
+
     return llave;
   }
 
+  // ---------------------------------------------------------------
+
   createCalderoMesa(){
+    // Vamos a crear la taza de la mesa, que va a tener una luz emisiva propia:
     var caldero = new THREE.Object3D();
 
+    // -----------------------------
     var t_color = this.texturaLoader.load('../modelos/caldero/textura/jug_Material_BaseColor.png');
     var t_normal = this.texturaLoader.load('../modelos/caldero/textura/jug_Material_Normal.png');
-    var t_grises = this.texturaLoader.load('../modelos/caldero/textura/jug_Material_Height2.png');
     var t_emmisive = this.texturaLoader.load('../modelos/caldero/textura/jug_Material_Emissive.png');
 
+    // ----------------------------
+    // Cargamos el OBJ con los correspondientes materiales:
     this.objetoLoader.load('../modelos/caldero/caldero.obj',
     (c) => {
         c.children[0].material = new THREE.MeshPhongMaterial({
@@ -1150,6 +1209,8 @@ class Decoracion extends THREE.Object3D {
         caldero.add(c);
     }, null, null);
 
+    // -------------------------------------
+    
     return caldero;
   }
 }
