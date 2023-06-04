@@ -3,8 +3,6 @@
 
 import * as THREE from '../libs/three.module.js'
 import * as TWEEN from '../libs/tween.esm.js'
-import { TrackballControls } from '../libs/TrackballControls.js'
-import { FirstPersonControls } from '../libs/FirstPersonControls.js'
 import { PointerLockControls } from '../libs/PointerLockControls.js'
 
 import * as KeyCode from '../libs/keycode.esm.js'
@@ -13,8 +11,6 @@ import { H_estructura } from './H_estructura.js'
 import { Decoracion  } from './decoracion.js'
 import { Maniqui } from './maniqui.js'
 
-import { OBJLoader } from '../libs/OBJLoader.js'
-import { MTLLoader } from '../libs/MTLLoader.js'
 import { CSG } from '../libs/CSG-v2.js'
 
 
@@ -641,10 +637,6 @@ class MyScene extends THREE.Scene {
     this.add(luzAmbiente);
   }
   
-  setLightIntensity (valor) {
-    this.spotLight.intensity = valor;
-  }
-  
   createRenderer (myCanvas) {
     // Se recibe el lienzo sobre el que se van a hacer los renderizados. Un div definido en el html.
     
@@ -661,12 +653,6 @@ class MyScene extends THREE.Scene {
     $(myCanvas).append(renderer.domElement);
     
     return renderer;  
-  }
-  
-  getCamera () {
-    // En principio se devuelve la única cámara que tenemos
-    // Si hubiera varias cámaras, este método decidiría qué cámara devuelve cada vez que es consultado
-    return this.camera;
   }
   
   setCameraAspect (ratio) {
@@ -688,7 +674,7 @@ class MyScene extends THREE.Scene {
 
   update () {
     // ------------------------- COLISIONES -------------------------
-    this.rayo_siluetas.setFromCamera(new THREE.Vector2(0,0), this.getCamera());
+    this.rayo_siluetas.setFromCamera(new THREE.Vector2(0,0), this.camera);
     this.objetos_apuntados_siluetas = this.rayo_siluetas.intersectObjects(this.objetosSeleccionables, true);
 
     if (this.objetos_apuntados_siluetas.length > 0) {
@@ -761,7 +747,7 @@ class MyScene extends THREE.Scene {
       
     // --------------------------------------------
     // Le decimos al renderizador "visualiza la escena que te indico usando la cámara que te estoy pasando"
-    this.renderer.render (this, this.getCamera());
+    this.renderer.render (this, this.camera);
 
     // --------------------------------------------
     if (!this.movimiento_bloqueado) {
@@ -915,7 +901,7 @@ class MyScene extends THREE.Scene {
 
 
   onMouseDown() {
-    this.rayo_mouse.setFromCamera(new THREE.Vector2(0,0), this.getCamera());
+    this.rayo_mouse.setFromCamera(new THREE.Vector2(0,0), this.camera);
 
     var pickedObjects = this.rayo_mouse.intersectObjects(this.objetosSeleccionables, true);
 
