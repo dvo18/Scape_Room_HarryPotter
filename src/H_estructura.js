@@ -9,6 +9,7 @@ const RESOLUCION = 32;
 const MOSTRAR_TODO = true;
 
 
+// Obtención de puntos de una forma
 function shapeToVector3 ( shape , num_pts = 6 ) {
     var v2 = shape.extractPoints(num_pts).shape ;
     var v3 = [];

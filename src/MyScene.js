@@ -673,7 +673,7 @@ class MyScene extends THREE.Scene {
   }
 
   update () {
-    // ------------------------- COLISIONES -------------------------
+    // ------------------------- SILUETAS -------------------------
     this.rayo_siluetas.setFromCamera(new THREE.Vector2(0,0), this.camera);
     this.objetos_apuntados_siluetas = this.rayo_siluetas.intersectObjects(this.objetosSeleccionables, true);
 
@@ -807,9 +807,7 @@ class MyScene extends THREE.Scene {
       this.intersectados = this.rayo.intersectObjects(this.children, true);
       
       // Tener en cuenta que el vector a_donde_miro es horizontal (y = 0), lo que significa que se usará la altura
-      // que da "donde_estoy" para saber desde donde sale el rayo (además de también la x y la z de donde_estoy),
-      // también creo que no se usará el camara.getWorldPosition(), pero no estoy seguro, no se bien como van los rayos
-      // ten en cuenta que se deberá comprobar si se "detecta colisión" con alguno de los dos rayos que se van a crear:
+      // que da "donde_estoy" para saber desde donde sale el rayo (además de también la x y la z de donde_estoy):
 
       if (this.intersectados.length > 0 && this.intersectados[0].distance < 0.8)
         colision_H = true;
