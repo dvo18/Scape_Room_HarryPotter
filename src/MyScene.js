@@ -161,7 +161,6 @@ class MyScene extends THREE.Scene {
     papel.name = 'papel';
 
     this.objetosSeleccionables.push(papel);
-    console.log(num_cuadro);
 
     this.posicion_original_papel = new THREE.Vector3().copy(papel.position);
 

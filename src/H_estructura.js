@@ -207,9 +207,10 @@ class H_estructura extends THREE.Object3D {
                     cubo.position.x = this.conf.radio_menor;
                     cubo.position.y = this.conf.alto/2;
                     r = new CSG().subtract([r,cubo]).toMesh();
+                    this.add(this.estr[clave]);
                     this.add(r);
                 }
-                this.add(this.estr[clave]);
+                else this.add(this.estr[clave]);
             }
         }
 
