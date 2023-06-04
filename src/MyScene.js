@@ -853,7 +853,6 @@ class MyScene extends THREE.Scene {
 
 
   abrirCuadro(id) {
-    //this.maniqui.lanzarHechizo(/*this.maniqui*/);
     var cuadro_origen = this.getObjectById(id);
     cuadro_origen.children[1].visible = true;
 

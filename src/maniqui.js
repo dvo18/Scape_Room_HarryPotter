@@ -360,6 +360,8 @@ class Maniqui extends THREE.Object3D {
             .start();
     }
 
+    // ---------------------------------------------------
+
     stopMovimientoManiqui(){
         var animacion3 = new TWEEN.Tween({p: this.brazoDER.rotation.z, p2: this.brazoDER.rotation.x})
             .to({p: 0, p2: Math.PI/4}, 1500)

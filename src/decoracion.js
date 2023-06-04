@@ -5,6 +5,9 @@ import { MTLLoader } from '../libs/MTLLoader.js'
 import { CSG } from '../libs/CSG-v2.js' 
  
 class Decoracion extends THREE.Object3D {
+
+  // ---------------------------------------------------------------
+
   constructor() {
     super();
 
@@ -81,9 +84,6 @@ class Decoracion extends THREE.Object3D {
       var alt = Math.random() * (0.35 - 0.25) + 0.25; // Genera un número aleatorio entre 0.25 y 0.35 para que los libros tengan diferentes alturas.
       
       l.scale.y = alt;
-
-      //l.rotateY(PI);
-
       l.position.x = (i - cantidadLibros / 2 + 0.5) * espacioEntreLibros; // Posiciona las pociones en toda la estantería.
       l.position.y = 0.4;
 
@@ -254,10 +254,6 @@ class Decoracion extends THREE.Object3D {
     // Vamos a crear una alfombra para situarla en mitad de la sala.
     var alfombra_geom = new THREE.PlaneGeometry(ancho, largo);
     var textura_alfombra = this.texturaLoader.load("../imgs/textura_alfombra_2.png");
-
-    // textura_alfombra.wrapS = THREE.RepeatWrapping; // Repetir en dirección U.
-    // textura_alfombra.wrapT = THREE.RepeatWrapping; // Repetir en dirección V.
-    // textura_alfombra.repeat.set(2, 2);
 
     var material = new THREE.MeshLambertMaterial({color: 0x8290D5, map: textura_alfombra});
     var alfombra = new THREE.Mesh(alfombra_geom, material);
