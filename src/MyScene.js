@@ -26,6 +26,7 @@ class MyScene extends THREE.Scene {
     
     this.distancia_seleccion = 5;
 
+
     // ------------------ BOOLEANOS CONDICIONALES ------------------
 
     this.hechizo_lanzado = false;
@@ -36,6 +37,7 @@ class MyScene extends THREE.Scene {
     this.movimiento_bloqueado = false;
 
     this.animacionPuerta = new TWEEN.Tween();
+
     
     // ------------------ SELECCIONES ------------------
 
@@ -56,6 +58,7 @@ class MyScene extends THREE.Scene {
 
     this.rayo = new THREE.Raycaster();
     this.intersectados = [];
+
     
     // ------------------ CONTROLES ------------------
 
@@ -66,6 +69,7 @@ class MyScene extends THREE.Scene {
 
     this.altura = 2;
     this.agachado = false;
+
 
     // ------------------ LUZ ------------------
 
@@ -92,15 +96,19 @@ class MyScene extends THREE.Scene {
     this.dim = this.h_estructura.getDimensiones();
 
 
+    // ------------------ CÁMARA ------------------
+
     // Tendremos una cámara con un control de movimiento con el ratónVector2( arrayAux[i][0], arrayAux[i][1] );
     this.createCamera ();
 
-    // -----------------------------------------------------
+
+    // ------------------ LUZ ------------------
 
     this.decoracion = new Decoracion();
     this.decoracion.name = 'decoracion';
 
-    // -----------------------------------------------------
+
+    // ------------------ EXTERIOR ------------------
 
     var textura_cielo = new THREE.TextureLoader().load("../imgs/paisaje/textura_paisaje_2.jpg");
     var material_cielo= new THREE.MeshBasicMaterial({map: textura_cielo});
@@ -112,6 +120,7 @@ class MyScene extends THREE.Scene {
     cielo.position.x = this.dim.largo + 3;
 
     this.add(cielo);
+
 
     // ------------------- PAPEL DETRÁS DEL CUADRO -------------------
     var material_papel_antiguo = new THREE.MeshLambertMaterial({color: '#FFFFFF', map: new THREE.TextureLoader().load('../imgs/textura_papel_antiguo.jpg')});
@@ -157,6 +166,7 @@ class MyScene extends THREE.Scene {
     this.posicion_original_papel = new THREE.Vector3().copy(papel.position);
 
     this.add(papel);
+
 
     // ------------------- PAPEL CARTEL -------------------
     var material_papel_antiguo2 = new THREE.MeshLambertMaterial({color: '#FFFFFF', map: new THREE.TextureLoader().load('../imgs/textura_papel_antiguo2.png'), transparent: true, opacity: 0});
@@ -246,8 +256,6 @@ class MyScene extends THREE.Scene {
 
     // ------------------- ESTANTERÍAS -------------------
 
-    //var estanteria = this.decoracion.createEstanteria(this.dim.dist_anchoArcos_estanteria/2);
-
     for (let i in this.dim.posX_centroArcos_array) {
       var estanteriaIzq = this.decoracion.createEstanteria(this.dim.dist_anchoArcos_estanteria/2);//estanteria.clone();
       var estanteriaDer = this.decoracion.createEstanteria(this.dim.dist_anchoArcos_estanteria/2);//estanteria.clone();
@@ -275,26 +283,10 @@ class MyScene extends THREE.Scene {
 
       this.add(estanteriaIzq, estanteriaDer);
     }
-    
-    var estanteria = this.decoracion.createEstanteria(this.dim.dist_anchoColumnas/2);
-
-    estanteria.rotation.y = PI/2;
-    estanteria.position.x = this.dim.largo/2 - 0.3/2;
-
-    var estanteriaIzq1 = estanteria.clone();
-    var estanteriaIzq2 = estanteria.clone();
-    var estanteriaDer1 = estanteria.clone();
-    var estanteriaDer2 = estanteria.clone();
-
-    /*estanteriaIzq1.position.z = - dim.;
-    estanteriaIzq2.position.z = - (dim.rad_central + 2*dim.radio_base_pilarPrisma + dim.dist_anchoColumnas/4);
-    estanteriaDer1.position.z = dim.rad_central + 2*dim.radio_base_pilarPrisma + 3*dim.dist_anchoColumnas/4;
-    estanteriaDer2.position.z = dim.rad_central + 2*dim.radio_base_pilarPrisma + dim.dist_anchoColumnas/4;
-
-    this.add(estanteriaIzq1, estanteriaIzq2, estanteriaDer1, estanteriaDer2);*/
 
 
     // ------------------- MESAS, TABURETES Y ALFOMRBAS -------------------
+
     var ancho = 2;
     var largo = 2.5;
     var altura = 1;
@@ -345,11 +337,9 @@ class MyScene extends THREE.Scene {
     this.add(mesa, mesa2, mesa3, mesa4);
     this.add(alfombra, alfombra2, alfombra3, alfombra4);
 
-    // ------------------- SNITCH -------------------
-    /*var snitch = this.decoracion.createSnitch(this.dim);
-    this.add(snitch);*/
 
     // ------------------- CALDERO -------------------
+
     var caldero = this.decoracion.createCaldero();
     caldero.position.x = this.dim.posV2xz_centro_HabCircular_Lateral.x;
     caldero.position.z = -this.dim.posV2xz_centro_HabCircular_Lateral.y;
@@ -357,7 +347,9 @@ class MyScene extends THREE.Scene {
     caldero.scale.set(4.5, 4.5, 4.5);
     this.add(caldero);
 
+
     // ------------------- ATRILES y LIBROS-------------------
+
     // Para el atril de la parte izquierda, con el libro mostrando la portada:
     var atril = this.decoracion.createAtril();
     atril.position.x = this.dim.largo/2 - 0.8;
@@ -372,7 +364,9 @@ class MyScene extends THREE.Scene {
     libro.position.y = 1.4;
     libro.position.z = -5;
 
+
     // ---------------------------------- ANIMACIÓN ----------------------------------
+
     // Hemos hecho una animación para simular que el libro está flotando mágicamente.
     var inicio = 1.4;
     var alturaMax = inicio + 0.3; // Altura máxima a la que queremos que el libro flote.
@@ -400,6 +394,7 @@ class MyScene extends THREE.Scene {
     libro2.position.y = 1.4;
     libro2.position.z = 5;
 
+
     // ---------------------------------- ANIMACIÓN ----------------------------------
 
     var animacionFlotante = new TWEEN.Tween({ p : inicio }).to({ p : alturaMax }, 3000) 
@@ -413,7 +408,9 @@ class MyScene extends THREE.Scene {
 
     this.add(libro, libro2);
 
+
     // ------------------- MANIQUI -------------------
+
     this.maniqui = new Maniqui(this.dim.radio_lateral);
     this.maniqui.position.x = this.dim.posV2xz_centro_HabCircular_Lateral.x;
     this.maniqui.position.y = 0.8;
@@ -422,6 +419,7 @@ class MyScene extends THREE.Scene {
     this.objetosSeleccionables.push(this.maniqui);
 
     this.add(this.maniqui);
+
 
     // ------------------- PEDESTAL MANIQUÍ -------------------
 
@@ -443,7 +441,9 @@ class MyScene extends THREE.Scene {
 
     this.add(cubo);
 
+
     // ------------------- PENSADERO -------------------
+
     var pensadero = this.decoracion.createPensadero();
     pensadero.position.x = this.dim.posV2xz_centro_HabCircular_Principal.x - this.dim.rad_HabCircular_Principal/3;
     pensadero.position.z = this.dim.posV2xz_centro_HabCircular_Principal.y;
@@ -480,6 +480,7 @@ class MyScene extends THREE.Scene {
 
 
     // ------------------- FRASCOS -------------------
+
     var colorFrasco1 = 0xD6DCDE;
     var colorFrasco2 = 0xE7EBEC;
 
@@ -594,13 +595,16 @@ class MyScene extends THREE.Scene {
 
     this.add(cuadro7, cuadro8, cuadro9, cuadro10);
 
+
     // ------------------- SOMBRAS -------------------
+
     this.renderer.shadowMap.enabled = this.sombras;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    
   }
+
   
   // ---------------------------------------------------------------------
+
 
   createCamera () {
     // Para crear una cámara le indicamos
@@ -631,11 +635,13 @@ class MyScene extends THREE.Scene {
       sound.play();
     });
   }
+
   
   createLights () {
     var luzAmbiente = new THREE.AmbientLight(/*'#828282'*/'#646464', 0.4);
     this.add(luzAmbiente);
   }
+
   
   createRenderer (myCanvas) {
     // Se recibe el lienzo sobre el que se van a hacer los renderizados. Un div definido en el html.
@@ -654,6 +660,7 @@ class MyScene extends THREE.Scene {
     
     return renderer;  
   }
+
   
   setCameraAspect (ratio) {
     // Cada vez que el usuario modifica el tamaño de la ventana desde el gestor de ventanas de
@@ -663,6 +670,7 @@ class MyScene extends THREE.Scene {
     this.camera.updateProjectionMatrix();
   }
   
+
   onWindowResize () {
     // Este método es llamado cada vez que el usuario modifica el tamapo de la ventana de la aplicación
     // Hay que actualizar el ratio de aspecto de la cámara
@@ -672,8 +680,10 @@ class MyScene extends THREE.Scene {
     this.renderer.setSize (window.innerWidth, window.innerHeight);
   }
 
+
   update () {
     // ------------------------- SILUETAS -------------------------
+
     this.rayo_siluetas.setFromCamera(new THREE.Vector2(0,0), this.camera);
     this.objetos_apuntados_siluetas = this.rayo_siluetas.intersectObjects(this.objetosSeleccionables, true);
 
@@ -720,6 +730,7 @@ class MyScene extends THREE.Scene {
       this.anterior_apuntado_siluetas = null;
     }
 
+
     // --------------------------- PUERTA ---------------------------
 
     if (this.puerta_abierta && !this.juego_ganado && !this.animacionPuerta.isPlaying()) {
@@ -727,9 +738,14 @@ class MyScene extends THREE.Scene {
       window.alert('La puerta se ha abierto!\n¡Has escapado!');
     }
 
+    // --------------------------- TWEEN ---------------------------
+    
+    // Actualizamos cada animación de TWEEN
     TWEEN.update();
 
-    // --------------------------------------------
+
+    // --------------------------- ALTURA ---------------------------
+
     if (!this.movimiento_bloqueado) {
       var alto_cam, velocidad_cam;
 
@@ -745,13 +761,16 @@ class MyScene extends THREE.Scene {
       this.camera.position.y = alto_cam;
     }
       
-    // --------------------------------------------
+    // --------------------------- RENDERIZADO ---------------------------
+
     // Le decimos al renderizador "visualiza la escena que te indico usando la cámara que te estoy pasando"
     this.renderer.render (this, this.camera);
 
-    // --------------------------------------------
+
+    // ------------------ MOVIMIENTO ------------------
+
+    // Si no estamos bloqueados, comprobamos si se ha pulsado alguna tecla para movernos
     if (!this.movimiento_bloqueado) {
-      // ------------------ MOVIMIENTO ------------------
 
       if ( this.movimiento.some((valor) => valor === true) ) {
 
@@ -782,7 +801,9 @@ class MyScene extends THREE.Scene {
       }
     }
 
+
     // ----------------------------------- PAPEL -----------------------------------
+
     // Hacemos esto para que el papel esté continuamente mirando al personaje (nosotros).
     this.papel2.lookAt(this.camera.getWorldPosition(new THREE.Vector3()));
 
@@ -795,6 +816,7 @@ class MyScene extends THREE.Scene {
 
 
   // ------------------ COLISIONES ------------------
+
   testColisiona(donde_estoy,a_donde_miro) {
     if (this.colisiones) {
       var porcentaje = 0.3;
@@ -835,6 +857,8 @@ class MyScene extends THREE.Scene {
     }
   }
 
+
+  // ------------------ EVENTOS ------------------
 
   abrirCuadro(id) {
     var cuadro_origen = this.getObjectById(id);
@@ -897,6 +921,8 @@ class MyScene extends THREE.Scene {
   }
 
 
+  // ------------------ TECLAS O BOTONES PULSADOS ------------------
+
   onMouseDown() {
     this.rayo_mouse.setFromCamera(new THREE.Vector2(0,0), this.camera);
 
@@ -955,7 +981,6 @@ class MyScene extends THREE.Scene {
     }
 
   }
-
 
   onKeyDown(event) {
 
