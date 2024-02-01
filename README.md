@@ -1,4 +1,4 @@
-#Graphic-Systems-UGR
+# Graphic-Systems-UGR
 
 The Harry Potter-themed escape room game takes you on an exciting adventure in the magical world. You find yourself in a dark and mysterious place that appears to be a potions classroom at Hogwarts (the School of Witchcraft and Wizardry). The room is decorated with elements from the Harry Potter universe, such as portraits of the Hogwarts houses, potions, a large cauldron, and other magical objects.
 
