@@ -4,6 +4,6 @@ The Harry Potter-themed escape room game takes you on an exciting adventure in t
 
 The goal of the game is to complete a series of challenges that will lead you through the room, which you must overcome to find the exit.
 
-- :page_with_curl: [Documentación](https://drive.google.com/file/d/1_E8e5ybVPK1KLXbadg0fbx5cIuwB3Ptf/view?usp=drive_link)
-- :clapper: [Vídeo trailer](https://drive.google.com/file/d/1QVH3cdadgK4Cx330ue3-E9VHOYby-5Eg/view?usp=sharing)
-- :camera: [Fotos](https://drive.google.com/drive/folders/1RpGQMkKR0gpNByPefo0LE9AcAuA5yk4a?usp=sharing)
+- :page_with_curl: [Documentation](https://drive.google.com/file/d/1_E8e5ybVPK1KLXbadg0fbx5cIuwB3Ptf/view?usp=drive_link)
+- :clapper: [Teaser](https://drive.google.com/file/d/1QVH3cdadgK4Cx330ue3-E9VHOYby-5Eg/view?usp=sharing)
+- :camera: [Images](https://drive.google.com/drive/folders/1RpGQMkKR0gpNByPefo0LE9AcAuA5yk4a?usp=sharing)
